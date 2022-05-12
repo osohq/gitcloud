@@ -1,3 +1,6 @@
 .vscode/
 .make.*
 *.sqlite
+venv/
+.vim/
+.envrc
