@@ -63,10 +63,10 @@ def xfail_backend(*envs, reason=None):
 
 
 DIRECTORIES = {
-    "rails": "../backends/rails",
-    "flask-sqlalchemy": "../backends/flask-sqlalchemy",
-    "flask-sqlalchemy-oso": "../backends/flask-sqlalchemy-oso",
-    "express-typeorm": "../backends/express-typeorm",
+    "rails": "../backends/library/rails",
+    "flask-sqlalchemy": "../backends/library/flask-sqlalchemy",
+    "flask-sqlalchemy-oso": "../backends/library/flask-sqlalchemy-oso",
+    "express-typeorm": "../backends/library/express-typeorm",
 }
 
 

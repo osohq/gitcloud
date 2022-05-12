@@ -23,7 +23,7 @@ This app also uses Oso's built-in roles functionality, which you can read about
 Install dependencies, migrate and seed the database, and start the server:
 
 ```console
-$ cd backends/rails
+$ cd backends/library/rails
 $ bundle install
 $ bundle exec rails db:migrate
 $ bundle exec rails db:seed
