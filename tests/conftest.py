@@ -51,7 +51,7 @@ def ensure_port_5000_is_open(process):
 
 
 def xfail_backend(*envs, reason=None):
-    env = os.environ.get("BACKEND", "flask-sqlalchemy")
+    env = os.environ.get("BACKEND", "library/flask-sqlalchemy-oso")
     envs = envs if isinstance(envs, list) else [*envs]
 
     reason = (
@@ -62,17 +62,11 @@ def xfail_backend(*envs, reason=None):
     return pytest.mark.xfail(env in envs, reason=reason, strict=True)
 
 
-DIRECTORIES = {
-    "rails": "../backends/library/rails",
-    "flask-sqlalchemy": "../backends/library/flask-sqlalchemy",
-    "flask-sqlalchemy-oso": "../backends/library/flask-sqlalchemy-oso",
-    "express-typeorm": "../backends/library/express-typeorm",
-}
-
-
 @pytest.fixture(scope="session")
 def test_app():
-    directory = DIRECTORIES[os.getenv("BACKEND", "flask-sqlalchemy-oso")]
+    directory = os.path.join(
+        "../backends/", os.getenv("BACKEND", "library/flask-sqlalchemy-oso")
+    )
     process = subprocess.Popen(
         ["make", "test-server", "-C", directory], start_new_session=True
     )
