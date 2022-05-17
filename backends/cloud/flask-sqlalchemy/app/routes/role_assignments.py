@@ -1,15 +1,12 @@
 from flask import Blueprint, g, request, current_app, jsonify
-from sqlalchemy import column
-from werkzeug.exceptions import NotFound
 
 from ..models import Org, Repo, User, OrgRole, RepoRole
-from .helpers import session
 
 bp = Blueprint("routes.role_assignments", __name__, url_prefix="/orgs/<int:org_id>")
 
 
 @bp.route("/unassigned_users", methods=["GET"])
-@session({Org: "list_role_assignments", User: "read", OrgRole: "read"})
+# @session({Org: "list_role_assignments", User: "read", OrgRole: "read"})
 def org_unassigned_users_index(org_id):
     org = g.session.get_or_404(Org, id=org_id)
     existing = [role.user.id for role in org.roles]
@@ -19,7 +16,7 @@ def org_unassigned_users_index(org_id):
 
 # docs: begin-org-role-index
 @bp.route("/role_assignments", methods=["GET"])
-@session({Org: "list_role_assignments", User: "read", OrgRole: "read"})
+# @session({Org: "list_role_assignments", User: "read", OrgRole: "read"})
 def org_index(org_id):
     org = g.session.get_or_404(Org, id=org_id)
     # docs: begin-org-role-index-highlight
@@ -31,7 +28,7 @@ def org_index(org_id):
 
 # docs: begin-role-assignment
 @bp.route("/role_assignments", methods=["POST"])
-@session({Org: "list_role_assignments", User: "read"})
+# @session({Org: "list_role_assignments", User: "read"})
 def org_create(org_id):
     payload = request.get_json(force=True)
     org = g.session.get_or_404(Org, id=org_id)
@@ -50,7 +47,7 @@ def org_create(org_id):
 
 
 @bp.route("/role_assignments", methods=["PATCH"])
-@session({Org: "list_role_assignments", User: "read", OrgRole: "read"})
+# @session({Org: "list_role_assignments", User: "read", OrgRole: "read"})
 def org_update(org_id):
     payload = request.get_json(force=True)
     org = g.session.get_or_404(Org, id=org_id)
@@ -64,7 +61,7 @@ def org_update(org_id):
 
 
 @bp.route("/role_assignments", methods=["DELETE"])
-@session({Org: "list_role_assignments", User: "read", OrgRole: "read"})
+# @session({Org: "list_role_assignments", User: "read", OrgRole: "read"})
 def org_delete(org_id):
     payload = request.get_json(force=True)
     org = g.session.get_or_404(Org, id=org_id)
@@ -77,7 +74,7 @@ def org_delete(org_id):
 
 
 @bp.route("/repos/<int:repo_id>/unassigned_users", methods=["GET"])
-@session({Repo: "list_role_assignments", User: "read"})
+# @session({Repo: "list_role_assignments", User: "read"})
 def repo_unassigned_users_index(org_id, repo_id):
     repo = g.session.get_or_404(Repo, id=repo_id)
     current_app.oso.authorize(g.current_user, "create_role_assignments", repo)
@@ -87,7 +84,7 @@ def repo_unassigned_users_index(org_id, repo_id):
 
 
 @bp.route("/repos/<int:repo_id>/role_assignments", methods=["GET"])
-@session({Repo: "list_role_assignments", User: "read", RepoRole: "read"})
+# @session({Repo: "list_role_assignments", User: "read", RepoRole: "read"})
 def repo_index(org_id, repo_id):
     repo = g.session.get_or_404(Repo, id=repo_id)
     current_app.oso.authorize(g.current_user, "list_role_assignments", repo)
@@ -98,7 +95,7 @@ def repo_index(org_id, repo_id):
 
 
 @bp.route("/repos/<int:repo_id>/role_assignments", methods=["POST"])
-@session({Repo: "list_role_assignments", User: "read"})
+# @session({Repo: "list_role_assignments", User: "read"})
 def repo_create(org_id, repo_id):
     payload = request.get_json(force=True)
     repo = g.session.get_or_404(Repo, id=repo_id)
@@ -115,7 +112,7 @@ def repo_create(org_id, repo_id):
 
 
 @bp.route("/repos/<int:repo_id>/role_assignments", methods=["PATCH"])
-@session({Repo: "list_role_assignments", User: "read"})
+# @session({Repo: "list_role_assignments", User: "read"})
 def repo_update(org_id, repo_id):
     payload = request.get_json(force=True)
     repo = g.session.get_or_404(Repo, id=repo_id)
@@ -133,7 +130,7 @@ def repo_update(org_id, repo_id):
 
 
 @bp.route("/repos/<int:repo_id>/role_assignments", methods=["DELETE"])
-@session({Repo: "list_role_assignments", User: "read"})
+# @session({Repo: "list_role_assignments", User: "read"})
 def repo_delete(org_id, repo_id):
     payload = request.get_json(force=True)
     repo = g.session.get_or_404(Repo, id=repo_id)

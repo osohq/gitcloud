@@ -1,14 +1,13 @@
 from flask import Blueprint, g, request, jsonify
 
 from ..models import Org, Repo
-from .helpers import session
 
 bp = Blueprint("routes.repos", __name__, url_prefix="/orgs/<int:org_id>/repos")
 
 
 # docs: begin-repo-index
 @bp.route("", methods=["GET"])
-@session({Org: "list_repos", Repo: "read"})
+# @session({Org: "list_repos", Repo: "read"})
 def index(org_id):
     org = g.session.get_or_404(Org, id=org_id)
     repos = g.session.query(Repo).filter_by(org_id=org_id)
@@ -17,7 +16,7 @@ def index(org_id):
 
 
 @bp.route("", methods=["POST"])
-@session({Org: "create_repos", Repo: "read"})
+# @session({Org: "create_repos", Repo: "read"})
 def create(org_id):
     payload = request.get_json(force=True)
     org = g.session.get_or_404(Org, id=org_id)
@@ -28,7 +27,7 @@ def create(org_id):
 
 
 @bp.route("/<int:repo_id>", methods=["GET"])
-@session({Repo: "read"})
+# @session({Repo: "read"})
 def show(org_id, repo_id):
     repo = g.session.get_or_404(Repo, id=repo_id)
     return repo.repr()

@@ -1,5 +1,3 @@
-import functools
-
 from flask import g, Flask, session as flask_session
 from werkzeug.exceptions import BadRequest, Forbidden, NotFound
 
@@ -9,7 +7,7 @@ from sqlalchemy.orm import sessionmaker
 from .models import Base, User
 from .fixtures import load_fixture_data
 
-from sqlalchemy_oso import authorized_sessionmaker, SQLAlchemyOso
+from .routes import helpers
 
 
 def create_app(db_path=None, load_fixtures=False):
@@ -58,43 +56,29 @@ def create_app(db_path=None, load_fixtures=False):
         load_fixture_data(session)
         return {}
 
-    # Init session factory that SQLAlchemyOso will use to manage role data.
-    Session = sessionmaker(bind=engine)
-
-    # Init Oso.
-    init_oso(app, Session)
-
     # Create all tables via SQLAlchemy.
     Base.metadata.create_all(engine)
+
+    # Init session factory
+    Session = sessionmaker(bind=engine)
 
     # optionally load fixture data
     if load_fixtures:
         load_fixture_data(Session())
 
-    # docs: begin-authorized-session
-    # Init authorized session factory.
-    app.authorized_sessionmaker = functools.partial(
-        authorized_sessionmaker,
-        bind=engine,
-        get_oso=lambda: app.oso,
-        get_user=lambda: g.current_user,
-    )
-    # docs: end-authorized-session
-
     @app.before_request
     def set_current_user_and_session():
         flask_session.permanent = True
+        g.session = Session()
 
         # docs: begin-authn
         if "current_user" not in g:
             if "current_user_id" in flask_session:
                 user_id = flask_session.get("current_user_id")
-                session = Session()
-                user = session.query(User).filter_by(id=user_id).one_or_none()
+                user = g.session.query(User).filter_by(id=user_id).one_or_none()
                 if user is None:
                     flask_session.pop("current_user_id")
                 g.current_user = user
-                session.close()
             else:
                 g.current_user = None
         # docs: end-authn
@@ -114,18 +98,3 @@ def create_app(db_path=None, load_fixtures=False):
         return res
 
     return app
-
-
-# docs: begin-init-oso
-def init_oso(app, Session: sessionmaker):
-    # Initialize SQLAlchemyOso instance.
-    oso = SQLAlchemyOso(Base)
-    oso.forbidden_error = Forbidden
-    oso.not_found_error = NotFound
-
-    # Load authorization policy.
-    oso.load_files(["app/authorization.polar"])
-
-    # Attach SQLAlchemyOso instance to Flask application.
-    app.oso = oso
-    # docs: end-init-oso

@@ -1,8 +1,10 @@
 from flask import Blueprint, g, request, jsonify
 from flask.globals import current_app
+from oso_cloud import Oso
 
 from ..models import Repo, Issue
-from .helpers import session
+
+oso = Oso(url="http://localhost:8080", api_key="dF8wMTIzNDU2Nzg5Om9zb190ZXN0X3Rva2Vu")
 
 bp = Blueprint(
     "routes.issues",
@@ -12,15 +14,20 @@ bp = Blueprint(
 
 
 @bp.route("", methods=["GET"])
-@session({Repo: "list_issues", Issue: "read"})
 def index(org_id, repo_id):
     repo = g.session.get_or_404(Repo, id=repo_id)
-    issues = g.session.query(Issue).filter_by(repo_id=repo_id)
-    return jsonify([issue.repr() for issue in issues])
+    if oso.authorize(g.current_user, "list_issues", repo):
+        authorized_ids = oso.list(g.current_user, "read", "Issue")
+        if authorized_ids[0] == "*":
+            issues = g.session.query(Issue)
+            return jsonify([issue.repr() for issue in issues])
+        else:
+            issues = g.session.query(Issue).filter(Repo.id.in_(authorized_ids))
+            return jsonify([issue.repr() for issue in issues])
 
 
 @bp.route("", methods=["POST"])
-@session({Repo: "create_issues", Issue: "read"})
+# @session({Repo: "create_issues", Issue: "read"})
 def create(org_id, repo_id):
     payload = request.get_json(force=True)
     repo = g.session.get_or_404(Repo, id=repo_id)
@@ -32,14 +39,14 @@ def create(org_id, repo_id):
 
 
 @bp.route("/<int:issue_id>", methods=["GET"])
-@session({Issue: "read"})
+# @session({Issue: "read"})
 def show(org_id, repo_id, issue_id):
     issue = g.session.get_or_404(Issue, id=issue_id)
     return issue.repr()
 
 
 @bp.route("/<int:issue_id>/close", methods=["PUT"])
-@session({Issue: "read"})
+# @session({Issue: "read"})
 def close(org_id, repo_id, issue_id):
     issue = g.session.get_or_404(Issue, id=issue_id)
     current_app.oso.authorize(g.current_user, "close", issue)
