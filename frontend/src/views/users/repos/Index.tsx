@@ -3,6 +3,7 @@ import { Link, RouteComponentProps } from '@reach/router';
 
 import { Repo, User, UserContext } from '../../../models';
 import { userRepo as repoApi } from '../../../api';
+import { user as userApi } from '../../../api';
 import { NoticeContext } from '../../../components';
 
 type Props = RouteComponentProps & { userId?: string };
@@ -11,6 +12,12 @@ export function Index({ userId }: Props) {
   const { current: currentUser } = useContext(UserContext);
   const { redirectWithError } = useContext(NoticeContext);
   const [repos, setRepos] = useState<Repo[]>([]);
+  const [user, setUser] = useState<User>();
+
+  useEffect(() => {
+    if (!userId) return;
+    userApi.show(userId).then(setUser).catch(redirectWithError);
+  }, [currentUser, userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!userId) return;
@@ -20,13 +27,12 @@ export function Index({ userId }: Props) {
       .catch((e) => redirectWithError(`Failed to fetch repos: ${e.message}`));
   }, [currentUser, userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!(currentUser instanceof User)) return null;
-        
+  if (!userId || !user) return null;
 
   return (
     <>
       <h1>
-        <Link to={`/users/${userId}`}>{currentUser.email}</Link> repos
+        <Link to={`/users/${userId}`}>{user.email}</Link> repos
       </h1>
       <ul>
         {repos.map((r) => (
