@@ -1,6 +1,6 @@
 from flask import Blueprint, g, request, jsonify
 from flask.globals import current_app
-from werkzeug.exceptions import Forbidden
+from werkzeug.exceptions import Forbidden, NotFound
 
 from ..models import Repo, Issue
 from .helpers import oso
@@ -27,29 +27,35 @@ def index(org_id, repo_id):
 
 
 @bp.route("", methods=["POST"])
-# @session({Repo: "create_issues", Issue: "read"})
 def create(org_id, repo_id):
     payload = request.get_json(force=True)
     repo = g.session.get_or_404(Repo, id=repo_id)
+    if not oso.authorize(g.current_user, "create_issues", repo):
+        raise Forbidden
     issue = Issue(title=payload["title"], repo=repo, creator_id=g.current_user.id)
-    # check_permission("create", issue)  # TODO(gj): validation check; maybe unnecessary.
     g.session.add(issue)
     g.session.commit()
+    # TODO(gj): bulk tell
+    oso.tell("has_relation", g.current_user, "creator", issue)
+    oso.tell("has_relation", issue, "parent", repo)
     return issue.repr(), 201
 
 
 @bp.route("/<int:issue_id>", methods=["GET"])
-# @session({Issue: "read"})
 def show(org_id, repo_id, issue_id):
     issue = g.session.get_or_404(Issue, id=issue_id)
+    if not oso.authorize(g.current_user, "read", issue):
+        raise NotFound
     return issue.repr()
 
 
 @bp.route("/<int:issue_id>/close", methods=["PUT"])
-# @session({Issue: "read"})
 def close(org_id, repo_id, issue_id):
     issue = g.session.get_or_404(Issue, id=issue_id)
-    current_app.oso.authorize(g.current_user, "close", issue)
+    if not oso.authorize(g.current_user, "read", issue):
+        raise NotFound
+    if not oso.authorize(g.current_user, "close", issue):
+        raise Forbidden
     issue.closed = True
     g.session.add(issue)
     g.session.commit()
