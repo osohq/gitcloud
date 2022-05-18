@@ -1,13 +1,13 @@
+from pathlib import Path
+
 from flask import g, Flask, session as flask_session
 from werkzeug.exceptions import BadRequest, Forbidden, NotFound
-
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from .models import Base, User
 from .fixtures import load_fixture_data
-
-from .routes import helpers
+from .routes.helpers import oso
 
 
 def create_app(db_path=None, load_fixtures=False):
@@ -53,18 +53,23 @@ def create_app(db_path=None, load_fixtures=False):
         session = Session()
         Base.metadata.drop_all(bind=engine)
         Base.metadata.create_all(bind=engine)
+
+        policy = (Path(__file__).resolve().parent / "authorization.polar").resolve()
+        with open(policy) as f:
+            oso.policy(f.read())
         load_fixture_data(session)
         return {}
 
-    # Create all tables via SQLAlchemy.
-    Base.metadata.create_all(engine)
+    # # Create all tables via SQLAlchemy.
+    # Base.metadata.create_all(engine)
 
     # Init session factory
     Session = sessionmaker(bind=engine)
 
-    # optionally load fixture data
-    if load_fixtures:
-        load_fixture_data(Session())
+    # # optionally load fixture data
+    # if load_fixtures:
+    reset_data()
+    # load_fixture_data(Session())
 
     @app.before_request
     def set_current_user_and_session():

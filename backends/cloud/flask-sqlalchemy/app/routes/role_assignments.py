@@ -1,131 +1,179 @@
 from flask import Blueprint, g, request, current_app, jsonify
+from werkzeug.exceptions import Forbidden, NotFound
 
-from ..models import Org, Repo, User, OrgRole, RepoRole
+from ..models import Org, Repo, User
+from .helpers import oso
 
 bp = Blueprint("routes.role_assignments", __name__, url_prefix="/orgs/<int:org_id>")
 
 
+# TODO(gj): We're no longer checking "read" on users or roles
 @bp.route("/unassigned_users", methods=["GET"])
-# @session({Org: "list_role_assignments", User: "read", OrgRole: "read"})
 def org_unassigned_users_index(org_id):
     org = g.session.get_or_404(Org, id=org_id)
-    existing = [role.user.id for role in org.roles]
-    unassigned = g.session.query(User).filter(User.id.notin_(existing))
+    if not oso.authorize(g.current_user, "list_role_assignments", org):
+        raise Forbidden
+    existing = oso.get("has_role", User, None, org)
+    existing_ids = {e["args"][0]["id"] for e in existing}
+    unassigned = g.session.query(User).filter(User.id.notin_(existing_ids))
     return jsonify([u.repr() for u in unassigned])
 
 
-# docs: begin-org-role-index
+# TODO(gj): We're no longer checking "read" on users or roles
 @bp.route("/role_assignments", methods=["GET"])
-# @session({Org: "list_role_assignments", User: "read", OrgRole: "read"})
 def org_index(org_id):
     org = g.session.get_or_404(Org, id=org_id)
-    # docs: begin-org-role-index-highlight
-    assignments = [{"user": role.user.repr(), "role": role.name} for role in org.roles]
-    # docs: end-org-role-index-highlight
+    if not oso.authorize(g.current_user, "list_role_assignments", org):
+        raise Forbidden
+    assignments = oso.get("has_role", User, None, org)
+    assignments = {(a["args"][0]["id"], a["args"][1]["id"]) for a in assignments}
+    # TODO(gj): fetch users in bulk
+    assignments = [
+        {
+            # TODO(gj): probably possible to retrieve IDs in has_role facts for
+            # users that have been deleted in the client datastore (if only
+            # transiently since the transactional deletion of a user across
+            # client & Oso Cloud isn't currently isolated). In that case, we
+            # should guard against this query returning no results.
+            "user": g.session.get_or_404(User, id=id).repr(),
+            "role": role,
+        }
+        for (id, role) in assignments
+    ]
     return jsonify(assignments)
-    # docs: end-org-role-index
 
 
-# docs: begin-role-assignment
 @bp.route("/role_assignments", methods=["POST"])
-# @session({Org: "list_role_assignments", User: "read"})
 def org_create(org_id):
     payload = request.get_json(force=True)
     org = g.session.get_or_404(Org, id=org_id)
-    current_app.oso.authorize(g.current_user, "create_role_assignments", org)
+    if not oso.authorize(g.current_user, "list_role_assignments", org):
+        raise NotFound
+    if not oso.authorize(g.current_user, "create_role_assignments", org):
+        raise Forbidden
     user = g.session.get_or_404(User, id=payload["user_id"])
-
-    # Assign user the role in org.
-    # docs: begin-role-assignment-highlight
-    role = OrgRole(org=org, user=user, name=payload["role"])
-    g.session.add(role)
-    # docs: end-role-assignment-highlight
-    g.session.commit()
-
+    if not oso.authorize(g.current_user, "read", user):
+        raise NotFound
+    oso.tell("has_role", user, payload["role"], org)
     return {"user": user.repr(), "role": payload["role"]}, 201
-    # docs: end-role-assignment
 
 
+# TODO(gj): We're no longer checking "read" on roles -- kind of a meta 'who
+# watches the watchmen' situation for access control to managing roles via Oso
+# Cloud.
 @bp.route("/role_assignments", methods=["PATCH"])
-# @session({Org: "list_role_assignments", User: "read", OrgRole: "read"})
 def org_update(org_id):
     payload = request.get_json(force=True)
     org = g.session.get_or_404(Org, id=org_id)
-    current_app.oso.authorize(g.current_user, "update_role_assignments", org)
+    if not oso.authorize(g.current_user, "list_role_assignments", org):
+        raise NotFound
+    if not oso.authorize(g.current_user, "update_role_assignments", org):
+        raise Forbidden
     user = g.session.get_or_404(User, id=payload["user_id"])
-    role = g.session.get_or_404(OrgRole, user=user, org=org)
-    role.name = payload["role"]
-    g.session.add(role)
-    g.session.commit()
+    if not oso.authorize(g.current_user, "read", user):
+        raise NotFound
+    # TODO(gj): bulk delete
+    for role in oso.get("has_role", user, None, org):
+        role = role["args"][1]["id"]
+        oso.delete("has_role", user, role, org)
+    oso.tell("has_role", user, payload["role"], org)
     return {"user": user.repr(), "role": payload["role"]}
 
 
+# TODO(gj): We're no longer checking "read" on roles -- kind of a meta 'who
+# watches the watchmen' situation for access control to managing roles via Oso
+# Cloud.
 @bp.route("/role_assignments", methods=["DELETE"])
-# @session({Org: "list_role_assignments", User: "read", OrgRole: "read"})
 def org_delete(org_id):
     payload = request.get_json(force=True)
     org = g.session.get_or_404(Org, id=org_id)
-    current_app.oso.authorize(g.current_user, "delete_role_assignments", org)
+    if not oso.authorize(g.current_user, "list_role_assignments", org):
+        raise NotFound
+    if not oso.authorize(g.current_user, "delete_role_assignments", org):
+        raise Forbidden
     user = g.session.get_or_404(User, id=payload["user_id"])
-    role = g.session.get_or_404(OrgRole, user=user, org=org)
-    g.session.delete(role)
-    g.session.commit()
+    if not oso.authorize(g.current_user, "read", user):
+        raise NotFound
+    # TODO(gj): bulk delete
+    for role in oso.get("has_role", user, None, org):
+        role = role["args"][1]["id"]
+        oso.delete("has_role", user, role, org)
     return current_app.response_class(status=204, mimetype="application/json")
 
 
+# TODO(gj): We're no longer checking "read" on users or roles
 @bp.route("/repos/<int:repo_id>/unassigned_users", methods=["GET"])
-# @session({Repo: "list_role_assignments", User: "read"})
 def repo_unassigned_users_index(org_id, repo_id):
     repo = g.session.get_or_404(Repo, id=repo_id)
-    current_app.oso.authorize(g.current_user, "create_role_assignments", repo)
-    existing = [role.user.id for role in repo.roles]
-    unassigned = g.session.query(User).filter(User.id.notin_(existing))
+    if not oso.authorize(g.current_user, "list_role_assignments", repo):
+        raise NotFound
+    if not oso.authorize(g.current_user, "create_role_assignments", repo):
+        raise Forbidden
+    existing = oso.get("has_role", User, None, repo)
+    existing_ids = {e["args"][0]["id"] for e in existing}
+    unassigned = g.session.query(User).filter(User.id.notin_(existing_ids))
     return jsonify([u.repr() for u in unassigned])
 
 
+# TODO(gj): We're no longer checking "read" on users or roles
 @bp.route("/repos/<int:repo_id>/role_assignments", methods=["GET"])
-# @session({Repo: "list_role_assignments", User: "read", RepoRole: "read"})
 def repo_index(org_id, repo_id):
     repo = g.session.get_or_404(Repo, id=repo_id)
-    current_app.oso.authorize(g.current_user, "list_role_assignments", repo)
-    # docs: begin-org-role-index-highlight
-    assignments = [{"user": role.user.repr(), "role": role.name} for role in repo.roles]
-    # docs: end-org-role-index-highlight
+    if not oso.authorize(g.current_user, "list_role_assignments", repo):
+        raise Forbidden
+    assignments = oso.get("has_role", User, None, repo)
+    assignments = {(a["args"][0]["id"], a["args"][1]["id"]) for a in assignments}
+    # TODO(gj): fetch users in bulk
+    assignments = [
+        {
+            # TODO(gj): probably possible to retrieve IDs in has_role facts for
+            # users that have been deleted in the client datastore (if only
+            # transiently since the transactional deletion of a user across
+            # client & Oso Cloud isn't currently isolated). In that case, we
+            # should guard against this query returning no results.
+            "user": g.session.get_or_404(User, id=id).repr(),
+            "role": role,
+        }
+        for (id, role) in assignments
+    ]
     return jsonify(assignments)
 
 
 @bp.route("/repos/<int:repo_id>/role_assignments", methods=["POST"])
-# @session({Repo: "list_role_assignments", User: "read"})
 def repo_create(org_id, repo_id):
     payload = request.get_json(force=True)
     repo = g.session.get_or_404(Repo, id=repo_id)
-    current_app.oso.authorize(g.current_user, "create_role_assignments", repo)
+    if not oso.authorize(g.current_user, "list_role_assignments", repo):
+        raise NotFound
+    if not oso.authorize(g.current_user, "create_role_assignments", repo):
+        raise Forbidden
     user = g.session.get_or_404(User, id=payload["user_id"])
-
+    if not oso.authorize(g.current_user, "read", user):
+        raise NotFound
     # TODO(gj): validate that current user is allowed to assign this particular
     # role to this particular user?
-    role = RepoRole(repo=repo, user=user, name=payload["role"])
-    g.session.add(role)
-    g.session.commit()
-
+    oso.tell("has_role", user, payload["role"], repo)
     return {"user": user.repr(), "role": payload["role"]}, 201
 
 
 @bp.route("/repos/<int:repo_id>/role_assignments", methods=["PATCH"])
-# @session({Repo: "list_role_assignments", User: "read"})
 def repo_update(org_id, repo_id):
     payload = request.get_json(force=True)
     repo = g.session.get_or_404(Repo, id=repo_id)
-    current_app.oso.authorize(g.current_user, "update_role_assignments", repo)
+    if not oso.authorize(g.current_user, "list_role_assignments", repo):
+        raise NotFound
+    if not oso.authorize(g.current_user, "update_role_assignments", repo):
+        raise Forbidden
     user = g.session.get_or_404(User, id=payload["user_id"])
-
+    if not oso.authorize(g.current_user, "read", user):
+        raise NotFound
+    # TODO(gj): bulk delete
+    for role in oso.get("has_role", user, None, repo):
+        role = role["args"][1]["id"]
+        oso.delete("has_role", user, role, repo)
     # TODO(gj): validate that current user is allowed to update this particular
     # user's role to this particular role?
-    role = g.session.get_or_404(RepoRole, user=user, org=org)
-    role.name = payload["role"]
-    g.session.add(role)
-    g.session.commit()
-
+    oso.tell("has_role", user, payload["role"], repo)
     return {"user": user.repr(), "role": payload["role"]}
 
 
@@ -134,10 +182,15 @@ def repo_update(org_id, repo_id):
 def repo_delete(org_id, repo_id):
     payload = request.get_json(force=True)
     repo = g.session.get_or_404(Repo, id=repo_id)
-    current_app.oso.authorize(g.current_user, "delete_role_assignments", repo)
+    if not oso.authorize(g.current_user, "list_role_assignments", repo):
+        raise NotFound
+    if not oso.authorize(g.current_user, "delete_role_assignments", repo):
+        raise Forbidden
     user = g.session.get_or_404(User, id=payload["user_id"])
-
-    role = g.session.get_or_404(RepoRole, user=user, repo=repo)
-    g.session.delete(role)
-    g.session.commit()
+    if not oso.authorize(g.current_user, "read", user):
+        raise NotFound
+    # TODO(gj): bulk delete
+    for role in oso.get("has_role", user, None, repo):
+        role = role["args"][1]["id"]
+        oso.delete("has_role", user, role, repo)
     return current_app.response_class(status=204, mimetype="application/json")

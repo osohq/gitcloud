@@ -2,6 +2,9 @@ from typing import Any, Type
 
 from sqlalchemy.orm.session import Session
 from werkzeug.exceptions import Forbidden, NotFound
+from oso_cloud import Oso
+
+oso = Oso(url="http://localhost:8080", api_key="dF8wMTIzNDU2Nzg5Om9zb190ZXN0X3Rva2Vu")
 
 
 def get_or_raise(self, cls: Type[Any], error, **kwargs):

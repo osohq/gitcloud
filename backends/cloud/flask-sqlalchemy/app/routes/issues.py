@@ -1,10 +1,8 @@
 from flask import Blueprint, g, request, jsonify
 from flask.globals import current_app
-from oso_cloud import Oso
 
 from ..models import Repo, Issue
-
-oso = Oso(url="http://localhost:8080", api_key="dF8wMTIzNDU2Nzg5Om9zb190ZXN0X3Rva2Vu")
+from .helpers import oso
 
 bp = Blueprint(
     "routes.issues",

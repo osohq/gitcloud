@@ -1,4 +1,5 @@
-from .models import Base, Issue, Org, Repo, User, OrgRole, RepoRole
+from .models import Issue, Org, Repo, User
+from .routes.helpers import oso
 
 john_email = "john@beatles.com"
 paul_email = "paul@beatles.com"
@@ -69,36 +70,44 @@ def load_fixture_data(session):
 
     # https://github.com/osohq/oso/blob/70965f2277d7167c38d3641140e6e97dec78e3bf/languages/python/sqlalchemy-oso/tests/test_roles.py#L132-L133
     session.flush()
+    session.commit()
+    # session.close()
+
+    #################
+    # Relationships #
+    #################
+
+    for repo in repos:
+        oso.tell("has_relation", repo, "parent", repo.org)
+
+    for issue in issues:
+        oso.tell("has_relation", issue, "parent", issue.repo)
 
     ##############
     # Repo roles #
     ##############
 
-    def repo_role(user, repo, name):
-        role = RepoRole(user_id=user.id, repo_id=repo.id, name=name)
-        session.add(role)
-
-    repo_role(john, abby_road, "reader")
-    repo_role(paul, abby_road, "reader")
-    repo_role(ringo, abby_road, "maintainer")
-    repo_role(mike, paperwork, "reader")
-    repo_role(sully, paperwork, "reader")
+    repo_roles = [
+        (john, abby_road, "reader"),
+        (paul, abby_road, "reader"),
+        (ringo, abby_road, "maintainer"),
+        (mike, paperwork, "reader"),
+        (sully, paperwork, "reader"),
+    ]
+    for (user, repo, role) in repo_roles:
+        oso.tell("has_role", user, role, repo)
 
     #############
     # Org roles #
     #############
 
-    def org_role(user, org, name):
-        role = OrgRole(user_id=user.id, org_id=org.id, name=name)
-        session.add(role)
-
-    org_role(john, beatles, "owner")
-    org_role(paul, beatles, "member")
-    org_role(ringo, beatles, "member")
-    org_role(mike, monsters, "owner")
-    org_role(sully, monsters, "member")
-    org_role(randall, monsters, "member")
-
-    session.flush()
-    session.commit()
-    session.close()
+    org_roles = [
+        (john, beatles, "owner"),
+        (paul, beatles, "member"),
+        (ringo, beatles, "member"),
+        (mike, monsters, "owner"),
+        (sully, monsters, "member"),
+        (randall, monsters, "member"),
+    ]
+    for (user, org, role) in org_roles:
+        oso.tell("has_role", user, role, org)

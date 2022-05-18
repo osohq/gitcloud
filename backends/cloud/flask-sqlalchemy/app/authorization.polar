@@ -5,7 +5,7 @@ allow(actor, action, resource) if
 has_permission(_: User, "read", _: User);
 
 # A User can read their own profile.
-has_permission(_: User{id: id}, "read_profile", _:User{id: id});
+has_permission(user: User, "read_profile", user: User);
 
 # Any logged-in user can create a new org.
 has_permission(_: User, "create", _: Org);
@@ -38,10 +38,6 @@ resource Org {
   "member" if "owner";
 }
 
-has_role(user: User, name: String, org: Org) if
-    role in user.org_roles and
-    role matches { name: name, org_id: org.id };
-
 resource Repo {
   roles = ["admin", "maintainer", "reader"];
   permissions = [
@@ -71,12 +67,6 @@ resource Repo {
   "reader" if "maintainer";
 }
 
-has_role(user: User, name: String, repo: Repo) if
-    role in user.repo_roles and
-    role matches { name: name, repo_id: repo.id };
-
-has_relation(org: Org, "parent", repo: Repo) if repo.org = org;
-
 resource Issue {
   roles = ["creator"];
   permissions = ["read", "close"];
@@ -86,23 +76,14 @@ resource Issue {
   "close" if "creator";
 }
 
-has_relation(repo: Repo, "parent", issue: Issue) if issue.repo = repo;
-
-has_role(user: User, "creator", issue: Issue) if
-    issue.creator_id = user.id;
-
-resource OrgRole {
-  permissions = ["read"];
-  relations = { org: Org };
-  "read" if "list_role_assignments" on "org";
-}
-
-has_relation(org: Org, "org", role: OrgRole) if org = role.org;
-
-resource RepoRole {
-  permissions = ["read"];
-  relations = { repo: Repo };
-  "read" if "list_role_assignments" on "repo";
-}
-
-has_relation(repo: Repo, "repo", role: RepoRole) if repo = role.repo;
+# resource OrgRole {
+#   permissions = ["read"];
+#   relations = { org: Org };
+#   "read" if "list_role_assignments" on "org";
+# }
+#
+# resource RepoRole {
+#   permissions = ["read"];
+#   relations = { repo: Repo };
+#   "read" if "list_role_assignments" on "repo";
+# }
