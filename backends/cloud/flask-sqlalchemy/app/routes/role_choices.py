@@ -1,6 +1,4 @@
-from flask import Blueprint, current_app, jsonify
-
-from ..models import Org, Repo
+from flask import Blueprint, jsonify
 
 bp = Blueprint("routes.role_choices", __name__)
 
