@@ -1,34 +1,38 @@
-from flask import Blueprint, g, request, current_app, jsonify
+from flask import Blueprint, g, request, jsonify
+from werkzeug.exceptions import Forbidden, NotFound
 
-from ..models import Org, OrgRole
+from ..models import Org
+from .helpers import oso
 
 bp = Blueprint("routes.orgs", __name__, url_prefix="/orgs")
 
 
 @bp.route("", methods=["GET"])
-# @session(checked_permissions={Org: "read"})
 def index():
-    return jsonify([o.repr() for o in g.session.query(Org)])
+    authorized_ids = oso.list(g.current_user, "read", "Org")
+    if authorized_ids[0] == "*":
+        orgs = g.session.query(Org)
+        return jsonify([o.repr() for o in orgs])
+    else:
+        orgs = g.session.query(Org).filter(Org.id.in_(authorized_ids))
+        return jsonify([o.repr() for o in orgs])
 
 
 @bp.route("", methods=["POST"])
-# @session(checked_permissions=None)
 def create():
     payload = request.get_json(force=True)
     org = Org(**payload)
-    current_app.oso.authorize(g.current_user, "create", org, check_read=False)
-
+    if not oso.authorize(g.current_user, "create", org):
+        raise Forbidden
     g.session.add(org)
-    org = g.session.get_or_404(Org, **payload)
-    role = OrgRole(org=org, user=g.current_user, name="owner")
-    g.session.add(role)
-    g.session.flush()  # NOTE(gj): load-bearing flush.
     g.session.commit()
+    oso.tell("has_role", g.current_user, "owner", org)
     return org.repr(), 201
 
 
 @bp.route("/<int:org_id>", methods=["GET"])
-# @session({Org: "read"})
 def show(org_id):
     org = g.session.get_or_404(Org, id=org_id)
+    if not oso.authorize(g.current_user, "read", org):
+        raise NotFound
     return org.repr()

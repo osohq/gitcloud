@@ -1,5 +1,6 @@
 from flask import Blueprint, g, request, jsonify
 from flask.globals import current_app
+from werkzeug.exceptions import Forbidden
 
 from ..models import Repo, Issue
 from .helpers import oso
@@ -14,14 +15,15 @@ bp = Blueprint(
 @bp.route("", methods=["GET"])
 def index(org_id, repo_id):
     repo = g.session.get_or_404(Repo, id=repo_id)
-    if oso.authorize(g.current_user, "list_issues", repo):
-        authorized_ids = oso.list(g.current_user, "read", "Issue")
-        if authorized_ids[0] == "*":
-            issues = g.session.query(Issue)
-            return jsonify([issue.repr() for issue in issues])
-        else:
-            issues = g.session.query(Issue).filter(Repo.id.in_(authorized_ids))
-            return jsonify([issue.repr() for issue in issues])
+    if not oso.authorize(g.current_user, "list_issues", repo):
+        raise Forbidden
+    authorized_ids = oso.list(g.current_user, "read", "Issue")
+    if authorized_ids[0] == "*":
+        issues = g.session.query(Issue)
+        return jsonify([issue.repr() for issue in issues])
+    else:
+        issues = g.session.query(Issue).filter(Issue.id.in_(authorized_ids))
+        return jsonify([issue.repr() for issue in issues])
 
 
 @bp.route("", methods=["POST"])
