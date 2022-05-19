@@ -1,10 +1,23 @@
-from typing import Any, Type
+from flask import g
+from typing import Any, List, Type
 
 from sqlalchemy.orm.session import Session
 from werkzeug.exceptions import Forbidden, NotFound
 from oso_cloud import Oso
 
 oso = Oso(url="http://localhost:8080", api_key="dF8wMTIzNDU2Nzg5Om9zb190ZXN0X3Rva2Vu")
+
+
+def authorize(action: str, resource: Any) -> bool:
+    if g.current_user is None:
+        return False
+    return oso.authorize(g.current_user, action, resource)
+
+
+def authorized_resources(action: str, resource_type: str) -> List[str]:
+    if g.current_user is None:
+        return []
+    return oso.list(g.current_user, action, resource_type)
 
 
 def get_or_raise(self, cls: Type[Any], error, **kwargs):

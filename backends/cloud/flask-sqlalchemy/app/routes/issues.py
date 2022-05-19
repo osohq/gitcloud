@@ -1,9 +1,8 @@
 from flask import Blueprint, g, request, jsonify
-from flask.globals import current_app
 from werkzeug.exceptions import Forbidden, NotFound
 
 from ..models import Repo, Issue
-from .helpers import oso
+from .helpers import authorize, authorized_resources, oso
 
 bp = Blueprint(
     "routes.issues",
@@ -15,9 +14,9 @@ bp = Blueprint(
 @bp.route("", methods=["GET"])
 def index(org_id, repo_id):
     repo = g.session.get_or_404(Repo, id=repo_id)
-    if not oso.authorize(g.current_user, "list_issues", repo):
+    if not authorize("list_issues", repo):
         raise Forbidden
-    authorized_ids = oso.list(g.current_user, "read", "Issue")
+    authorized_ids = authorized_resources("read", "Issue")
     if authorized_ids[0] == "*":
         issues = g.session.query(Issue)
         return jsonify([issue.repr() for issue in issues])
@@ -30,7 +29,7 @@ def index(org_id, repo_id):
 def create(org_id, repo_id):
     payload = request.get_json(force=True)
     repo = g.session.get_or_404(Repo, id=repo_id)
-    if not oso.authorize(g.current_user, "create_issues", repo):
+    if not authorize("create_issues", repo):
         raise Forbidden
     issue = Issue(title=payload["title"], repo=repo, creator_id=g.current_user.id)
     g.session.add(issue)
@@ -44,7 +43,7 @@ def create(org_id, repo_id):
 @bp.route("/<int:issue_id>", methods=["GET"])
 def show(org_id, repo_id, issue_id):
     issue = g.session.get_or_404(Issue, id=issue_id)
-    if not oso.authorize(g.current_user, "read", issue):
+    if not authorize("read", issue):
         raise NotFound
     return issue.repr()
 
@@ -52,9 +51,9 @@ def show(org_id, repo_id, issue_id):
 @bp.route("/<int:issue_id>/close", methods=["PUT"])
 def close(org_id, repo_id, issue_id):
     issue = g.session.get_or_404(Issue, id=issue_id)
-    if not oso.authorize(g.current_user, "read", issue):
+    if not authorize("read", issue):
         raise NotFound
-    if not oso.authorize(g.current_user, "close", issue):
+    if not authorize("close", issue):
         raise Forbidden
     issue.closed = True
     g.session.add(issue)

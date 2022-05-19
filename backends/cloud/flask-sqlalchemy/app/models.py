@@ -34,7 +34,6 @@ class User(Base):
         return {"id": self.id, "email": self.email}
 
 
-# docs: begin-repo-model
 class Repo(Base):
     __tablename__ = "repos"
 
@@ -43,15 +42,12 @@ class Repo(Base):
 
     # many-to-one relationship with orgs
     org_id = Column(Integer, ForeignKey("orgs.id"))
-    # docs: begin-repo-model-highlight
     org = relationship("Org", backref=backref("repos", lazy=False), lazy=False)
-    # docs: end-repo-model-highlight
 
     unique_name_in_org = UniqueConstraint(name, org_id)
 
     def repr(self):
         return {"id": self.id, "name": self.name}
-        # docs: end-repo-model
 
 
 class Issue(Base):
@@ -69,29 +65,3 @@ class Issue(Base):
 
     def repr(self):
         return {"id": self.id, "title": self.title}
-
-
-class OrgRole(Base):
-    __tablename__ = "org_roles"
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    org_id = Column(Integer, ForeignKey("orgs.id"), nullable=False)
-    user = relationship("User", backref=backref("org_roles", lazy=False), lazy=False)
-    org = relationship("Org", backref=backref("roles", lazy=False), lazy=False)
-    name = Column(String, index=True)
-
-    def repr(self):
-        return {"user_id": self.user_id, "org_id": self.org_id, "name": self.name}
-
-
-class RepoRole(Base):
-    __tablename__ = "repo_roles"
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    repo_id = Column(Integer, ForeignKey("repos.id"), nullable=False)
-    user = relationship("User", backref=backref("repo_roles", lazy=False), lazy=False)
-    repo = relationship("Repo", backref=backref("roles", lazy=False), lazy=False)
-    name = Column(String, index=True)
-
-    def repr(self):
-        return {"user_id": self.user_id, "repo_id": self.repo_id, "name": self.name}

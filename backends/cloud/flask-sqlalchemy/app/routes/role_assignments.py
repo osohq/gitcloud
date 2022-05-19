@@ -2,7 +2,7 @@ from flask import Blueprint, g, request, current_app, jsonify
 from werkzeug.exceptions import Forbidden, NotFound
 
 from ..models import Org, Repo, User
-from .helpers import oso
+from .helpers import authorize, authorized_resources, oso
 
 bp = Blueprint("routes.role_assignments", __name__, url_prefix="/orgs/<int:org_id>")
 
@@ -11,7 +11,7 @@ bp = Blueprint("routes.role_assignments", __name__, url_prefix="/orgs/<int:org_i
 @bp.route("/unassigned_users", methods=["GET"])
 def org_unassigned_users_index(org_id):
     org = g.session.get_or_404(Org, id=org_id)
-    if not oso.authorize(g.current_user, "list_role_assignments", org):
+    if not authorize("list_role_assignments", org):
         raise Forbidden
     existing = oso.get("has_role", User, None, org)
     existing_ids = {e["args"][0]["id"] for e in existing}
@@ -23,7 +23,7 @@ def org_unassigned_users_index(org_id):
 @bp.route("/role_assignments", methods=["GET"])
 def org_index(org_id):
     org = g.session.get_or_404(Org, id=org_id)
-    if not oso.authorize(g.current_user, "list_role_assignments", org):
+    if not authorize("list_role_assignments", org):
         raise Forbidden
     assignments = oso.get("has_role", User, None, org)
     assignments = {(a["args"][0]["id"], a["args"][1]["id"]) for a in assignments}
@@ -47,12 +47,12 @@ def org_index(org_id):
 def org_create(org_id):
     payload = request.get_json(force=True)
     org = g.session.get_or_404(Org, id=org_id)
-    if not oso.authorize(g.current_user, "list_role_assignments", org):
+    if not authorize("list_role_assignments", org):
         raise NotFound
-    if not oso.authorize(g.current_user, "create_role_assignments", org):
+    if not authorize("create_role_assignments", org):
         raise Forbidden
     user = g.session.get_or_404(User, id=payload["user_id"])
-    if not oso.authorize(g.current_user, "read", user):
+    if not authorize("read", user):
         raise NotFound
     oso.tell("has_role", user, payload["role"], org)
     return {"user": user.repr(), "role": payload["role"]}, 201
@@ -65,12 +65,12 @@ def org_create(org_id):
 def org_update(org_id):
     payload = request.get_json(force=True)
     org = g.session.get_or_404(Org, id=org_id)
-    if not oso.authorize(g.current_user, "list_role_assignments", org):
+    if not authorize("list_role_assignments", org):
         raise NotFound
-    if not oso.authorize(g.current_user, "update_role_assignments", org):
+    if not authorize("update_role_assignments", org):
         raise Forbidden
     user = g.session.get_or_404(User, id=payload["user_id"])
-    if not oso.authorize(g.current_user, "read", user):
+    if not authorize("read", user):
         raise NotFound
     # TODO(gj): bulk delete
     for role in oso.get("has_role", user, None, org):
@@ -87,12 +87,12 @@ def org_update(org_id):
 def org_delete(org_id):
     payload = request.get_json(force=True)
     org = g.session.get_or_404(Org, id=org_id)
-    if not oso.authorize(g.current_user, "list_role_assignments", org):
+    if not authorize("list_role_assignments", org):
         raise NotFound
-    if not oso.authorize(g.current_user, "delete_role_assignments", org):
+    if not authorize("delete_role_assignments", org):
         raise Forbidden
     user = g.session.get_or_404(User, id=payload["user_id"])
-    if not oso.authorize(g.current_user, "read", user):
+    if not authorize("read", user):
         raise NotFound
     # TODO(gj): bulk delete
     for role in oso.get("has_role", user, None, org):
@@ -105,9 +105,9 @@ def org_delete(org_id):
 @bp.route("/repos/<int:repo_id>/unassigned_users", methods=["GET"])
 def repo_unassigned_users_index(org_id, repo_id):
     repo = g.session.get_or_404(Repo, id=repo_id)
-    if not oso.authorize(g.current_user, "list_role_assignments", repo):
+    if not authorize("list_role_assignments", repo):
         raise NotFound
-    if not oso.authorize(g.current_user, "create_role_assignments", repo):
+    if not authorize("create_role_assignments", repo):
         raise Forbidden
     existing = oso.get("has_role", User, None, repo)
     existing_ids = {e["args"][0]["id"] for e in existing}
@@ -119,7 +119,7 @@ def repo_unassigned_users_index(org_id, repo_id):
 @bp.route("/repos/<int:repo_id>/role_assignments", methods=["GET"])
 def repo_index(org_id, repo_id):
     repo = g.session.get_or_404(Repo, id=repo_id)
-    if not oso.authorize(g.current_user, "list_role_assignments", repo):
+    if not authorize("list_role_assignments", repo):
         raise Forbidden
     assignments = oso.get("has_role", User, None, repo)
     assignments = {(a["args"][0]["id"], a["args"][1]["id"]) for a in assignments}
@@ -143,12 +143,12 @@ def repo_index(org_id, repo_id):
 def repo_create(org_id, repo_id):
     payload = request.get_json(force=True)
     repo = g.session.get_or_404(Repo, id=repo_id)
-    if not oso.authorize(g.current_user, "list_role_assignments", repo):
+    if not authorize("list_role_assignments", repo):
         raise NotFound
-    if not oso.authorize(g.current_user, "create_role_assignments", repo):
+    if not authorize("create_role_assignments", repo):
         raise Forbidden
     user = g.session.get_or_404(User, id=payload["user_id"])
-    if not oso.authorize(g.current_user, "read", user):
+    if not authorize("read", user):
         raise NotFound
     # TODO(gj): validate that current user is allowed to assign this particular
     # role to this particular user?
@@ -160,12 +160,12 @@ def repo_create(org_id, repo_id):
 def repo_update(org_id, repo_id):
     payload = request.get_json(force=True)
     repo = g.session.get_or_404(Repo, id=repo_id)
-    if not oso.authorize(g.current_user, "list_role_assignments", repo):
+    if not authorize("list_role_assignments", repo):
         raise NotFound
-    if not oso.authorize(g.current_user, "update_role_assignments", repo):
+    if not authorize("update_role_assignments", repo):
         raise Forbidden
     user = g.session.get_or_404(User, id=payload["user_id"])
-    if not oso.authorize(g.current_user, "read", user):
+    if not authorize("read", user):
         raise NotFound
     # TODO(gj): bulk delete
     for role in oso.get("has_role", user, None, repo):
@@ -182,12 +182,12 @@ def repo_update(org_id, repo_id):
 def repo_delete(org_id, repo_id):
     payload = request.get_json(force=True)
     repo = g.session.get_or_404(Repo, id=repo_id)
-    if not oso.authorize(g.current_user, "list_role_assignments", repo):
+    if not authorize("list_role_assignments", repo):
         raise NotFound
-    if not oso.authorize(g.current_user, "delete_role_assignments", repo):
+    if not authorize("delete_role_assignments", repo):
         raise Forbidden
     user = g.session.get_or_404(User, id=payload["user_id"])
-    if not oso.authorize(g.current_user, "read", user):
+    if not authorize("read", user):
         raise NotFound
     # TODO(gj): bulk delete
     for role in oso.get("has_role", user, None, repo):

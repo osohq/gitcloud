@@ -2,14 +2,14 @@ from flask import Blueprint, g, request, jsonify
 from werkzeug.exceptions import Forbidden, NotFound
 
 from ..models import Org
-from .helpers import oso
+from .helpers import authorize, authorized_resources, oso
 
 bp = Blueprint("routes.orgs", __name__, url_prefix="/orgs")
 
 
 @bp.route("", methods=["GET"])
 def index():
-    authorized_ids = oso.list(g.current_user, "read", "Org")
+    authorized_ids = authorized_resources("read", "Org")
     if authorized_ids[0] == "*":
         orgs = g.session.query(Org)
         return jsonify([o.repr() for o in orgs])
@@ -22,7 +22,7 @@ def index():
 def create():
     payload = request.get_json(force=True)
     org = Org(**payload)
-    if not oso.authorize(g.current_user, "create", org):
+    if not authorize("create", org):
         raise Forbidden
     g.session.add(org)
     g.session.commit()
@@ -33,6 +33,6 @@ def create():
 @bp.route("/<int:org_id>", methods=["GET"])
 def show(org_id):
     org = g.session.get_or_404(Org, id=org_id)
-    if not oso.authorize(g.current_user, "read", org):
+    if not authorize("read", org):
         raise NotFound
     return org.repr()

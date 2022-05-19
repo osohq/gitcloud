@@ -1,36 +1,17 @@
-null  :=
-space := $(null) #
-colon := :#
-POLICIES := $(subst ${space},${colon},$(wildcard app/*.polar))
+.PHONY: dev run test-server fixtures fmt
 
-dev: .make.requirements-install
-	FLASK_DEBUG=1 FLASK_RUN_EXTRA_FILES="${POLICIES}" flask run --port=5000
+run: venv
+	. venv/bin/activate; flask run
 
-run: .make.requirements-install
-	flask run
+test-server: venv
+	. venv/bin/activate; FLASK_APP="app:create_app('sqlite://', False)" flask run
 
-test-server: .make.requirements-test
-	FLASK_APP="app:create_app('sqlite:///test.db', False)" flask run
+fmt: venv
+	. venv/bin/activate; black .
 
-.make.requirements-install: venv-source requirements.txt
-	pip install -r requirements.txt
+venv: venv/touchfile
+
+venv/touchfile: requirements.txt
+	test -d venv || python3 -m venv venv
+	. venv/bin/activate; pip install -r requirements.txt -r requirements-dev.txt
 	touch $@
-
-venv:
-	python3 -m venv venv
-
-venv-source: venv
-	. venv/bin/activate
-
-.make.requirements-test: requirements-dev.txt .make.requirements-install venv-source
-	pip install -r requirements-dev.txt
-	touch $@
-
-fixtures: .make.requirements-install
-	rm -f roles.db
-	FLASK_APP="app:create_app(None, True)" flask run
-
-fmt:
-	black .
-
-.PHONY: dev run fixtures venv-source

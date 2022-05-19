@@ -4,24 +4,23 @@ from flask import g, Flask, session as flask_session
 from werkzeug.exceptions import BadRequest, Forbidden, NotFound
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
 
 from .models import Base, User
 from .fixtures import load_fixture_data
 from .routes.helpers import oso
 
 
-def create_app(db_path=None, load_fixtures=False):
+def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
     from . import routes
 
     # Init DB engine.
-    if db_path:
-        engine = create_engine(db_path)
-    else:
-        engine = create_engine(
-            "sqlite:///roles.db",
-            # ignores errors from reusing connections across threads
-            connect_args={"check_same_thread": False},
-        )
+    engine = create_engine(
+        db_path,
+        # ignores errors from reusing connections across threads
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
 
     # Init Flask app.
     app = Flask(__name__)
@@ -60,23 +59,16 @@ def create_app(db_path=None, load_fixtures=False):
         load_fixture_data(session)
         return {}
 
-    # # Create all tables via SQLAlchemy.
-    # Base.metadata.create_all(engine)
-
     # Init session factory
     Session = sessionmaker(bind=engine)
 
-    # # optionally load fixture data
-    # if load_fixtures:
     reset_data()
-    # load_fixture_data(Session())
 
     @app.before_request
     def set_current_user_and_session():
         flask_session.permanent = True
         g.session = Session()
 
-        # docs: begin-authn
         if "current_user" not in g:
             if "current_user_id" in flask_session:
                 user_id = flask_session.get("current_user_id")
@@ -86,7 +78,6 @@ def create_app(db_path=None, load_fixtures=False):
                 g.current_user = user
             else:
                 g.current_user = None
-        # docs: end-authn
 
     @app.after_request
     def add_cors_headers(res):
