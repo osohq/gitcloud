@@ -85,7 +85,7 @@ def test_org_create(test_client):
         "billing_address": "123 whatever st",
     }
     resp = test_client.post("/orgs", json=org_params)
-    assert resp.status_code == 403
+    assert resp.status_code == 404
 
     test_client.log_in_as(john)
 

@@ -75,15 +75,3 @@ resource Issue {
   "close" if "maintainer" on "parent";
   "close" if "creator";
 }
-
-# resource OrgRole {
-#   permissions = ["read"];
-#   relations = { org: Org };
-#   "read" if "list_role_assignments" on "org";
-# }
-#
-# resource RepoRole {
-#   permissions = ["read"];
-#   relations = { repo: Repo };
-#   "read" if "list_role_assignments" on "repo";
-# }

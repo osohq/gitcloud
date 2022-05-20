@@ -17,7 +17,7 @@ def index(org_id, repo_id):
     if not authorize("list_issues", repo):
         raise Forbidden
     authorized_ids = authorized_resources("read", "Issue")
-    if authorized_ids[0] == "*":
+    if authorized_ids and authorized_ids[0] == "*":
         issues = g.session.query(Issue)
         return jsonify([issue.repr() for issue in issues])
     else:

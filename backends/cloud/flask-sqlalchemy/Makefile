@@ -4,7 +4,7 @@ run: venv
 	. venv/bin/activate; flask run
 
 test-server: venv
-	. venv/bin/activate; FLASK_APP="app:create_app('sqlite://', False)" flask run
+	. venv/bin/activate; FLASK_APP="app:create_app('sqlite://', True)" flask run
 
 fmt: venv
 	. venv/bin/activate; black .

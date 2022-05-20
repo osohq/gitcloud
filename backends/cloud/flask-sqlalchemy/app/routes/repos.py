@@ -13,7 +13,7 @@ def index(org_id):
     if not authorize("list_repos", org):
         raise Forbidden
     authorized_ids = authorized_resources("read", "Repo")
-    if authorized_ids[0] == "*":
+    if authorized_ids and authorized_ids[0] == "*":
         repos = g.session.query(Repo).filter_by(org_id=org_id)
         return jsonify([r.repr() for r in repos])
     else:

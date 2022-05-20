@@ -49,20 +49,24 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
     @app.route("/_reset", methods=["POST"])
     def reset_data():
         # Called during tests to reset the database
-        session = Session()
         Base.metadata.drop_all(bind=engine)
         Base.metadata.create_all(bind=engine)
 
-        policy = (Path(__file__).resolve().parent / "authorization.polar").resolve()
-        with open(policy) as f:
-            oso.policy(f.read())
-        load_fixture_data(session)
+        result = oso._do_post(
+            f"{oso.url}/{oso.api_base}/clear_data", json=None
+        )
+        oso._handle_result(result)
+
+        load_fixture_data(Session())
+
         return {}
 
     # Init session factory
     Session = sessionmaker(bind=engine)
 
-    reset_data()
+    policy = (Path(__file__).resolve().parent / "authorization.polar").resolve()
+    with open(policy) as f:
+        oso.policy(f.read())
 
     @app.before_request
     def set_current_user_and_session():

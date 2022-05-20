@@ -32,21 +32,21 @@ def is_port_open(port):
         return result == 0
 
 
-def ensure_port_5000_is_open(process):
+def ensure_port_is_open(process, port):
     interval = 0.5
     elapsed = interval
     sleep(interval)
-    while not is_port_open(5000):
+    while not is_port_open(port):
         sleep(interval)
         process.poll()
         if process.returncode is not None:
             raise RuntimeError(
-                "Server died before port 5000 was opened. Check the output above to see why."
+                f"Server died before port {port} was opened. Check the output above to see why."
             )
         elapsed += interval
         if elapsed > 60:
             raise RuntimeError(
-                "Server took more than 60s to start listening on port 5000, aborting."
+                f"Server took more than 60s to start listening on port {port}, aborting."
             )
 
 
@@ -63,19 +63,34 @@ def xfail_backend(*envs, reason=None):
 
 
 @pytest.fixture(scope="session")
-def test_app():
+def test_app(test_oso_cloud):
     directory = os.path.join(
         "../backends/", os.getenv("BACKEND", "library/flask-sqlalchemy-oso")
     )
     process = subprocess.Popen(
         ["make", "test-server", "-C", directory], start_new_session=True
     )
-    ensure_port_5000_is_open(process)
+    ensure_port_is_open(process, 5000)
+    print("Test app spun up")
     yield process
     pgrp = os.getpgid(process.pid)
     os.killpg(pgrp, signal.SIGINT)
     process.wait()
-    print("DONE")
+    print("Test app spun down")
+
+
+@pytest.fixture(scope="session")
+def test_oso_cloud():
+    process = subprocess.Popen(
+        ["make", "test-oso-cloud"], start_new_session=True
+    )
+    ensure_port_is_open(process, 8080)
+    print("Test Oso Cloud spun up")
+    yield process
+    pgrp = os.getpgid(process.pid)
+    os.killpg(pgrp, signal.SIGINT)
+    process.wait()
+    print("Test Oso Cloud spun down")
 
 
 @pytest.fixture

@@ -21,7 +21,7 @@ def index(user_id):
     if not authorize("read_profile", user):
         raise Forbidden
     authorized_ids = authorized_resources("read", "Repo")
-    if authorized_ids[0] == "*":
+    if authorized_ids and authorized_ids[0] == "*":
         repos = g.session.query(Repo)
         return jsonify([r.repr() for r in repos])
     else:

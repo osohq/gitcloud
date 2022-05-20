@@ -10,7 +10,7 @@ oso = Oso(url="http://localhost:8080", api_key="dF8wMTIzNDU2Nzg5Om9zb190ZXN0X3Rv
 
 def authorize(action: str, resource: Any) -> bool:
     if g.current_user is None:
-        return False
+        raise NotFound
     return oso.authorize(g.current_user, action, resource)
 
 

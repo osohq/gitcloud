@@ -20,6 +20,9 @@ test-rails: venv
 test-cloud: venv
 	. venv/bin/activate; BACKEND=cloud/flask-sqlalchemy pytest ${TEST_FLAGS}
 
+test-oso-cloud:
+	cd ../../oso-service; cargo run -- run --test-mode
+
 fmt: venv
 	. venv/bin/activate; black .
 
