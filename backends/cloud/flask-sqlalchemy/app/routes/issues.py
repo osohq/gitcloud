@@ -15,7 +15,7 @@ bp = Blueprint(
 def index(org_id, repo_id):
     repo = g.session.get_or_404(Repo, id=repo_id)
     if not authorize("list_issues", repo):
-        raise Forbidden
+        raise NotFound
     authorized_ids = authorized_resources("read", "Issue")
     if authorized_ids and authorized_ids[0] == "*":
         issues = g.session.query(Issue)
@@ -30,12 +30,12 @@ def create(org_id, repo_id):
     payload = request.get_json(force=True)
     repo = g.session.get_or_404(Repo, id=repo_id)
     if not authorize("create_issues", repo):
-        raise Forbidden
+        raise NotFound
     issue = Issue(title=payload["title"], repo=repo, creator_id=g.current_user.id)
     g.session.add(issue)
     g.session.commit()
     # TODO(gj): bulk tell
-    oso.tell("has_relation", g.current_user, "creator", issue)
+    oso.tell("has_role", g.current_user, "creator", issue)
     oso.tell("has_relation", issue, "parent", repo)
     return issue.repr(), 201
 

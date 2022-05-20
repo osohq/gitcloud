@@ -24,7 +24,7 @@ def org_unassigned_users_index(org_id):
 def org_index(org_id):
     org = g.session.get_or_404(Org, id=org_id)
     if not authorize("list_role_assignments", org):
-        raise Forbidden
+        raise NotFound
     assignments = oso.get("has_role", User, None, org)
     assignments = {(a["args"][0]["id"], a["args"][1]["id"]) for a in assignments}
     # TODO(gj): fetch users in bulk
