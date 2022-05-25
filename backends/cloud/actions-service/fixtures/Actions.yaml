@@ -1,0 +1,6 @@
+entity: Action
+items:
+  action1:
+    repoId: 1
+    name: "Too much critical acclaim"
+    creatorId: "john@beatles.com"
