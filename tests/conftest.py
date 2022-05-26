@@ -63,20 +63,34 @@ def xfail_backend(*envs, reason=None):
 
 
 @pytest.fixture(scope="session")
-def test_app(test_oso_cloud):
+def test_gitclub(test_oso_cloud):
     directory = os.path.join(
-        "../backends/", os.getenv("BACKEND", "library/flask-sqlalchemy-oso")
+        "../backends/", os.getenv("BACKEND", "cloud/flask-sqlalchemy")
     )
     process = subprocess.Popen(
         ["make", "test-server", "-C", directory], start_new_session=True
     )
     ensure_port_is_open(process, 5000)
-    print("Test app spun up")
+    print("Test GitClub spun up")
     yield process
     pgrp = os.getpgid(process.pid)
     os.killpg(pgrp, signal.SIGINT)
     process.wait()
-    print("Test app spun down")
+    print("Test GitClub spun down")
+
+
+@pytest.fixture(scope="session")
+def test_actions_service(test_oso_cloud):
+    process = subprocess.Popen(
+        ["make", "test-server", "-C", "../backends/cloud/actions-service"], start_new_session=True
+    )
+    ensure_port_is_open(process, 5001)
+    print("Test Actions Service spun up")
+    yield process
+    pgrp = os.getpgid(process.pid)
+    os.killpg(pgrp, signal.SIGINT)
+    process.wait()
+    print("Test Actions Service spun down")
 
 
 @pytest.fixture(scope="session")
@@ -94,11 +108,24 @@ def test_oso_cloud():
 
 
 @pytest.fixture
-def test_client(test_app):
+def test_gitclub_client(test_gitclub):
     with PrefixUrlSession("http://localhost:5000") as session:
 
-        def log_in_as(email):
-            session.post("/session", json={"email": email})
+        def log_in_as(id):
+            session.post("/session", json={"id": id})
+
+        session.log_in_as = log_in_as  # type: ignore
+        session.post("/_reset")
+
+        yield session
+
+
+@pytest.fixture
+def test_actions_client(test_actions_service):
+    with PrefixUrlSession("http://localhost:5001") as session:
+
+        def log_in_as(id: str):
+            session.headers['USER'] = id
 
         session.log_in_as = log_in_as  # type: ignore
         session.post("/_reset")

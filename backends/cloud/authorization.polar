@@ -48,6 +48,8 @@ resource Repo {
     "list_role_assignments",
     "update_role_assignments",
     "delete_role_assignments",
+    "schedule_action",
+    "view_actions",
   ];
   relations = { parent: Org };
 
@@ -56,9 +58,12 @@ resource Repo {
   "update_role_assignments" if "admin";
   "delete_role_assignments" if "admin";
 
+  "schedule_action" if "maintainer";
+
   "read" if "reader";
   "list_issues" if "reader";
   "create_issues" if "reader";
+  "view_actions" if "reader";
 
   "admin" if "owner" on "parent";
   "reader" if "member" on "parent";
@@ -74,4 +79,13 @@ resource Issue {
   "read" if "reader" on "parent";
   "close" if "maintainer" on "parent";
   "close" if "creator";
+}
+
+resource Action {
+  relations = { creator: User, repo: Repo };
+  permissions = ["view", "cancel"];
+
+  "view" if "reader" on "repo";
+  "cancel" if "creator";
+  "cancel" if "admin" on "repo";
 }

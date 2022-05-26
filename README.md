@@ -35,7 +35,7 @@ and logging in, you can use the following to save a session locally:
 ### Save the cookies
 
 ```bash
-curl -c gitclub.cookies -H "Content-Type: application/json" -X POST -d '{"email": "john@beatles.com"}' localhost:5000/session
+curl -c gitclub.cookies -H "Content-Type: application/json" -X POST -d '{"id": "john@beatles.com"}' localhost:5000/session
 ```
 
 ### Use the cookies

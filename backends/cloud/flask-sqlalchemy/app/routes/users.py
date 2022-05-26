@@ -7,7 +7,7 @@ from .helpers import authorize, authorized_resources
 bp = Blueprint("routes.users", __name__, url_prefix="/users")
 
 
-@bp.route("/<int:user_id>", methods=["GET"])
+@bp.route("/<user_id>", methods=["GET"])
 def show(user_id):
     user = g.session.get_or_404(User, id=user_id)
     if not authorize("read_profile", user):
@@ -15,7 +15,7 @@ def show(user_id):
     return user.repr()
 
 
-@bp.route("/<int:user_id>/repos", methods=["GET"])
+@bp.route("/<user_id>/repos", methods=["GET"])
 def index(user_id):
     user = g.session.get_or_404(User, id=user_id)
     if not authorize("read_profile", user):

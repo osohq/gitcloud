@@ -1,24 +1,19 @@
 from .models import Issue, Org, Repo, User
 from .routes.helpers import oso
 
-john_email = "john@beatles.com"
-paul_email = "paul@beatles.com"
-mike_email = "mike@monsters.com"
-ringo_email = "ringo@beatles.com"
-
 
 def load_fixture_data(session):
     #########
     # Users #
     #########
 
-    john = User(email=john_email)
-    paul = User(email=paul_email)
-    admin = User(email="admin@admin.com")
-    mike = User(email=mike_email)
-    sully = User(email="sully@monsters.com")
-    ringo = User(email=ringo_email)
-    randall = User(email="randall@monsters.com")
+    john = User(id="john@beatles.com")
+    paul = User(id="paul@beatles.com")
+    admin = User(id="admin@admin.com")
+    mike = User(id="mike@monsters.com")
+    sully = User(id="sully@monsters.com")
+    ringo = User(id="ringo@beatles.com")
+    randall = User(id="randall@monsters.com")
     users = [
         john,
         paul,

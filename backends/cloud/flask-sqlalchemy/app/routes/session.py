@@ -14,9 +14,9 @@ def show():
 @bp.route("", methods=["POST"])
 def create():
     payload = request.get_json(force=True)
-    if "email" not in payload:
+    if "id" not in payload:
         raise BadRequest
-    user = g.session.query(User).filter_by(email=payload["email"]).one_or_none()
+    user = g.session.query(User).filter_by(id=payload["id"]).one_or_none()
     if user is None:
         flask_session.pop("current_user_id", None)
         raise NotFound

@@ -14,8 +14,8 @@ export class Action {
   status: Status;
 
   @Column({ nullable: false })
-  repoId: number;
+  repoId: string;
 
   @Column({ nullable: false })
-  creatorId: number;
+  creatorId: string;
 }

@@ -2,22 +2,16 @@ import { readFile } from "fs/promises";
 
 import "reflect-metadata";
 import { createConnection } from "typeorm";
-import express, { ErrorRequestHandler } from "express";
-import session from "cookie-session";
+import express, { ErrorRequestHandler, Request } from "express";
 import * as bodyParser from "body-parser";
 import cors from "cors";
 import { Oso } from "oso-cloud";
 
-import { actionsRouter } from "./routes/actions";
-import { sessionRouter } from "./routes/sessions";
+import { actionsRouter, Repo } from "./routes/actions";
 import { resetData } from "./test";
 
-class Repo {
-  constructor(public readonly id: string) {}
-}
-
 class User {
-  constructor(public readonly id: string) {}
+  constructor(readonly id: string) {}
 }
 
 // Type screwery to get TS to stop complaining.
@@ -32,6 +26,8 @@ declare module "express" {
 (async function () {
   try {
     const conn = await createConnection();
+    await conn.synchronize(true);
+
     const polar = await readFile("src/authorization.polar", {
       encoding: "utf8",
     });
@@ -53,32 +49,17 @@ declare module "express" {
     );
     app.use(bodyParser.json());
 
-    // Populates req.session
-    app.use(
-      session({
-        // resave: true,
-        // saveUninitialized: false,
-        secret: "keyboard cat",
-        sameSite: true,
-      })
-    );
+    // Make current user available on request object.
+    app.use((req: Request, res, next) => {
+      if (!req.headers["user"]) return res.status(404).send("Not Found");
 
-    // Make Oso available on request object.
-    app.use((req, _resp, next) => {
-      // @ts-ignore
-      req.oso = oso;
+      req.user = new User(req.header("user"));
       next();
     });
 
-    app.use("/orgs/:orgId/repos/:repoId/actions", actionsRouter);
-    app.use("/session", sessionRouter);
-
-    // Make current user and repo available on request object.
-    app.use((req, _resp, next) => {
-      // @ts-ignore
-      req.user = new User(req.session.userId);
-      // @ts-ignore
-      req.repo = new Repo(req.params.repoId);
+    // Make Oso available on request object.
+    app.use((req: Request, _resp, next) => {
+      req.oso = oso;
       next();
     });
 
@@ -106,6 +87,8 @@ declare module "express" {
       res.status(500).send("Something broke!");
     };
     app.use(errorHandler);
+
+    app.use("/orgs/:orgId/repos/:repoId/actions", actionsRouter);
 
     // start express server
     app.listen(5001, "0.0.0.0");
