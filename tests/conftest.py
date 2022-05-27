@@ -50,25 +50,10 @@ def ensure_port_is_open(process, port):
             )
 
 
-def xfail_backend(*envs, reason=None):
-    env = os.environ.get("BACKEND", "library/flask-sqlalchemy-oso")
-    envs = envs if isinstance(envs, list) else [*envs]
-
-    reason = (
-        f"test is expected to fail for backend=`{env}`" + f"\n{reason}"
-        if reason
-        else ""
-    )
-    return pytest.mark.xfail(env in envs, reason=reason, strict=True)
-
-
 @pytest.fixture(scope="session")
 def test_gitclub(test_oso_cloud):
-    directory = os.path.join(
-        "../backends/", os.getenv("BACKEND", "cloud/flask-sqlalchemy")
-    )
     process = subprocess.Popen(
-        ["make", "test-server", "-C", directory], start_new_session=True
+        ["make", "test-server", "-C", "../services/gitclub"], start_new_session=True
     )
     ensure_port_is_open(process, 5000)
     print("Test GitClub spun up")
@@ -82,7 +67,7 @@ def test_gitclub(test_oso_cloud):
 @pytest.fixture(scope="session")
 def test_actions_service(test_oso_cloud):
     process = subprocess.Popen(
-        ["make", "test-server", "-C", "../backends/cloud/actions-service"], start_new_session=True
+        ["make", "test-server", "-C", "../services/actions"], start_new_session=True
     )
     ensure_port_is_open(process, 5001)
     print("Test Actions Service spun up")

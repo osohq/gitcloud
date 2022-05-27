@@ -1,4 +1,0 @@
-flask~=1.1.4
-MarkupSafe==2.0.1
-SQLAlchemy~=1.3.20
--e ../../../../oso-service/clients/python
