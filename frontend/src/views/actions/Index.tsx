@@ -30,7 +30,7 @@ function RunningTime({ a }: { a: Action }) {
 }
 
 export function Index({ orgId, repoId }: Props) {
-  const user = useContext(UserContext);
+  const { current: user } = useContext(UserContext);
   const { redirectWithError } = useContext(NoticeContext);
   const [org, setOrg] = useState<Org>();
   const [repo, setRepo] = useState<Repo>();
@@ -45,7 +45,7 @@ export function Index({ orgId, repoId }: Props) {
       .show(orgId)
       .then(setOrg)
       .catch((e) => redirectWithError(`Failed to fetch org: ${e.message}`));
-  }, [orgId, user.current]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [orgId, user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!orgId || !repoId) return;
@@ -53,33 +53,31 @@ export function Index({ orgId, repoId }: Props) {
       .show(repoId)
       .then(setRepo)
       .catch((e) => redirectWithError(`Failed to fetch repo: ${e.message}`));
-  }, [orgId, repoId, user.current]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [orgId, repoId, user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (!(user.current instanceof User) || !orgId || !repoId) return;
-    actionApi(user.current.id, orgId, repoId)
+    if (!(user instanceof User) || !orgId || !repoId) return;
+    actionApi(user.id, orgId, repoId)
       .index()
       .then(setActions)
       .catch((e) => redirectWithError(`Failed to fetch actions: ${e.message}`));
-  }, [refetch, orgId, repoId, user.current]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [refetch, orgId, repoId, user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const timeout = setInterval(() => setRefetch((x) => !x), 2000);
     return () => clearInterval(timeout);
   }, []);
 
-  if (!org || !repo) return null;
+  if (!(user instanceof User) || !org || !repo) return null;
+  const api = actionApi(user.id, "" + org.id, "" + repo.id);
 
   const inputEmpty = !name.replaceAll(" ", "");
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (inputEmpty || !(user.current instanceof User) || !orgId || !repoId)
-      return;
+    if (inputEmpty) return;
     try {
-      await actionApi(user.current.id, orgId, repoId).create({
-        name,
-      });
+      await api.create({ name });
       setName("");
       setRefetch((x) => !x);
     } catch (e) {
@@ -122,20 +120,30 @@ export function Index({ orgId, repoId }: Props) {
             <th style={{ width: "200px", textAlign: "start" }}>Actor</th>
             <th style={{ width: "200px", textAlign: "start" }}>Started</th>
             <th style={{ width: "100px", textAlign: "start" }}>Duration</th>
+            <th style={{ width: "100px", textAlign: "start" }}></th>
           </tr>
         </thead>
 
         <tbody>
           {actions.map((a) => (
             <tr className="" key={"action-" + a.id}>
-              <td className="">{a.status}</td>
-              <td className="">{a.name}</td>
-              <td className="">{a.creatorId}</td>
-              <td className="">
-                {formatDistance(new Date(), new Date(a.createdAt))} ago
-              </td>
-              <td className="">
+              <td>{a.status}</td>
+              <td>{a.name}</td>
+              <td>{a.creatorId}</td>
+              <td>{formatDistance(new Date(), new Date(a.createdAt))} ago</td>
+              <td>
                 <RunningTime a={a} />
+              </td>
+              <td>
+                <button
+                  disabled={!a.cancelable}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    api.cancel(a.id);
+                  }}
+                >
+                  cancel
+                </button>
               </td>
             </tr>
           ))}

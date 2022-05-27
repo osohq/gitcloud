@@ -6,6 +6,7 @@ export class Action {
   creatorId: string;
   createdAt: string;
   updatedAt: string;
+  cancelable: boolean;
 
   constructor(action: Action) {
     this.id = action.id;
@@ -15,5 +16,6 @@ export class Action {
     this.creatorId = action.creatorId;
     this.createdAt = action.createdAt;
     this.updatedAt = action.updatedAt;
+    this.cancelable = action.cancelable;
   }
 }

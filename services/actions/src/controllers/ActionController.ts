@@ -14,10 +14,11 @@ export class ActionController {
     // is a more efficient version of the check for "view" on Action.
     if (!(await oso.authorize(user, "view_actions", repo)))
       return res.status(403).send("Forbidden");
-    const ids = await oso.list(user, "view", Action);
+
+    const actionIds = await oso.list(user, "view", Action);
     const actions = await this.actionRepository
       .createQueryBuilder()
-      .where({ id: In(ids), repoId: repo.id })
+      .where({ id: In(actionIds), repoId: repo.id })
       .orderBy("createdAt", "DESC")
       .getMany();
 
@@ -26,8 +27,12 @@ export class ActionController {
       .filter((a) => !toComplete.has(a.id) && a.status === "running")
       .forEach((a) => {
         setTimeout(() => {
-          this.actionRepository.update(a.id, { status: "complete" });
-        }, Math.random() * 20_000 + 5_000);
+          this.actionRepository.update(
+            // Only update if status is still 'running'.
+            { id: a.id, status: "running" },
+            { status: "complete" }
+          );
+        }, Math.random() * 30_000 + 15_000);
         toComplete.add(a.id);
       });
 
@@ -36,12 +41,26 @@ export class ActionController {
       .filter((a) => !toRun.has(a.id) && a.status === "scheduled")
       .forEach((a) => {
         setTimeout(() => {
-          this.actionRepository.update(a.id, { status: "running" });
+          this.actionRepository.update(
+            // Only update if status is still 'scheduled'.
+            { id: a.id, status: "scheduled" },
+            { status: "running" }
+          );
         }, Math.random() * 10_000 + 2_000);
         toRun.add(a.id);
       });
 
-    return res.json(actions);
+    const cancelableIds: string[] = await oso.list(user, "cancel", Action);
+
+    return res.json(
+      actions.map((a) => ({
+        ...a,
+        cancelable:
+          (a.status === "scheduled" || a.status === "running") &&
+          (cancelableIds.includes(a.id.toString()) ||
+            cancelableIds.includes("*")),
+      }))
+    );
   }
 
   async save({ body, oso, repo, user }: Request, res: Response) {

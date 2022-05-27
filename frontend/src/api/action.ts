@@ -11,6 +11,6 @@ export function action(userId: string, orgId: string, repoId: string) {
 
     index: () => index(path, Action, userId),
 
-    cancel: (id: string) => update(`${path}/${id}/cancel`, {}, Action, userId),
+    cancel: (id: number) => update(`${path}/${id}/cancel`, {}, Action, userId),
   };
 }

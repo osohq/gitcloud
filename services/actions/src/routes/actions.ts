@@ -20,6 +20,6 @@ actionsRouter.get("", async (req: Request, res, _next) =>
 actionsRouter.post("", (req: Request, res, _next) =>
   new ActionController().save(req, res)
 );
-actionsRouter.put("/:id/cancel", (req: Request, res, _next) =>
+actionsRouter.patch("/:id/cancel", (req: Request, res, _next) =>
   new ActionController().cancel(req, res)
 );
