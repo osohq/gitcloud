@@ -1,4 +1,4 @@
-.PHONY: test-server
+.PHONY: test-server fixtures start
 
 test-server: node_modules
 	yarn link oso-cloud --silent

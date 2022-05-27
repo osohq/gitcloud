@@ -388,9 +388,9 @@ def test_org_role_assignment_index(test_gitclub_client):
     assert resp.status_code == 200
     roles = resp.json()
     assert len(roles) == 3
-    john_role = next(r for r in roles if r['user']['id'] == john)
+    john_role = next(r for r in roles if r["user"]["id"] == john)
     assert john_role["role"] == "owner"
-    ringo_role = next(r for r in roles if r['user']['id'] == ringo)
+    ringo_role = next(r for r in roles if r["user"]["id"] == ringo)
     assert ringo_role["role"] == "member"
 
     test_gitclub_client.log_in_as(mike)
@@ -458,7 +458,7 @@ def test_org_role_assignment_update(test_gitclub_client):
     # Paul is currently an 'member' in the Beatles org.
     resp = test_gitclub_client.get(beatles_roles)
     user_roles = resp.json()
-    paul_role = next(r for r in user_roles if r['user']['id'] == paul)
+    paul_role = next(r for r in user_roles if r["user"]["id"] == paul)
     assert paul_role["role"] == "member"
 
     # John can update Paul's role in the Beatles org.
@@ -495,7 +495,7 @@ def test_org_role_assignment_delete(test_gitclub_client):
     # Paul is currently an 'member' in the Beatles org.
     resp = test_gitclub_client.get(beatles_roles)
     user_roles = resp.json()
-    paul_role = next(r for r in user_roles if r['user']['id'] == paul)
+    paul_role = next(r for r in user_roles if r["user"]["id"] == paul)
     assert paul_role["role"] == "member"
 
     # John can delete Paul's role in the Beatles org.
@@ -544,7 +544,13 @@ def test_actions(test_actions_client):
     action_params = {"name": action_name}
     resp = test_actions_client.post(repo1_actions, json=action_params)
     assert resp.status_code == 201
-    action1 = {'id': 1, 'name': action_name, 'creatorId': john, 'repoId': '1', 'status': 'scheduled'}
+    action1 = {
+        "id": 1,
+        "name": action_name,
+        "creatorId": john,
+        "repoId": "1",
+        "status": "scheduled",
+    }
     assert resp.json() == action1
 
     # List actions to see newly created one

@@ -1,4 +1,4 @@
-.PHONY: dev run test-server fixtures fmt
+.PHONY: run test-server fmt
 
 run: venv
 	. venv/bin/activate; flask run
@@ -13,5 +13,5 @@ venv: venv/touchfile
 
 venv/touchfile: requirements.txt
 	test -d venv || python3 -m venv venv
-	. venv/bin/activate; pip install -r requirements.txt -r requirements-dev.txt
+	. venv/bin/activate; pip install -r requirements.txt
 	touch $@

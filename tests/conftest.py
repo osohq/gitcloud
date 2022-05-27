@@ -80,9 +80,7 @@ def test_actions_service(test_oso_cloud):
 
 @pytest.fixture(scope="session")
 def test_oso_cloud():
-    process = subprocess.Popen(
-        ["make", "test-oso-cloud"], start_new_session=True
-    )
+    process = subprocess.Popen(["make", "test-oso-cloud"], start_new_session=True)
     ensure_port_is_open(process, 8080)
     print("Test Oso Cloud spun up")
     yield process
@@ -96,7 +94,7 @@ def test_oso_cloud():
 def test_gitclub_client(test_gitclub):
     with PrefixUrlSession("http://localhost:5000") as session:
 
-        def log_in_as(id):
+        def log_in_as(id: str):
             session.post("/session", json={"id": id})
 
         session.log_in_as = log_in_as  # type: ignore
@@ -110,7 +108,7 @@ def test_actions_client(test_actions_service):
     with PrefixUrlSession("http://localhost:5001") as session:
 
         def log_in_as(id: str):
-            session.headers['USER'] = id
+            session.headers["USER"] = id
 
         session.log_in_as = log_in_as  # type: ignore
         session.post("/_reset")
