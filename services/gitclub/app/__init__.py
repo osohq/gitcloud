@@ -64,6 +64,9 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
     # Init session factory
     Session = sessionmaker(bind=engine)
 
+    if load_fixtures:
+        load_fixture_data(Session())
+
     policy = (Path(__file__).resolve().parent / "authorization.polar").resolve()
     with open(policy) as f:
         oso.policy(f.read())
