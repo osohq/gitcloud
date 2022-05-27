@@ -46,7 +46,7 @@ class Repo(Base):
     unique_name_in_org = UniqueConstraint(name, org_id)
 
     def repr(self):
-        return {"id": self.id, "name": self.name}
+        return {"id": self.id, "name": self.name, "org_id": self.org_id}
 
 
 class Issue(Base):
