@@ -44,7 +44,7 @@ declare module "express" {
         origin: "http://localhost:3000",
         methods: ["DELETE", "GET", "OPTIONS", "PATCH", "POST"],
         credentials: true,
-        allowedHeaders: ["Accept", "Content-Type"],
+        allowedHeaders: ["Accept", "Content-Type", "USER"],
       })
     );
     app.use(bodyParser.json());

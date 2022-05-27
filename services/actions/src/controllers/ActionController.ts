@@ -2,6 +2,9 @@ import { DeepPartial, getRepository, In } from "typeorm";
 import { Request, Response } from "express";
 import { Action } from "../entities/Action";
 
+const toRun = new Set();
+const toComplete = new Set();
+
 export class ActionController {
   private actionRepository = getRepository(Action);
 
@@ -15,7 +18,29 @@ export class ActionController {
     const actions = await this.actionRepository
       .createQueryBuilder()
       .where({ id: In(ids), repoId: repo.id })
+      .orderBy("createdAt", "DESC")
       .getMany();
+
+    // Complete running actions.
+    actions
+      .filter((a) => !toComplete.has(a.id) && a.status === "running")
+      .forEach((a) => {
+        setTimeout(() => {
+          this.actionRepository.update(a.id, { status: "complete" });
+        }, Math.random() * 20_000 + 5_000);
+        toComplete.add(a.id);
+      });
+
+    // Run scheduled actions.
+    actions
+      .filter((a) => !toRun.has(a.id) && a.status === "scheduled")
+      .forEach((a) => {
+        setTimeout(() => {
+          this.actionRepository.update(a.id, { status: "running" });
+        }, Math.random() * 10_000 + 2_000);
+        toRun.add(a.id);
+      });
+
     return res.json(actions);
   }
 
@@ -27,7 +52,6 @@ export class ActionController {
       creatorId: user.id,
       repoId: repo.id,
     } as DeepPartial<Action>);
-
     action = await this.actionRepository.save(action);
     await oso.bulkTell([
       ["has_relation", user, "creator", action],

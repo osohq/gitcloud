@@ -33,6 +33,8 @@ function App() {
           <View.Issue.New path="/orgs/:orgId/repos/:repoId/issues/new" />
           <View.Issue.Show path="/orgs/:orgId/repos/:repoId/issues/:issueId" />
 
+          <View.Action.Index path="/orgs/:orgId/repos/:repoId/actions" />
+
           <View.Org.Index path="/orgs" />
           <View.Org.New path="/orgs/new" />
           <View.Org.Show path="/orgs/:orgId" />

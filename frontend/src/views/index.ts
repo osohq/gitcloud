@@ -4,6 +4,8 @@ import { Nav } from "./Nav";
 import { NotFound } from "./NotFound";
 import { Notices } from "./Notices";
 
+import { Index as ActionIndex } from "./actions/Index";
+
 import { Index as IssueIndex } from "./issues/Index";
 import { New as IssueNew } from "./issues/New";
 import { Show as IssueShow } from "./issues/Show";
@@ -26,6 +28,8 @@ export const View = {
   Nav,
   NotFound,
   Notices,
+
+  Action: { Index: ActionIndex },
 
   Issue: { Index: IssueIndex, New: IssueNew, Show: IssueShow },
 

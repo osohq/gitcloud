@@ -40,6 +40,9 @@ export function Show({ orgId, repoId }: Props) {
         <Link to={`/orgs/${orgId}/repos/${repoId}/issues`}>Issues</Link>
       </h2>
       <h2>
+        <Link to={`/orgs/${orgId}/repos/${repoId}/actions`}>Actions</Link>
+      </h2>
+      <h2>
         <Link to={`/orgs/${orgId}/repos/${repoId}/settings`}>Settings</Link>
       </h2>
     </>

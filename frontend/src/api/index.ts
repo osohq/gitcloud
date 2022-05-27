@@ -1,3 +1,4 @@
+import { action } from "./action";
 import { issue } from "./issue";
 import { org } from "./org";
 import { repo, userRepo } from "./repo";
@@ -7,6 +8,7 @@ import { session } from "./session";
 import { user } from "./user";
 
 export {
+  action,
   issue,
   org,
   repo,
