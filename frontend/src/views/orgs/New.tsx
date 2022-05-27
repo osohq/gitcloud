@@ -5,20 +5,20 @@ import {
   useContext,
   useEffect,
   useState,
-} from 'react';
-import { Redirect, RouteComponentProps, useNavigate } from '@reach/router';
+} from "react";
+import { Redirect, RouteComponentProps, useNavigate } from "@reach/router";
 
-import { org as orgApi, roleChoices as roleChoicesApi } from '../../api';
-import { OrgParams, UserContext } from '../../models';
-import { NoticeContext, RoleSelector } from '../../components';
+import { org as orgApi, roleChoices as roleChoicesApi } from "../../api";
+import { OrgParams, UserContext } from "../../models";
+import { NoticeContext, RoleSelector } from "../../components";
 
 export function New(_: RouteComponentProps) {
   const user = useContext(UserContext);
   const { error, redirectWithError } = useContext(NoticeContext);
   const [details, setDetails] = useState<OrgParams>({
-    name: '',
-    billingAddress: '',
-    baseRepoRole: '',
+    name: "",
+    billingAddress: "",
+    baseRepoRole: "",
   });
   const [repoRoleChoices, setRepoRoleChoices] = useState<string[]>([]);
   const navigate = useNavigate();
@@ -40,14 +40,14 @@ export function New(_: RouteComponentProps) {
     }
   }, [user.current]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (user.current === 'Loading') return null;
+  if (user.current === "Loading") return null;
   // If a guest navigates to this page, redirect to the orgs index.
-  if (user.current === 'Guest') return <Redirect to="/orgs" noThrow />;
+  if (user.current === "Guest") return <Redirect to="/orgs" noThrow />;
 
   function validInputs() {
     const { name, billingAddress } = details;
     // Don't allow empty strings.
-    return name.replaceAll(' ', '') && billingAddress.replaceAll(' ', '');
+    return name.replaceAll(" ", "") && billingAddress.replaceAll(" ", "");
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -69,22 +69,22 @@ export function New(_: RouteComponentProps) {
 
   return (
     <form onSubmit={handleSubmit}>
-      {(['name', 'billingAddress'] as const).map((field) => (
+      {(["name", "billingAddress"] as const).map((field) => (
         <Fragment key={field}>
           <label>
-            {field.replace(/[A-Z]/g, (l) => ' ' + l.toLowerCase())}:{' '}
+            {field.replace(/[A-Z]/g, (l) => " " + l.toLowerCase())}:{" "}
             <input
               type="text"
               name={field}
               value={details[field]}
               onChange={handleChange}
             />
-          </label>{' '}
+          </label>{" "}
         </Fragment>
       ))}
       {repoRoleChoices.length && (
         <label>
-          base repo role:{' '}
+          base repo role:{" "}
           <RoleSelector
             choices={repoRoleChoices}
             name="baseRepoRole"
@@ -92,7 +92,7 @@ export function New(_: RouteComponentProps) {
             selected={details.baseRepoRole}
           />
         </label>
-      )}{' '}
+      )}{" "}
       <input type="submit" value="create" disabled={!validInputs()} />
     </form>
   );

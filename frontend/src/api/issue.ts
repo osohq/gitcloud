@@ -1,5 +1,5 @@
-import { Issue } from '../models';
-import { create, index, show } from './helpers';
+import { Issue } from "../models";
+import { create, index, show } from "./helpers";
 
 type Params = { title: string };
 

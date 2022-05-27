@@ -1,9 +1,9 @@
-import { MouseEvent, useContext } from 'react';
-import { Link } from '@reach/router';
+import { MouseEvent, useContext } from "react";
+import { Link } from "@reach/router";
 
-import { session as sessionApi } from '../api';
-import { User, UserContext } from '../models';
-import { NoticeContext } from '../components';
+import { session as sessionApi } from "../api";
+import { User, UserContext } from "../models";
+import { NoticeContext } from "../components";
 
 export function Nav() {
   const { error } = useContext(NoticeContext);
@@ -13,7 +13,7 @@ export function Nav() {
     e.preventDefault();
     try {
       await sessionApi.logout();
-      user.update('Guest');
+      user.update("Guest");
     } catch (e) {
       error(`Failed to log out: ${e.message}`);
     }
@@ -28,7 +28,7 @@ export function Nav() {
   const userStatus =
     user.current instanceof User ? (
       <>
-        {logout} Logged in as {user.current.email}
+        {logout} Logged in as {user.current.id}
       </>
     ) : (
       login

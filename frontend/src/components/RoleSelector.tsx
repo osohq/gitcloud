@@ -1,6 +1,6 @@
-import { ChangeEvent, useContext } from 'react';
+import { ChangeEvent, useContext } from "react";
 
-import { UserContext } from '../models';
+import { UserContext } from "../models";
 
 type Props = {
   choices: string[];
@@ -15,7 +15,7 @@ export function RoleSelector({ choices, name, selected, update }: Props) {
   return (
     <select
       disabled={!loggedIn() || !choices.length}
-      name={name || 'role'}
+      name={name || "role"}
       value={selected}
       onChange={update}
     >

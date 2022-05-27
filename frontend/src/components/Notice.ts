@@ -1,13 +1,13 @@
-import { createContext } from 'react';
+import { createContext } from "react";
 
-type NoticeType = 'error' | 'info';
+type NoticeType = "error" | "info";
 
 export function noticeTypeToColor(t: NoticeType): string {
   switch (t) {
-    case 'error':
-      return 'red';
-    case 'info':
-      return 'blue';
+    case "error":
+      return "red";
+    case "info":
+      return "blue";
     default:
       return ((_: never) => _)(t);
   }
@@ -19,6 +19,6 @@ export type Notice = {
 };
 
 export const NoticeContext = createContext({
-  error: (_: string) => console.error('override me'),
-  redirectWithError: (_?: string) => console.error('override me'),
+  error: (_: string) => console.error("override me"),
+  redirectWithError: (_?: string) => console.error("override me"),
 });

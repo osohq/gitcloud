@@ -1,9 +1,9 @@
-import { useContext, useEffect, useState } from 'react';
-import { Link, RouteComponentProps } from '@reach/router';
+import { useContext, useEffect, useState } from "react";
+import { Link, RouteComponentProps } from "@reach/router";
 
-import { User, UserContext } from '../../models';
-import { user as userApi } from '../../api';
-import { NoticeContext } from '../../components';
+import { User, UserContext } from "../../models";
+import { user as userApi } from "../../api";
+import { NoticeContext } from "../../components";
 
 type Props = RouteComponentProps & { userId?: string };
 
@@ -21,7 +21,7 @@ export function Show({ userId }: Props) {
 
   return (
     <>
-      <h1>{user.email}</h1>
+      <h1>{user.id}</h1>
       <h2>
         <Link to={`/users/${userId}/repos`}>Repos</Link>
       </h2>

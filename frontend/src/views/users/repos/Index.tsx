@@ -1,10 +1,10 @@
-import { useContext, useEffect, useState } from 'react';
-import { Link, RouteComponentProps } from '@reach/router';
+import { useContext, useEffect, useState } from "react";
+import { Link, RouteComponentProps } from "@reach/router";
 
-import { Repo, User, UserContext } from '../../../models';
-import { userRepo as repoApi } from '../../../api';
-import { user as userApi } from '../../../api';
-import { NoticeContext } from '../../../components';
+import { Repo, User, UserContext } from "../../../models";
+import { userRepo as repoApi } from "../../../api";
+import { user as userApi } from "../../../api";
+import { NoticeContext } from "../../../components";
 
 type Props = RouteComponentProps & { userId?: string };
 
@@ -32,11 +32,11 @@ export function Index({ userId }: Props) {
   return (
     <>
       <h1>
-        <Link to={`/users/${userId}`}>{user.email}</Link> repos
+        <Link to={`/users/${userId}`}>{user.id}</Link> repos
       </h1>
       <ul>
         {repos.map((r) => (
-          <li key={'repo-' + r.id}>
+          <li key={"repo-" + r.id}>
             <Link to={`/orgs/${r.orgId}/repos/${r.id}`}>{r.name}</Link>
           </li>
         ))}

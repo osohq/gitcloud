@@ -1,15 +1,15 @@
-import { camelizeKeys, obj, snakeifyKeys } from '../helpers';
+import { camelizeKeys, obj, snakeifyKeys } from "../helpers";
 
 type Class<T extends {} = {}> = new (...args: any[]) => T;
 
-const ROOT = 'http://localhost:5000';
+const ROOT = "http://localhost:5000";
 
 const defaultOpts: RequestInit = {
   headers: {
-    Accept: 'application/json',
-    'Content-Type': 'application/json',
+    Accept: "application/json",
+    "Content-Type": "application/json",
   },
-  credentials: 'include',
+  credentials: "include",
 };
 
 const jsonify = (x: obj) => JSON.stringify(snakeifyKeys(x));
@@ -24,13 +24,13 @@ async function req(path: string, expected: number, opts?: RequestInit) {
 export const get = (path: string) => req(path, 200);
 
 const patch = (path: string, body: obj) =>
-  req(path, 200, { method: 'PATCH', body: jsonify(body) });
+  req(path, 200, { method: "PATCH", body: jsonify(body) });
 
 const post = (path: string, body: obj) =>
-  req(path, 201, { method: 'POST', body: jsonify(body) });
+  req(path, 201, { method: "POST", body: jsonify(body) });
 
 export const del = (path: string, body: obj) =>
-  req(path, 204, { method: 'DELETE', body: jsonify(body) });
+  req(path, 204, { method: "DELETE", body: jsonify(body) });
 
 export async function index<T>(path: string, cls: Class<T>) {
   const data = (await get(path)) as obj[];

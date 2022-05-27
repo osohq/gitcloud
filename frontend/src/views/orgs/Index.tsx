@@ -1,9 +1,9 @@
-import { useContext, useEffect, useState } from 'react';
-import { Link, RouteComponentProps } from '@reach/router';
+import { useContext, useEffect, useState } from "react";
+import { Link, RouteComponentProps } from "@reach/router";
 
-import { Org, UserContext } from '../../models';
-import { org as orgApi } from '../../api';
-import { NoticeContext } from '../../components';
+import { Org, UserContext } from "../../models";
+import { org as orgApi } from "../../api";
+import { NoticeContext } from "../../components";
 
 export function Index(_: RouteComponentProps) {
   const user = useContext(UserContext);
@@ -23,7 +23,7 @@ export function Index(_: RouteComponentProps) {
       <h1>Orgs</h1>
       <ul>
         {orgs.map((o) => (
-          <li key={'org-' + o.id}>
+          <li key={"org-" + o.id}>
             <Link to={`/orgs/${o.id}`}>{o.name}</Link>
           </li>
         ))}

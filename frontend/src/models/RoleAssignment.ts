@@ -1,6 +1,6 @@
-import { User } from '.';
+import { User } from ".";
 
-export type RoleAssignmentParams = { userId: number; role: string };
+export type RoleAssignmentParams = { userId: string; role: string };
 
 export class RoleAssignment {
   user: User;

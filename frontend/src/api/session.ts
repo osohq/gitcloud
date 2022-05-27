@@ -1,10 +1,10 @@
-import { User } from '../models';
-import type { LoggedInUser } from '../models';
-import { create, del, get } from './helpers';
+import { User } from "../models";
+import type { LoggedInUser } from "../models";
+import { create, del, get } from "./helpers";
 
-type Params = { email: string };
+type Params = { id: string };
 
-const path = '/session';
+const path = "/session";
 
 export const session = {
   login: (body: Params) => create(path, body, User),
@@ -13,6 +13,6 @@ export const session = {
 
   whoami: () =>
     get(path).then(
-      (u) => (u === null ? 'Guest' : new User(u as User)) as LoggedInUser
+      (u) => (u === null ? "Guest" : new User(u as User)) as LoggedInUser
     ),
 };

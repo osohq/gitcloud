@@ -1,9 +1,9 @@
-import { Dispatch, SetStateAction, useContext, useEffect } from 'react';
-import { Link } from '@reach/router';
+import { Dispatch, SetStateAction, useContext, useEffect } from "react";
+import { Link } from "@reach/router";
 
-import { RoleAssignment, User, UserContext } from '../models';
-import { RoleAssignmentsApi } from '../api';
-import { NoticeContext, RoleSelector } from '.';
+import { RoleAssignment, User, UserContext } from "../models";
+import { RoleAssignmentsApi } from "../api";
+import { NoticeContext, RoleSelector } from ".";
 
 type Props = {
   api: RoleAssignmentsApi;
@@ -55,14 +55,14 @@ export function RoleAssignments({
   return (
     <ul>
       {assignments.map(({ user, role }) => (
-        <li key={'user-role-' + user.id + role}>
-          <Link to={`/users/${user.id}`}>{user.email}</Link> -{' '}
+        <li key={"user-role-" + user.id + role}>
+          <Link to={`/users/${user.id}`}>{user.id}</Link> -{" "}
           <RoleSelector
             choices={roleChoices}
             update={({ target: { value } }) => update(user, value)}
             selected={role}
-          />{' '}
-          -{' '}
+          />{" "}
+          -{" "}
           <button
             disabled={!loggedIn()}
             onClick={(e) => {

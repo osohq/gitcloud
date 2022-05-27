@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
-import { Notice, noticeTypeToColor } from '.';
+import { Notice, noticeTypeToColor } from ".";
 
 type Props = { notice: Notice; clear: () => void };
 
