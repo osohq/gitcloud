@@ -544,19 +544,19 @@ def test_actions(test_actions_client):
     action_params = {"name": action_name}
     resp = test_actions_client.post(repo1_actions, json=action_params)
     assert resp.status_code == 201
-    action1 = {
-        "id": 1,
-        "name": action_name,
-        "creatorId": john,
-        "repoId": "1",
-        "status": "scheduled",
-    }
-    assert resp.json() == action1
+    action1 = resp.json()
+    assert action1["id"] == 1
+    assert action1["name"] == action_name
+    assert action1["creatorId"] == john
+    assert action1["repoId"] == "1"
+    assert action1["status"] == "scheduled"
 
     # List actions to see newly created one
     resp = test_actions_client.get(repo1_actions)
     assert resp.status_code == 200
-    assert resp.json() == [action1]
+    actions = resp.json()
+    assert len(actions) == 1
+    assert actions[0]["id"] == action1["id"]
 
     # Paul has the "reader" role on Repo("1")
     test_actions_client.log_in_as(paul)
@@ -564,12 +564,12 @@ def test_actions(test_actions_client):
     action1_cancel = repo1_actions + "/1/cancel"
 
     # Cancel action w/o "the juice"
-    resp = test_actions_client.put(action1_cancel)
+    resp = test_actions_client.patch(action1_cancel)
     assert resp.status_code == 403
 
     # John is the creator of action 1
     test_actions_client.log_in_as(john)
 
     # Cancel action w/ "the juice"
-    resp = test_actions_client.put(action1_cancel)
+    resp = test_actions_client.patch(action1_cancel)
     assert resp.status_code == 200
