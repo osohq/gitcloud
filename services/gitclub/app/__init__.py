@@ -51,12 +51,8 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
         # Called during tests to reset the database
         Base.metadata.drop_all(bind=engine)
         Base.metadata.create_all(bind=engine)
-
-        result = oso._do_post(f"{oso.url}/{oso.api_base}/clear_data", json=None)
-        oso._handle_result(result)
-
+        oso.api.clear_data()
         load_fixture_data(Session())
-
         return {}
 
     Base.metadata.create_all(bind=engine)
