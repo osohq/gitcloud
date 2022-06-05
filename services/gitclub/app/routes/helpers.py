@@ -1,11 +1,12 @@
-from flask import g
+from os import getenv
 from typing import Any, List, Type
 
+from flask import g
+from oso_cloud import Oso
 from sqlalchemy.orm.session import Session
 from werkzeug.exceptions import Forbidden, NotFound
-from oso_cloud import Oso
 
-oso = Oso(url="http://localhost:8080", api_key="dF8wMTIzNDU2Nzg5Om9zb190ZXN0X3Rva2Vu")
+oso = Oso(url=getenv("OSO_URL", "https://cloud.osohq.com"), api_key=getenv("OSO_AUTH"))
 
 
 def authorize(action: str, resource: Any) -> bool:

@@ -31,10 +31,14 @@ declare module "express" {
     const polar = await readFile("src/authorization.polar", {
       encoding: "utf8",
     });
-    const oso = new Oso(
-      "http://localhost:8080",
-      "dF8wMTIzNDU2Nzg5Om9zb190ZXN0X3Rva2Vu"
-    );
+    const cloudUrl = process.env["OSO_URL"] || "https://cloud.osohq.com";
+    const apiToken = process.env["OSO_AUTH"];
+    if (!apiToken)
+      throw new Error(
+        'Missing Oso Cloud API token. Please retrieve an API token from https://cloud.osohq.com/dashboard/ and set it as the "OSO_AUTH" variable in your local environment.'
+      );
+
+    const oso = new Oso(cloudUrl, apiToken);
     await oso.policy(polar);
 
     // create express app

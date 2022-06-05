@@ -51,7 +51,7 @@ def ensure_port_is_open(process, port):
 
 
 @pytest.fixture(scope="session")
-def test_gitclub(test_oso_cloud):
+def test_gitclub():
     process = subprocess.Popen(
         ["make", "test-server", "-C", "../services/gitclub"], start_new_session=True
     )
@@ -65,7 +65,7 @@ def test_gitclub(test_oso_cloud):
 
 
 @pytest.fixture(scope="session")
-def test_actions_service(test_oso_cloud):
+def test_actions_service():
     process = subprocess.Popen(
         ["make", "test-server", "-C", "../services/actions"], start_new_session=True
     )
@@ -78,16 +78,18 @@ def test_actions_service(test_oso_cloud):
     print("Test Actions Service spun down")
 
 
-@pytest.fixture(scope="session")
-def test_oso_cloud():
-    process = subprocess.Popen(["make", "test-oso-cloud"], start_new_session=True)
-    ensure_port_is_open(process, 8080)
-    print("Test Oso Cloud spun up")
-    yield process
-    pgrp = os.getpgid(process.pid)
-    os.killpg(pgrp, signal.SIGINT)
-    process.wait()
-    print("Test Oso Cloud spun down")
+# TODO(gj): check that Oso Cloud (either remote or local) is reachable?
+#
+# @pytest.fixture(scope="session")
+# def test_oso_cloud():
+#     process = subprocess.Popen(["make", "test-oso-cloud"], start_new_session=True)
+#     ensure_port_is_open(process, 8080)
+#     print("Test Oso Cloud spun up")
+#     yield process
+#     pgrp = os.getpgid(process.pid)
+#     os.killpg(pgrp, signal.SIGINT)
+#     process.wait()
+#     print("Test Oso Cloud spun down")
 
 
 @pytest.fixture

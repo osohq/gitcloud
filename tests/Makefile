@@ -2,11 +2,11 @@
 
 TEST_FLAGS ?=
 
-test: venv
+test: venv require-OSO_AUTH
 	. venv/bin/activate; pytest ${TEST_FLAGS}
 
-test-oso-cloud:
-	cd ../../oso-service; cargo run -- run --test-mode
+require-%:
+	$(if ${${*}},,$(error You must pass the $* environment variable))
 
 fmt: venv
 	. venv/bin/activate; black .
