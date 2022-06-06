@@ -160,7 +160,6 @@ def repo_update(org_id, repo_id):
 
 
 @bp.route("/repos/<int:repo_id>/role_assignments", methods=["DELETE"])
-# @session({Repo: "list_role_assignments", User: "read"})
 def repo_delete(org_id, repo_id):
     payload = request.get_json(force=True)
     repo = g.session.get_or_404(Repo, id=repo_id)
