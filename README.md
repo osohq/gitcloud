@@ -37,24 +37,31 @@ Oso's [Node.js][docs-node] library.
 
 ### Running tests
 
-Note: tests assume a running Oso Cloud service on localhost:8080.
+NOTE: ***running the test suite against an Oso Cloud instance will reset all
+data in that instance.*** This ensures each test starts from a clean slate.
 
-<!-- TODO(gj): make this configurable so sandbox users can point it at the sandbox. -->
+To run the test suite, which, again, *will reset data and perform many
+authorization requests against the target Oso Cloud instance*, grab your API
+key from https://cloud.osohq.com/dashboard and export it as the `OSO_AUTH`
+environment variable.
 
 ```console
+$ export OSO_AUTH="0123456789"
 $ make test
 ```
 
 ### Running the services
 
-In one terminal:
+Run GitClub in one terminal:
 
 ```console
+make -C services/gitclub
 ```
 
-In another terminal:
+Run the Actions Service in another terminal:
 
 ```console
+make -C services/actions
 ```
 
 ## Frontend
