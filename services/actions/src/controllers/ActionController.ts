@@ -9,7 +9,7 @@ export class ActionController {
   private actionRepository = getRepository(Action);
 
   async all({ oso, repo, user }: Request, res: Response) {
-    // TODO(gj): since there aren't any ABAC conditions modifying the set of
+    // NOTE(gj): since there aren't any ABAC conditions modifying the set of
     // actions a user can view, the check for "view_actions" on the parent repo
     // is a more efficient version of the check for "view" on Action.
     if (!(await oso.authorize(user, "view_actions", repo)))

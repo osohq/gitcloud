@@ -34,9 +34,12 @@ def create(org_id, repo_id):
     issue = Issue(title=payload["title"], repo=repo, creator_id=g.current_user.id)
     g.session.add(issue)
     g.session.commit()
-    # TODO(gj): bulk tell
-    oso.tell("has_role", g.current_user, "creator", issue)
-    oso.tell("has_relation", issue, "parent", repo)
+    oso.bulk_tell(
+        [
+            ["has_role", g.current_user, "creator", issue],
+            ["has_relation", issue, "parent", repo],
+        ]
+    )
     return issue.repr(), 201
 
 

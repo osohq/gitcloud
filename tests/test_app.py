@@ -14,7 +14,6 @@ sully = "sully@monsters.com"
 
 def test_can_connect(test_gitclub_client):
     resp = test_gitclub_client.get("/session")
-    print(resp.json())
     assert resp.status_code == 200
     assert resp.json() in [{}, None]
 
@@ -47,17 +46,9 @@ def test_user_show(test_gitclub_client):
 
     test_gitclub_client.log_in_as(john)
 
-    print(f"JOHN_PROFILE: {john_profile}")
-
     resp = test_gitclub_client.get(john_profile)
     assert resp.status_code == 200
     assert resp.json().get("id") == john
-
-    # TODO(gj): doesn't currently work
-    # test_gitclub_client.log_in_as(paul)
-    #
-    # resp = test_gitclub_client.get(john_profile)
-    # assert resp.status_code == 403
 
 
 def test_org_index(test_gitclub_client):
@@ -214,8 +205,6 @@ def test_user_repo_index(test_gitclub_client):
 
     # mike can't see john's repos.
     resp = test_gitclub_client.get(john_repos)
-    # TODO(gj): broken until we fix OSO-348
-    # assert resp.status_code == 403
 
     # but, mike can see abbey road
     mike_repos = "/users/%s/repos" % mike
