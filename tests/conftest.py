@@ -51,9 +51,9 @@ def ensure_port_is_open(process, port):
 
 
 @pytest.fixture(scope="session")
-def test_gitclub():
+def test_gitclub(check_oso_cloud):
     process = subprocess.Popen(
-        ["make", "test-server", "-C", "../services/gitclub"], start_new_session=True
+        ["make", "-C", "../services/gitclub"], start_new_session=True
     )
     ensure_port_is_open(process, 5000)
     print("Test GitClub spun up")
@@ -65,9 +65,9 @@ def test_gitclub():
 
 
 @pytest.fixture(scope="session")
-def test_actions_service():
+def test_actions_service(check_oso_cloud):
     process = subprocess.Popen(
-        ["make", "test-server", "-C", "../services/actions"], start_new_session=True
+        ["make", "-C", "../services/actions"], start_new_session=True
     )
     ensure_port_is_open(process, 5001)
     print("Test Actions Service spun up")

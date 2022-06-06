@@ -1,10 +1,10 @@
-.PHONY: run test-server fmt
-
-run: venv
-	. venv/bin/activate; flask run
+.PHONY: test-server run fmt
 
 test-server: venv
 	. venv/bin/activate; FLASK_APP="app:create_app('sqlite://', True)" flask run
+
+run: venv
+	. venv/bin/activate; flask run
 
 fmt: venv
 	. venv/bin/activate; black .
