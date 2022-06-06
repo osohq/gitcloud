@@ -78,18 +78,13 @@ def test_actions_service(check_oso_cloud):
     print("Test Actions Service spun down")
 
 
-# TODO(gj): check that Oso Cloud (either remote or local) is reachable?
-#
-# @pytest.fixture(scope="session")
-# def test_oso_cloud():
-#     process = subprocess.Popen(["make", "test-oso-cloud"], start_new_session=True)
-#     ensure_port_is_open(process, 8080)
-#     print("Test Oso Cloud spun up")
-#     yield process
-#     pgrp = os.getpgid(process.pid)
-#     os.killpg(pgrp, signal.SIGINT)
-#     process.wait()
-#     print("Test Oso Cloud spun down")
+@pytest.fixture(scope="session")
+def check_oso_cloud():
+    url = os.getenv("OSO_URL", "https://cloud.osohq.com")
+    req = requests.get(url + "/api")
+    if req.status_code != 401:
+        raise Exception(f"Unable to reach Oso Cloud at {url}")
+    print(f"Oso Cloud reached at {url}")
 
 
 @pytest.fixture
