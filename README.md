@@ -5,6 +5,10 @@ permissions system. The app is implemented as multiple backend services (in the
 `services/` directory) that use Oso Cloud as a shared central authorization
 system and a React frontend (in the `frontend/` directory).
 
+This application is built as an example for [Oso Cloud](https://cloud-docs.osohq.com/).
+If you are looking for an example of using the Oso library, check out
+[osohq/gitclub](https://github.com/osohq/gitclub).
+
 ## Backend services
 
 ### GitClub (Python - SQLAlchemy - Flask)
@@ -76,7 +80,7 @@ $ yarn start
 
 ### Architecture
 
-- TypeScript / React / Reach Router
+- TypeScript / React / React Router
 
 ## Development
 
