@@ -1,6 +1,6 @@
-import { User, RoleAssignment } from '../models';
-import type { RoleAssignmentParams as Params } from '../models';
-import { create, del, index, update } from './helpers';
+import { User, RoleAssignment } from "../models";
+import type { RoleAssignmentParams as Params } from "../models";
+import { create, del, index, update } from "./helpers";
 
 export type RoleAssignmentsApi = {
   create: (body: Params) => Promise<RoleAssignment>;

@@ -6,16 +6,16 @@ import {
   useContext,
   useEffect,
   useState,
-} from 'react';
+} from "react";
 
 import {
   RoleAssignment,
   RoleAssignmentParams,
   User,
   UserContext,
-} from '../models';
-import type { RoleAssignmentsApi } from '../api';
-import { NoticeContext, RoleSelector } from '.';
+} from "../models";
+import type { RoleAssignmentsApi } from "../api";
+import { NoticeContext, RoleSelector } from ".";
 
 type Props = {
   api: RoleAssignmentsApi;
@@ -36,7 +36,7 @@ export function NewRoleAssignment({
   const { error } = useContext(NoticeContext);
   const [users, setUsers] = useState<User[]>([]);
   const [details, setDetails] = useState<RoleAssignmentParams>({
-    userId: 0,
+    userId: "",
     role: roleChoices[0],
   });
 
@@ -46,7 +46,7 @@ export function NewRoleAssignment({
         .unassignedUsers()
         .then((users) => {
           setUsers(users);
-          setDetails((ds) => ({ ...ds, userId: users[0] ? users[0].id : 0 }));
+          setDetails((ds) => ({ ...ds, userId: users[0] ? users[0].id : "" }));
         })
         .catch((e) => error(`Failed to fetch unassigned users: ${e.message}`));
     }
@@ -59,7 +59,7 @@ export function NewRoleAssignment({
     try {
       const assignment = await api.create(details);
       setRefetch((x) => !x);
-      setDetails((details) => ({ ...details, userId: 0 }));
+      setDetails((details) => ({ ...details, userId: "" }));
       setAssignments((assignments) => [...assignments, { ...assignment }]);
     } catch (e) {
       error(`Failed to create new role assignment: ${e.message}`);
@@ -75,23 +75,23 @@ export function NewRoleAssignment({
   return (
     <form onSubmit={handleSubmit}>
       <label>
-        user:{' '}
+        user:{" "}
         <select name="userId" value={details.userId} onChange={handleChange}>
           {users.map((u) => (
             <option key={u.id} value={u.id}>
-              {u.email}
+              {u.id}
             </option>
           ))}
         </select>
-      </label>{' '}
+      </label>{" "}
       <label>
-        role:{' '}
+        role:{" "}
         <RoleSelector
           choices={roleChoices}
           selected={details.role}
           update={handleChange}
         />
-      </label>{' '}
+      </label>{" "}
       <input type="submit" value="assign" />
     </form>
   );

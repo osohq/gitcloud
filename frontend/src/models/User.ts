@@ -1,14 +1,12 @@
-import { createContext } from 'react';
+import { createContext } from "react";
 
-export type LoggedInUser = User | 'Guest' | 'Loading';
+export type LoggedInUser = User | "Guest" | "Loading";
 
 export class User {
-  id: number;
-  email: string;
+  id: string;
 
-  constructor({ id, email }: User) {
+  constructor({ id }: User) {
     this.id = id;
-    this.email = email;
   }
 }
 
@@ -17,7 +15,7 @@ export const UserContext = createContext<{
   loggedIn: () => boolean;
   update: (u: LoggedInUser) => void;
 }>({
-  current: 'Loading',
+  current: "Loading",
   loggedIn: () => false,
-  update: (_) => console.error('override me'),
+  update: (_) => console.error("override me"),
 });

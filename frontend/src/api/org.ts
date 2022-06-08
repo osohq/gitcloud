@@ -1,6 +1,6 @@
-import { Org } from '../models';
-import type { OrgParams as Params } from '../models';
-import { create, index, show } from './helpers';
+import { Org } from "../models";
+import type { OrgParams as Params } from "../models";
+import { create, index, show } from "./helpers";
 
 const path = `/orgs`;
 

@@ -1,6 +1,0 @@
-entity: Issue
-items:
-  issue1:
-    repo: "@abbey_road"
-    title: "Too much critical acclaim"
-    creator: "@john"

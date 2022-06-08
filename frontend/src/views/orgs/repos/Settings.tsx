@@ -1,18 +1,18 @@
-import { useContext, useEffect, useState } from 'react';
-import { Link, Redirect, RouteComponentProps } from '@reach/router';
+import { useContext, useEffect, useState } from "react";
+import { Link, Redirect, RouteComponentProps } from "@reach/router";
 
-import { Org, Repo, RoleAssignment, UserContext } from '../../../models';
+import { Org, Repo, RoleAssignment, UserContext } from "../../../models";
 import {
   NewRoleAssignment,
   NoticeContext,
   RoleAssignments,
-} from '../../../components';
+} from "../../../components";
 import {
   org as orgApi,
   repo as repoApi,
   roleAssignments as roleAssignmentsApi,
   roleChoices as roleChoicesApi,
-} from '../../../api';
+} from "../../../api";
 
 type Props = RouteComponentProps & { orgId?: string; repoId?: string };
 
@@ -51,9 +51,9 @@ export function Settings({ orgId, repoId }: Props) {
   if (!orgId || !repoId) return null;
   const show = `/orgs/${orgId}/repos/${repoId}`;
 
-  if (currentUser === 'Loading') return null;
+  if (currentUser === "Loading") return null;
   // If a guest navigates to this page, redirect to the repo show.
-  if (currentUser === 'Guest') return <Redirect to={show} noThrow />;
+  if (currentUser === "Guest") return <Redirect to={show} noThrow />;
 
   if (!org || !repo) return null;
 
@@ -62,7 +62,7 @@ export function Settings({ orgId, repoId }: Props) {
   return (
     <>
       <h1>
-        <Link to={`/orgs/${org.id}`}>{org.name}</Link> /{' '}
+        <Link to={`/orgs/${org.id}`}>{org.name}</Link> /{" "}
         <Link to={`/orgs/${org.id}/repos/${repo.id}`}>{repo.name}</Link> /
         settings
       </h1>

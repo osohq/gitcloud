@@ -1,17 +1,17 @@
-import { useContext, useEffect, useState } from 'react';
-import { Link, RouteComponentProps } from '@reach/router';
+import { useContext, useEffect, useState } from "react";
+import { Link, RouteComponentProps } from "@reach/router";
 
-import { Org, RoleAssignment, UserContext } from '../../models';
+import { Org, RoleAssignment, UserContext } from "../../models";
 import {
   org as orgApi,
   roleAssignments as roleAssignmentsApi,
   roleChoices as roleChoicesApi,
-} from '../../api';
+} from "../../api";
 import {
   NewRoleAssignment,
   NoticeContext,
   RoleAssignments,
-} from '../../components';
+} from "../../components";
 
 type Props = RouteComponentProps & { orgId?: string };
 

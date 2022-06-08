@@ -1,23 +1,19 @@
-TEST_FLAGS :=
+.PHONY: test test-oso-cloud fmt
 
-test: test-flask-sqlalchemy test-flask-sqlalchemy-oso test-rails test-express-typeorm
+TEST_FLAGS ?=
 
-# TODO better name
-test-flask-sqlalchemy-oso: .make.requirements-install
-	BACKEND=flask-sqlalchemy-oso pytest ${TEST_FLAGS}
+test: venv require-OSO_AUTH
+	. venv/bin/activate; pytest ${TEST_FLAGS}
 
-test-express-typeorm: .make.requirements-install
-	BACKEND=express-typeorm pytest ${TEST_FLAGS}
+require-%:
+	$(if ${${*}},,$(error You must pass the $* environment variable))
 
-test-flask-sqlalchemy: .make.requirements-install
-	BACKEND=flask-sqlalchemy pytest ${TEST_FLAGS}
+fmt: venv
+	. venv/bin/activate; black .
 
-test-rails: .make.requirements-install
-	BACKEND=rails pytest ${TEST_FLAGS}
+venv: venv/touchfile
 
-fmt: .make.requirements-install
-	black .
-
-.make.requirements-install: requirements.txt
-	pip install -r requirements.txt
+venv/touchfile: requirements.txt
+	test -d venv || python3 -m venv venv
+	. venv/bin/activate; pip install -r requirements.txt
 	touch $@

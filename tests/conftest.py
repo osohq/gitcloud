@@ -32,64 +32,80 @@ def is_port_open(port):
         return result == 0
 
 
-def ensure_port_5000_is_open(process):
+def ensure_port_is_open(process, port):
     interval = 0.5
     elapsed = interval
     sleep(interval)
-    while not is_port_open(5000):
+    while not is_port_open(port):
         sleep(interval)
         process.poll()
         if process.returncode is not None:
             raise RuntimeError(
-                "Server died before port 5000 was opened. Check the output above to see why."
+                f"Server died before port {port} was opened. Check the output above to see why."
             )
         elapsed += interval
         if elapsed > 60:
             raise RuntimeError(
-                "Server took more than 60s to start listening on port 5000, aborting."
+                f"Server took more than 60s to start listening on port {port}, aborting."
             )
 
 
-def xfail_backend(*envs, reason=None):
-    env = os.environ.get("BACKEND", "flask-sqlalchemy")
-    envs = envs if isinstance(envs, list) else [*envs]
-
-    reason = (
-        f"test is expected to fail for backend=`{env}`" + f"\n{reason}"
-        if reason
-        else ""
-    )
-    return pytest.mark.xfail(env in envs, reason=reason, strict=True)
-
-
-DIRECTORIES = {
-    "rails": "../backends/rails",
-    "flask-sqlalchemy": "../backends/flask-sqlalchemy",
-    "flask-sqlalchemy-oso": "../backends/flask-sqlalchemy-oso",
-    "express-typeorm": "../backends/express-typeorm",
-}
-
-
 @pytest.fixture(scope="session")
-def test_app():
-    directory = DIRECTORIES[os.getenv("BACKEND", "flask-sqlalchemy-oso")]
+def test_gitclub(check_oso_cloud):
     process = subprocess.Popen(
-        ["make", "test-server", "-C", directory], start_new_session=True
+        ["make", "-C", "../services/gitclub"], start_new_session=True
     )
-    ensure_port_5000_is_open(process)
+    ensure_port_is_open(process, 5000)
+    print("Test GitClub spun up")
     yield process
     pgrp = os.getpgid(process.pid)
     os.killpg(pgrp, signal.SIGINT)
     process.wait()
-    print("DONE")
+    print("Test GitClub spun down")
+
+
+@pytest.fixture(scope="session")
+def test_actions_service(check_oso_cloud):
+    process = subprocess.Popen(
+        ["make", "-C", "../services/actions"], start_new_session=True
+    )
+    ensure_port_is_open(process, 5001)
+    print("Test Actions Service spun up")
+    yield process
+    pgrp = os.getpgid(process.pid)
+    os.killpg(pgrp, signal.SIGINT)
+    process.wait()
+    print("Test Actions Service spun down")
+
+
+@pytest.fixture(scope="session")
+def check_oso_cloud():
+    url = os.getenv("OSO_URL", "https://cloud.osohq.com")
+    req = requests.get(url + "/api")
+    if req.status_code != 401:
+        raise Exception(f"Unable to reach Oso Cloud at {url}")
+    print(f"Oso Cloud reached at {url}")
 
 
 @pytest.fixture
-def test_client(test_app):
+def test_gitclub_client(test_gitclub):
     with PrefixUrlSession("http://localhost:5000") as session:
 
-        def log_in_as(email):
-            session.post("/session", json={"email": email})
+        def log_in_as(id: str):
+            session.post("/session", json={"id": id})
+
+        session.log_in_as = log_in_as  # type: ignore
+        session.post("/_reset")
+
+        yield session
+
+
+@pytest.fixture
+def test_actions_client(test_actions_service):
+    with PrefixUrlSession("http://localhost:5001") as session:
+
+        def log_in_as(id: str):
+            session.headers["USER"] = id
 
         session.log_in_as = log_in_as  # type: ignore
         session.post("/_reset")

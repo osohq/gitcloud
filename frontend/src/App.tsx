@@ -1,17 +1,17 @@
-import { useContext, useEffect, useState } from 'react';
-import { Router } from '@reach/router';
+import { useContext, useEffect, useState } from "react";
+import { Router } from "@reach/router";
 
-import { LoggedInUser, User, UserContext } from './models';
-import { View } from './views';
-import { session as sessionApi } from './api';
-import { NoticeContext } from './components';
+import { LoggedInUser, User, UserContext } from "./models";
+import { View } from "./views";
+import { session as sessionApi } from "./api";
+import { NoticeContext } from "./components";
 
-import './App.css';
+import "./App.css";
 
 function App() {
   const { error } = useContext(NoticeContext);
 
-  const [user, setUser] = useState<LoggedInUser>('Loading');
+  const [user, setUser] = useState<LoggedInUser>("Loading");
   const loggedIn = () => user instanceof User;
   const userContext = { current: user, loggedIn, update: setUser };
 
@@ -32,6 +32,8 @@ function App() {
           <View.Issue.Index path="/orgs/:orgId/repos/:repoId/issues" />
           <View.Issue.New path="/orgs/:orgId/repos/:repoId/issues/new" />
           <View.Issue.Show path="/orgs/:orgId/repos/:repoId/issues/:issueId" />
+
+          <View.Action.Index path="/orgs/:orgId/repos/:repoId/actions" />
 
           <View.Org.Index path="/orgs" />
           <View.Org.New path="/orgs/new" />

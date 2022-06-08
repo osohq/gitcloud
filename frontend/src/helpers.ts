@@ -11,7 +11,7 @@ export function camelizeKeys(o: obj): unknown {
 
 export function snakeifyKeys(o: obj): unknown {
   const camelToSnake = (s: string) =>
-    s.replace(/[A-Z]/g, (l) => '_' + l.toLowerCase());
+    s.replace(/[A-Z]/g, (l) => "_" + l.toLowerCase());
 
   return Object.fromEntries(
     Object.entries(o).map(([k, v]) => [camelToSnake(k), v])

@@ -1,9 +1,9 @@
-import { useContext, useEffect, useState } from 'react';
-import { Link, RouteComponentProps } from '@reach/router';
+import { useContext, useEffect, useState } from "react";
+import { Link, RouteComponentProps } from "@reach/router";
 
-import { Org, Repo, UserContext } from '../../../models';
-import { org as orgApi, repo as repoApi } from '../../../api';
-import { NoticeContext } from '../../../components';
+import { Org, Repo, UserContext } from "../../../models";
+import { org as orgApi, repo as repoApi } from "../../../api";
+import { NoticeContext } from "../../../components";
 
 type Props = RouteComponentProps & { orgId?: string; repoId?: string };
 
@@ -38,6 +38,9 @@ export function Show({ orgId, repoId }: Props) {
       </h1>
       <h2>
         <Link to={`/orgs/${orgId}/repos/${repoId}/issues`}>Issues</Link>
+      </h2>
+      <h2>
+        <Link to={`/orgs/${orgId}/repos/${repoId}/actions`}>Actions</Link>
       </h2>
       <h2>
         <Link to={`/orgs/${orgId}/repos/${repoId}/settings`}>Settings</Link>

@@ -1,5 +1,5 @@
-import { Repo } from '../models';
-import { create, index, show } from './helpers';
+import { Repo } from "../models";
+import { create, index, show } from "./helpers";
 
 type Params = { name: string };
 
