@@ -1568,8 +1568,10 @@ osenv@^0.1.4:
     os-homedir "^1.0.0"
     os-tmpdir "^1.0.0"
 
-oso-cloud@../../../oso-service/clients/js:
+oso-cloud@^0.5.0:
   version "0.5.0"
+  resolved "https://registry.yarnpkg.com/oso-cloud/-/oso-cloud-0.5.0.tgz#811f183796a242979035465c2508176823ba7635"
+  integrity sha512-Nt+BiSQ0SfKZu1QnO3qZCoHharMJnoMS4DzrAyBxG6UHFapKBEqPq9MCP3jLZyk05ov5A0To9ELcCEGCZ0HjwA==
   dependencies:
     node-fetch "^2.6.7"
 
