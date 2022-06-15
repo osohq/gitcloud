@@ -17,7 +17,7 @@
       "cookie-session": "^2.0.0",
       "cors": "^2.8.5",
       "express": "^4.15.4",
-      "oso-cloud": "../../../oso-service/clients/js",
+      "oso-cloud": "^0.5.0",
       "reflect-metadata": "^0.1.10",
       "sql.js": "^1.6.1",
       "sqlite3": "^4.0.3",
