@@ -1,6 +1,7 @@
-.vscode/
+.vscode/*
 .make.*
 *.sqlite
 venv/
 .vim/
 .envrc
+!.vscode/settings.json
