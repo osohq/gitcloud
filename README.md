@@ -80,7 +80,7 @@ $ yarn start
 
 ### Architecture
 
-- TypeScript / React / React Router
+- TypeScript / React / Reach Router
 
 ## Development
 
