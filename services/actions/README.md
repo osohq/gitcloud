@@ -1,7 +1,3 @@
-# GitClub backend in Express/TypeORM
+# Actions Service
 
-Steps to run this project:
-
-1. Run `yarn` command
-2. Setup database with `yarn run fixtures`
-3. Run `yarn start` command
+To run this project: `make test-server`

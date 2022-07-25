@@ -25,7 +25,7 @@ Oso's [Python][docs-python] library.
 [docs]: https://cloud-docs.osohq.com/
 [docs-python]: https://cloud-docs.osohq.com/reference/client-apis/python
 
-### GitClub Actions (Node.js - TypeORM - Express.js)
+### Actions Service (Node.js - TypeORM - Express.js)
 
 This is an example application based on GitHub Actions that's meant to model
 GitHub Actions's permissions system. The app uses the
