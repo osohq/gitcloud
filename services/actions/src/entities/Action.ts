@@ -30,4 +30,11 @@ export class Action {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  public instance() {
+    return {
+      type: "Action",
+      id: this.id.toString(),
+    } 
+  }
 }

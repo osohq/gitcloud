@@ -32,7 +32,7 @@ def create(org_id):
     repo = Repo(name=payload["name"], org=org)
     g.session.add(repo)
     g.session.commit()
-    oso.tell("has_relation", repo, "parent", org)
+    oso.tell("has_relation", repo.repr(), "parent", org.repr())
     return repo.repr(), 201
 
 

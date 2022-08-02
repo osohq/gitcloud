@@ -2,6 +2,7 @@ import { Request, Router } from "express";
 import { ActionController } from "../controllers/ActionController";
 
 export class Repo {
+  readonly type: string = 'Repo';
   constructor(readonly id: string) {}
 }
 

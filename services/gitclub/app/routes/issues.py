@@ -36,8 +36,8 @@ def create(org_id, repo_id):
     g.session.commit()
     oso.bulk_tell(
         [
-            ["has_role", g.current_user, "creator", issue],
-            ["has_relation", issue, "parent", repo],
+            ["has_role", g.current_user.repr(), "creator", issue.repr()],
+            ["has_relation", issue.repr(), "parent", repo.repr()],
         ]
     )
     return issue.repr(), 201

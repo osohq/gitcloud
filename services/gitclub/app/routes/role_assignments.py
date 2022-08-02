@@ -47,7 +47,7 @@ def org_create(org_id):
     user = g.session.get_or_404(User, id=payload["user_id"])
     if not authorize("read", user):
         raise NotFound
-    oso.tell("has_role", user, payload["role"], org)
+    oso.tell("has_role", user.repr(), payload["role"], org.repr())
     return {"user": user.repr(), "role": payload["role"]}, 201
 
 
@@ -68,7 +68,7 @@ def org_update(org_id):
             for role in oso.get("has_role", user, None, org)
         ]
     )
-    oso.tell("has_role", user, payload["role"], org)
+    oso.tell("has_role", user.repr(), payload["role"], org.repr())
     return {"user": user.repr(), "role": payload["role"]}
 
 
@@ -134,7 +134,7 @@ def repo_create(org_id, repo_id):
     user = g.session.get_or_404(User, id=payload["user_id"])
     if not authorize("read", user):
         raise NotFound
-    oso.tell("has_role", user, payload["role"], repo)
+    oso.tell("has_role", user.repr(), payload["role"], repo.repr())
     return {"user": user.repr(), "role": payload["role"]}, 201
 
 
@@ -155,7 +155,7 @@ def repo_update(org_id, repo_id):
             for role in oso.get("has_role", user, None, repo)
         ]
     )
-    oso.tell("has_role", user, payload["role"], repo)
+    oso.tell("has_role", user.repr(), payload["role"], repo.repr())
     return {"user": user.repr(), "role": payload["role"]}
 
 

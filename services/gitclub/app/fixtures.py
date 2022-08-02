@@ -73,10 +73,10 @@ def load_fixture_data(session):
     #################
 
     for repo in repos:
-        oso.tell("has_relation", repo, "parent", repo.org)
+        oso.tell("has_relation", repo.repr(), "parent", repo.org.repr())
 
     for issue in issues:
-        oso.tell("has_relation", issue, "parent", issue.repo)
+        oso.tell("has_relation", issue.repr(), "parent", issue.repo.repr())
 
     ##############
     # Repo roles #
@@ -90,7 +90,7 @@ def load_fixture_data(session):
         (sully, paperwork, "reader"),
     ]
     for (user, repo, role) in repo_roles:
-        oso.tell("has_role", user, role, repo)
+        oso.tell("has_role", user.repr(), role, repo.repr())
 
     #############
     # Org roles #
@@ -105,4 +105,4 @@ def load_fixture_data(session):
         (randall, monsters, "member"),
     ]
     for (user, org, role) in org_roles:
-        oso.tell("has_role", user, role, org)
+        oso.tell("has_role", user.repr(), role, org.repr())

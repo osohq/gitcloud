@@ -26,7 +26,7 @@ def create():
         raise Forbidden
     g.session.add(org)
     g.session.commit()
-    oso.tell("has_role", g.current_user, "owner", org)
+    oso.tell("has_role", g.current_user.repr(), "owner", org.repr())
     return org.repr(), 201
 
 

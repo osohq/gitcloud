@@ -17,7 +17,8 @@ class Org(Base):
 
     def repr(self):
         return {
-            "id": self.id,
+            "type": "Org",
+            "id": str(self.id),
             "name": self.name,
             "billing_address": self.billing_address,
             "base_repo_role": self.base_repo_role,
@@ -30,7 +31,7 @@ class User(Base):
     id = Column(String, primary_key=True)
 
     def repr(self):
-        return {"id": self.id}
+        return {"type": "User", "id": self.id}
 
 
 class Repo(Base):
@@ -46,7 +47,7 @@ class Repo(Base):
     unique_name_in_org = UniqueConstraint(name, org_id)
 
     def repr(self):
-        return {"id": self.id, "name": self.name, "org_id": self.org_id}
+        return {"type": "Repo", "id": str(self.id), "name": self.name, "org_id": self.org_id}
 
 
 class Issue(Base):
@@ -63,4 +64,4 @@ class Issue(Base):
     creator = relationship("User", backref=backref("issues", lazy=False), lazy=False)
 
     def repr(self):
-        return {"id": self.id, "title": self.title}
+        return {"type": "Issue", "id": str(self.id), "title": self.title}

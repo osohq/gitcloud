@@ -11,6 +11,7 @@ import { actionsRouter, Repo } from "./routes/actions";
 import { resetData } from "./test";
 
 class User {
+  readonly type: string = 'User';
   constructor(readonly id: string) {}
 }
 

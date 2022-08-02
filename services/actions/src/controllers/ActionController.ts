@@ -15,7 +15,7 @@ export class ActionController {
     if (!(await oso.authorize(user, "view_actions", repo)))
       return res.status(403).send("Forbidden");
 
-    const actionIds = await oso.list(user, "view", Action);
+    const actionIds = await oso.list(user, "view", "Action");
     const actions = await this.actionRepository
       .createQueryBuilder()
       .where({ id: In(actionIds), repoId: repo.id })
@@ -50,7 +50,7 @@ export class ActionController {
         toRun.add(a.id);
       });
 
-    const cancelableIds: string[] = await oso.list(user, "cancel", Action);
+    const cancelableIds: string[] = await oso.list(user, "cancel", "Action");
 
     return res.json(
       actions.map((a) => ({
@@ -73,15 +73,15 @@ export class ActionController {
     } as DeepPartial<Action>);
     action = await this.actionRepository.save(action);
     await oso.bulkTell([
-      ["has_relation", user, "creator", action],
-      ["has_relation", action, "repo", repo],
+      ["has_relation", user, "creator", action.instance()],
+      ["has_relation", action.instance(), "repo", repo],
     ]);
     return res.status(201).json(action);
   }
 
   async cancel({ oso, params, user }: Request, res: Response) {
     const action = await this.actionRepository.findOneOrFail(params.id);
-    if (!(await oso.authorize(user, "cancel", action)))
+    if (!(await oso.authorize(user, "cancel", action.instance())))
       return res.status(403).send("Forbidden");
     await this.actionRepository.update(action.id, { status: "canceled" });
     return res.json(action);
