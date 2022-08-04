@@ -84,7 +84,7 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
 
     @app.after_request
     def add_cors_headers(res):
-        res.headers.add("Access-Control-Allow-Origin", "http://localhost:3000")
+        res.headers.add("Access-Control-Allow-Origin", "http://localhost:3005")
         res.headers.add("Access-Control-Allow-Headers", "Accept,Content-Type")
         res.headers.add("Access-Control-Allow-Methods", "DELETE,GET,OPTIONS,PATCH,POST")
         res.headers.add("Access-Control-Allow-Credentials", "true")

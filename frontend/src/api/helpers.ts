@@ -4,8 +4,8 @@ import { camelizeKeys, obj, snakeifyKeys } from "../helpers";
 
 type Class<T extends {} = {}> = new (...args: any[]) => T;
 
-const GITCLUB_ROOT = "http://localhost:5000";
-const ACTIONS_ROOT = "http://localhost:5001";
+const GITCLUB_ROOT = "http://127.0.0.1:5000";
+const ACTIONS_ROOT = "http://127.0.0.1:5001";
 
 const defaultOpts: RequestInit = {
   headers: {

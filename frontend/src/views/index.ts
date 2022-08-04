@@ -22,6 +22,8 @@ import { Show as OrgRepoShow } from "./orgs/repos/Show";
 import { Show as UserShow } from "./users/Show";
 import { Index as UserRepoIndex } from "./users/repos/Index";
 
+import { Index as Roles } from "./roles/Index";
+
 export const View = {
   Home,
   Login,
@@ -51,4 +53,6 @@ export const View = {
       Index: UserRepoIndex,
     },
   },
+
+  Roles,
 };

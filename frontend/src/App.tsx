@@ -47,6 +47,8 @@ function App() {
           <View.User.Show path="/users/:userId" />
           <View.User.Repo.Index path="/users/:userId/repos" />
 
+          <View.Roles path="/roles" />
+
           <View.NotFound default />
         </View.Notices>
       </Router>

@@ -28,7 +28,7 @@ export function Nav() {
   const userStatus =
     user.current instanceof User ? (
       <>
-        {logout} Logged in as {user.current.id}
+        {logout} Logged in as {user.current.id} with token {user.current.token}
       </>
     ) : (
       login
@@ -36,10 +36,11 @@ export function Nav() {
 
   const home = <Link to="/">Home</Link>;
   const orgs = <Link to="/orgs">Orgs</Link>;
+  const roles = <Link to="/roles">Roles</Link>;
 
   return (
     <nav>
-      {home} {orgs} {userStatus}
+      {home} {orgs} {roles} {userStatus}
     </nav>
   );
 }

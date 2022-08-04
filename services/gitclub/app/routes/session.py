@@ -3,6 +3,9 @@ from werkzeug.exceptions import BadRequest, NotFound
 
 from ..models import User
 
+from os import getenv
+from oso_cloud import Oso
+
 bp = Blueprint("routes.session", __name__, url_prefix="/session")
 
 
@@ -21,7 +24,9 @@ def create():
         flask_session.pop("current_user_id", None)
         raise NotFound
     flask_session["current_user_id"] = user.id
-    return user.repr(), 201
+    result = user.repr()
+    result["token"] = Oso.mint_actor_token(getenv("OSO_ACTOR_ROOT"), user.repr())
+    return result, 201
 
 
 @bp.route("", methods=["DELETE"])
