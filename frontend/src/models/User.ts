@@ -13,12 +13,13 @@ export class User {
     this.token = token;
   }
 
-  async oso(method: string, path: string) {
+  async oso(method: string, path: string, body?: Object) {
     const res = await fetch(OSO_API + path, {
-      method: "GET",
+      method,
       headers: new Headers({
         Authorization: `Bearer ${this.token}`,
       }),
+      body: JSON.stringify(body),
     });
     return res.json();
   }
