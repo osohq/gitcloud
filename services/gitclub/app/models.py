@@ -18,12 +18,11 @@ class Org(Base):
     def repr(self):
         return {
             "type": "Org",
-            "id": str(self.id),
+            "id": self.name,
             "name": self.name,
             "billing_address": self.billing_address,
             "base_repo_role": self.base_repo_role,
         }
-
 
 class User(Base):
     __tablename__ = "users"
