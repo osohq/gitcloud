@@ -4,7 +4,7 @@ from werkzeug.exceptions import Forbidden, NotFound
 from ..models import Org
 from .helpers import authorize, authorized_resources, oso
 
-bp = Blueprint("routes.orgs", __name__, url_prefix="/orgs")
+bp = Blueprint("orgs", __name__, url_prefix="/orgs")
 
 
 @bp.route("", methods=["GET"])

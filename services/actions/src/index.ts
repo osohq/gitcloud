@@ -1,7 +1,5 @@
 import { readFile } from "fs/promises";
 
-import "reflect-metadata";
-import { createConnection } from "typeorm";
 import express, { ErrorRequestHandler, Request } from "express";
 import * as bodyParser from "body-parser";
 import cors from "cors";
@@ -9,9 +7,10 @@ import { Oso } from "oso-cloud";
 
 import { actionsRouter, Repo } from "./routes/actions";
 import { resetData } from "./test";
+import { localDataSource, pgDataSource } from "./db";
 
 class User {
-  constructor(readonly id: string) {}
+  constructor(readonly id: string) { }
 }
 
 // Type screwery to get TS to stop complaining.
@@ -23,14 +22,20 @@ declare module "express" {
   }
 }
 
+const config = process.env.PRODUCTION == "1" ? {
+  db: pgDataSource,
+  frontend: "https://gitcloud.vercel.app"
+} : {
+  db: localDataSource,
+  frontend: "http://localhost:3000"
+};
+
+export const db = config.db;
+
 (async function () {
   try {
-    const conn = await createConnection();
-    await conn.synchronize(true);
+    await db.initialize();
 
-    const polar = await readFile("src/authorization.polar", {
-      encoding: "utf8",
-    });
     const cloudUrl = process.env["OSO_URL"] || "https://cloud.osohq.com";
     const apiToken = process.env["OSO_AUTH"];
     if (!apiToken)
@@ -39,13 +44,12 @@ declare module "express" {
       );
 
     const oso = new Oso(cloudUrl, apiToken);
-    await oso.policy(polar);
 
     // create express app
     const app = express();
     app.use(
       cors({
-        origin: "http://localhost:3000",
+        origin: config.frontend,
         methods: ["DELETE", "GET", "OPTIONS", "PATCH", "POST"],
         credentials: true,
         allowedHeaders: ["Accept", "Content-Type", "USER"],
@@ -70,7 +74,7 @@ declare module "express" {
     app.post(
       "/_reset",
       async (_req, res) =>
-        await resetData(conn)
+        await resetData(db)
           .then(() => {
             return res.status(200).send("Data loaded");
           })

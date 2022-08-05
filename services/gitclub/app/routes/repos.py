@@ -4,7 +4,7 @@ from werkzeug.exceptions import NotFound
 from ..models import Org, Repo
 from .helpers import authorize, authorized_resources, oso
 
-bp = Blueprint("routes.repos", __name__, url_prefix="/orgs/<int:org_id>/repos")
+bp = Blueprint("repos", __name__, url_prefix="/orgs/<int:org_id>/repos")
 
 
 @bp.route("", methods=["GET"])

@@ -4,7 +4,7 @@ from werkzeug.exceptions import Forbidden
 from ..models import User, Repo
 from .helpers import authorize, authorized_resources
 
-bp = Blueprint("routes.users", __name__, url_prefix="/users")
+bp = Blueprint("users", __name__, url_prefix="/users")
 
 
 @bp.route("/<user_id>", methods=["GET"])

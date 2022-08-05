@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify
 
-bp = Blueprint("routes.role_choices", __name__)
+bp = Blueprint("role_choices", __name__)
 
 
 @bp.route("/org_role_choices", methods=["GET"])

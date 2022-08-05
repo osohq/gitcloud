@@ -5,7 +5,7 @@ from ..models import Repo, Issue
 from .helpers import authorize, authorized_resources, oso
 
 bp = Blueprint(
-    "routes.issues",
+    "issues",
     __name__,
     url_prefix="/orgs/<int:org_id>/repos/<int:repo_id>/issues",
 )

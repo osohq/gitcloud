@@ -7,6 +7,11 @@ def load_fixture_data(session):
     # Users #
     #########
 
+    session.query(User).delete()
+    session.query(Org).delete()
+    session.query(Repo).delete()
+    session.query(Issue).delete()
+
     john = User(id="john@beatles.com")
     paul = User(id="paul@beatles.com")
     admin = User(id="admin@admin.com")

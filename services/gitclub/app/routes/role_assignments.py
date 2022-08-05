@@ -4,7 +4,7 @@ from werkzeug.exceptions import Forbidden, NotFound
 from ..models import Org, Repo, User
 from .helpers import authorize, authorized_resources, oso
 
-bp = Blueprint("routes.role_assignments", __name__, url_prefix="/orgs/<int:org_id>")
+bp = Blueprint("role_assignments", __name__, url_prefix="/orgs/<int:org_id>")
 
 
 @bp.route("/unassigned_users", methods=["GET"])

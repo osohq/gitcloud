@@ -1,9 +1,9 @@
 from flask import Blueprint, g, request, current_app, jsonify, session as flask_session
-from werkzeug.exceptions import BadRequest, NotFound
+from werkzeug.exceptions import BadRequest, Unauthorized
 
 from ..models import User
 
-bp = Blueprint("routes.session", __name__, url_prefix="/session")
+bp = Blueprint("session", __name__, url_prefix="/session")
 
 
 @bp.route("", methods=["GET"])
@@ -19,7 +19,7 @@ def create():
     user = g.session.query(User).filter_by(id=payload["id"]).one_or_none()
     if user is None:
         flask_session.pop("current_user_id", None)
-        raise NotFound
+        raise Unauthorized
     flask_session["current_user_id"] = user.id
     return user.repr(), 201
 

@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import os
 from flask import g, Flask, session as flask_session
 from werkzeug.exceptions import BadRequest, Forbidden, NotFound
 from sqlalchemy import create_engine
@@ -9,21 +10,27 @@ from sqlalchemy.pool import StaticPool
 from .models import Base, User
 from .fixtures import load_fixture_data
 from .routes.helpers import oso
+from .tracing import instrument_app
 
+PRODUCTION = os.environ.get("PRODUCTION", "0") == "1"
 
 def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
     from . import routes
 
-    # Init DB engine.
-    engine = create_engine(
-        db_path,
-        # ignores errors from reusing connections across threads
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
+    if PRODUCTION:
+        engine=create_engine(os.environ["DATABASE_URL"] + "gitclub")
+    else:
+        # Init DB engine.
+        engine = create_engine(
+            db_path,
+            # ignores errors from reusing connections across threads
+            connect_args={"check_same_thread": False},
+            poolclass=StaticPool,
+        )
 
     # Init Flask app.
     app = Flask(__name__)
+    instrument_app(app)
     app.secret_key = b"ball outside of the school"
     app.register_blueprint(routes.issues.bp)
     app.register_blueprint(routes.orgs.bp)
@@ -63,9 +70,6 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
     if load_fixtures:
         load_fixture_data(Session())
 
-    policy = (Path(__file__).resolve().parent / "authorization.polar").resolve()
-    with open(policy) as f:
-        oso.policy(f.read())
 
     @app.before_request
     def set_current_user_and_session():
@@ -84,7 +88,8 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
 
     @app.after_request
     def add_cors_headers(res):
-        res.headers.add("Access-Control-Allow-Origin", "http://localhost:3000")
+        res.headers.add("Access-Control-Allow-Origin", "https://gitcloud.vercel.app" if PRODUCTION else "http://localhost:3000")
+        res.headers.add("Vary", "Origin")
         res.headers.add("Access-Control-Allow-Headers", "Accept,Content-Type")
         res.headers.add("Access-Control-Allow-Methods", "DELETE,GET,OPTIONS,PATCH,POST")
         res.headers.add("Access-Control-Allow-Credentials", "true")
