@@ -32,7 +32,7 @@ export function Index({ userId }: Props) {
   return (
     <>
       <h1>
-        <Link to={`/users/${userId}`}>{user.id}</Link> repos
+        <Link to={`/users/${userId}`}>{user.username}</Link> repos
       </h1>
       <ul>
         {repos.map((r) => (

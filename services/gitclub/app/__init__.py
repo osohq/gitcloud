@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import os
 from flask import g, Flask, session as flask_session
 from werkzeug.exceptions import BadRequest, Forbidden, NotFound
@@ -7,7 +5,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from .models import Base, User
+from .models import Base, User, setup_schema
 from .fixtures import load_fixture_data
 from .routes.helpers import oso
 from .tracing import instrument_app
@@ -30,7 +28,7 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
 
     # Init Flask app.
     app = Flask(__name__)
-    instrument_app(app)
+    instrument_app(app) if PRODUCTION else None
     app.secret_key = b"ball outside of the school"
     app.register_blueprint(routes.issues.bp)
     app.register_blueprint(routes.orgs.bp)
@@ -63,11 +61,15 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
         return {}
 
     Base.metadata.create_all(bind=engine)
+    setup_schema(Base)
 
     # Init session factory
     Session = sessionmaker(bind=engine)
 
     if load_fixtures:
+        # Called during tests to reset the database
+        Base.metadata.drop_all(bind=engine)
+        Base.metadata.create_all(bind=engine)
         load_fixture_data(Session())
 
 
@@ -77,11 +79,11 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
         g.session = Session()
 
         if "current_user" not in g:
-            if "current_user_id" in flask_session:
-                user_id = flask_session.get("current_user_id")
-                user = g.session.query(User).filter_by(id=user_id).one_or_none()
+            if "current_username" in flask_session:
+                username = flask_session.get("current_username")
+                user = g.session.query(User).filter_by(username=username).one_or_none()
                 if user is None:
-                    flask_session.pop("current_user_id")
+                    flask_session.pop("current_username")
                 g.current_user = user
             else:
                 g.current_user = None

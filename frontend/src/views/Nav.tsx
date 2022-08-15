@@ -28,7 +28,7 @@ export function Nav() {
   const userStatus =
     user.current instanceof User ? (
       <>
-        {logout} Logged in as {user.current.id}
+        {logout} Logged in as {user.current.username}
       </>
     ) : (
       login

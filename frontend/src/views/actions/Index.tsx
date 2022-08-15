@@ -57,7 +57,7 @@ export function Index({ orgId, repoId }: Props) {
 
   useEffect(() => {
     if (!(user instanceof User) || !orgId || !repoId) return;
-    actionApi(user.id, orgId, repoId)
+    actionApi(user.username, orgId, repoId)
       .index()
       .then(setActions)
       .catch((e) => redirectWithError(`Failed to fetch actions: ${e.message}`));
@@ -69,7 +69,7 @@ export function Index({ orgId, repoId }: Props) {
   }, []);
 
   if (!(user instanceof User) || !org || !repo) return null;
-  const api = actionApi(user.id, "" + org.id, "" + repo.id);
+  const api = actionApi(user.username, "" + org.id, "" + repo.id);
 
   const inputEmpty = !name.replaceAll(" ", "");
 

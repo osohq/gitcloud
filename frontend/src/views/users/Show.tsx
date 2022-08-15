@@ -21,7 +21,7 @@ export function Show({ userId }: Props) {
 
   return (
     <>
-      <h1>{user.id}</h1>
+      <h1>{user.username}</h1>
       <h2>
         <Link to={`/users/${userId}/repos`}>Repos</Link>
       </h2>

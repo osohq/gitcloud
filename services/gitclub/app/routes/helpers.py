@@ -12,13 +12,13 @@ oso = Oso(url=getenv("OSO_URL", "https://cloud.osohq.com"), api_key=getenv("OSO_
 def authorize(action: str, resource: Any) -> bool:
     if g.current_user is None:
         raise NotFound
-    return oso.authorize(g.current_user, action, resource)
+    return oso.authorize({ "type": "User", "id": g.current_user.username }, action, { "type": resource.__class__, "id": resource.id })
 
 
 def authorized_resources(action: str, resource_type: str) -> List[str]:
     if g.current_user is None:
         return []
-    return oso.list(g.current_user, action, resource_type)
+    return oso.list({ "type": "User", "id": g.current_user.username }, action, resource_type)
 
 
 def get_or_raise(self, cls: Type[Any], error, **kwargs):

@@ -36,7 +36,7 @@ export function NewRoleAssignment({
   const { error } = useContext(NoticeContext);
   const [users, setUsers] = useState<User[]>([]);
   const [details, setDetails] = useState<RoleAssignmentParams>({
-    userId: "",
+    username: "",
     role: roleChoices[0],
   });
 
@@ -46,7 +46,7 @@ export function NewRoleAssignment({
         .unassignedUsers()
         .then((users) => {
           setUsers(users);
-          setDetails((ds) => ({ ...ds, userId: users[0] ? users[0].id : "" }));
+          setDetails((ds) => ({ ...ds, username: users[0] ? users[0].username : "" }));
         })
         .catch((e) => error(`Failed to fetch unassigned users: ${e.message}`));
     }
@@ -76,10 +76,10 @@ export function NewRoleAssignment({
     <form onSubmit={handleSubmit}>
       <label>
         user:{" "}
-        <select name="userId" value={details.userId} onChange={handleChange}>
+        <select name="username" value={details.username} onChange={handleChange}>
           {users.map((u) => (
-            <option key={u.id} value={u.id}>
-              {u.id}
+            <option key={u.username} value={u.username}>
+              {u.username}
             </option>
           ))}
         </select>

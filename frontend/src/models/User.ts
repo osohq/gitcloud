@@ -3,10 +3,14 @@ import { createContext } from "react";
 export type LoggedInUser = User | "Guest" | "Loading";
 
 export class User {
-  id: string;
+  username: string;
+  name: string;
+  email: string;
 
-  constructor({ id }: User) {
-    this.id = id;
+  constructor({ username, name, email }: User) {
+    this.username = username;
+    this.email = email;
+    this.name = name;
   }
 }
 

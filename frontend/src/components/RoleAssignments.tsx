@@ -32,21 +32,21 @@ export function RoleAssignments({
 
   function update(user: User, role: string) {
     api
-      .update({ userId: user.id, role })
+      .update({ username: user.username, role })
       .then((next) => {
-        const { id } = next.user;
+        const { username } = next.user;
         // NOTE(gj): Assumes a user has a single role per resource.
-        setAssignments((as) => as.map((a) => (a.user.id === id ? next : a)));
+        setAssignments((as) => as.map((a) => (a.user.username === username ? next : a)));
       })
       .catch((e) => error(`Failed to update role assignment: ${e.message}`));
   }
 
   function remove({ user, role }: RoleAssignment) {
     api
-      .delete({ userId: user.id, role })
+      .delete({ username: user.username, role })
       .then(() => {
         // NOTE(gj): Assumes a user has a single role per resource.
-        setAssignments((as) => as.filter((a) => a.user.id !== user.id));
+        setAssignments((as) => as.filter((a) => a.user.username !== user.username));
         setRefetch((x) => !x);
       })
       .catch((e) => error(`Failed to delete role assignment: ${e.message}`));
@@ -55,8 +55,8 @@ export function RoleAssignments({
   return (
     <ul>
       {assignments.map(({ user, role }) => (
-        <li key={"user-role-" + user.id + role}>
-          <Link to={`/users/${user.id}`}>{user.id}</Link> -{" "}
+        <li key={"user-role-" + user.username + role}>
+          <Link to={`/users/${user.username}`}>{user.username}</Link> -{" "}
           <RoleSelector
             choices={roleChoices}
             update={({ target: { value } }) => update(user, value)}

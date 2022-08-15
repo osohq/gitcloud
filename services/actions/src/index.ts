@@ -10,7 +10,7 @@ import { resetData } from "./test";
 import { localDataSource, pgDataSource } from "./db";
 
 class User {
-  constructor(readonly id: string) { }
+  constructor(readonly username: string) { }
 }
 
 // Type screwery to get TS to stop complaining.

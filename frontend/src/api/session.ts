@@ -2,7 +2,7 @@ import { User } from "../models";
 import type { LoggedInUser } from "../models";
 import { create, del, get } from "./helpers";
 
-type Params = { id: string };
+type Params = { username: string };
 
 const path = "/session";
 

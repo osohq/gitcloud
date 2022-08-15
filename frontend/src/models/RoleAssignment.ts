@@ -1,6 +1,6 @@
 import { User } from ".";
 
-export type RoleAssignmentParams = { userId: string; role: string };
+export type RoleAssignmentParams = { username: string; role: string };
 
 export class RoleAssignment {
   user: User;
