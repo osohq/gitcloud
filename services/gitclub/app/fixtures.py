@@ -123,4 +123,5 @@ def load_fixture_data(session):
         (randall, monsters, "member"),
     ]
     for (user, org, role) in org_roles:
+        oso.tell("is_active", { "type": "User", "id": user.username })
         oso.tell("has_role", { "type": "User", "id": user.username }, role, { "type": "Organization", "id": str(org.id) })

@@ -1,9 +1,7 @@
-from sys import breakpointhook
 from sqlalchemy.types import Integer, String, Boolean
 from sqlalchemy.schema import Column, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.declarative import declarative_base
-from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 
 Base = declarative_base()
 
@@ -14,19 +12,16 @@ class User(Base):
     email = Column(String)
     name = Column(String)
 
-    # class Meta:
-
-
 class Group(Base):
     __tablename__ = "groups"
 
     id = Column(Integer, primary_key=True)
     name = Column(String)
 
+class CustomRole(Base):
     __tablename__ = "custom_roles"
 
     id = Column(Integer, primary_key=True)
-    email = Column(String)
     name = Column(String)
 
 class Organization(Base):
@@ -68,23 +63,10 @@ class Issue(Base):
 def setup_schema(base):
     for mapper in base.registry.mappers:
         class_ = mapper.class_
-        # breakpoint()
         if hasattr(class_, "__tablename__"):
-            class Meta(object):
-                model = class_
+            columns = list(c.name for c in mapper.columns)
+            setattr(class_, "__columns", columns)
+            setattr(class_, "as_json", lambda self: {c: getattr(self, c) for c in self.__class__.__columns})
 
-            meta_class = getattr(class_, "Meta", Meta)
-            schema_class_name = "%sSchema" % class_.__name__
-
-            schema_class = type(
-                schema_class_name, (SQLAlchemyAutoSchema,), {"Meta": meta_class}
-            )
-
-            instance = schema_class()
-
-            def as_json(self):
-                return instance.dump(self)
-
-            setattr(class_, "as_json", as_json)
 
 

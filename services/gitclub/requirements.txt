@@ -13,8 +13,6 @@ iniconfig==1.1.1
 itsdangerous==2.1.2
 Jinja2==3.1.2
 MarkupSafe==2.1.1
-marshmallow==3.17.0
-marshmallow-sqlalchemy==0.28.1
 mypy==0.971
 mypy-extensions==0.4.3
 opentelemetry-api==1.11.1
@@ -28,7 +26,6 @@ opentelemetry-proto==1.11.1
 opentelemetry-sdk==1.11.1
 opentelemetry-semantic-conventions==0.30b1
 opentelemetry-util-http==0.30b1
--e git+ssh://git@github.com/osohq/oso-service.git@7ba52124e0608c4f9fbae2a1df634fe433aeeda2#egg=oso_cloud&subdirectory=clients/python
 packaging==21.3
 pathspec==0.9.0
 platformdirs==2.5.2
@@ -47,3 +44,5 @@ urllib3==1.26.11
 Werkzeug==2.2.1
 wrapt==1.14.1
 zipp==3.8.0
+
+oso-cloud~=0.8

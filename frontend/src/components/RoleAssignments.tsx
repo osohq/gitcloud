@@ -56,7 +56,7 @@ export function RoleAssignments({
     <ul>
       {assignments.map(({ user, role }) => (
         <li key={"user-role-" + user.username + role}>
-          <Link to={`/users/${user.username}`}>{user.username}</Link> -{" "}
+          <Link to={`/users/${user.username}`}>{`${user.name} (${user.email})`}</Link> -{" "}
           <RoleSelector
             choices={roleChoices}
             update={({ target: { value } }) => update(user, value)}

@@ -15,7 +15,7 @@ PRODUCTION = os.environ.get("PRODUCTION", "0") == "1"
 def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
     from . import routes
 
-    if PRODUCTION:
+    if PRODUCTION or True:
         engine=create_engine(os.environ["DATABASE_URL"] + "gitclub")
     else:
         # Init DB engine.
@@ -28,7 +28,7 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
 
     # Init Flask app.
     app = Flask(__name__)
-    instrument_app(app) if PRODUCTION else None
+    # instrument_app(app) if PRODUCTION else None
     app.secret_key = b"ball outside of the school"
     app.register_blueprint(routes.issues.bp)
     app.register_blueprint(routes.orgs.bp)

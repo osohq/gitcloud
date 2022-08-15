@@ -22,7 +22,7 @@ def index():
 def create():
     payload = request.get_json(force=True)
     org = Organization(**payload)
-    if not authorize("create", org):
+    if not authorize("create_organization", "Application"):
         raise Forbidden
     g.session.add(org)
     g.session.commit()  
@@ -32,7 +32,9 @@ def create():
 
 @bp.route("/<int:org_id>", methods=["GET"])
 def show(org_id):
+    if not authorize("read", {"type": "Organization", "id": org_id}):
+        print("Denied")
+        # raise NotFound("but really permission denied")
+    print(f"Fetching org: {org_id}")
     org = g.session.get_or_404(Organization, id=org_id)
-    if not authorize("read", org):
-        raise NotFound
     return org.as_json()

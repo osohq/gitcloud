@@ -1,5 +1,5 @@
 from flask import Blueprint, g, request, jsonify
-from werkzeug.exceptions import NotFound
+from werkzeug.exceptions import NotFound, Forbidden
 
 from ..models import Organization, Repository
 from .helpers import authorize, authorized_resources, oso
@@ -9,9 +9,9 @@ bp = Blueprint("repos", __name__, url_prefix="/orgs/<int:org_id>/repos")
 
 @bp.route("", methods=["GET"])
 def index(org_id):
-    org = g.session.get_or_404(Organization, id=org_id)
-    if not authorize("list_repos", org):
+    if not authorize("read", {"type": "Organization", "id": org_id}):
         raise NotFound
+    org = g.session.get_or_404(Organization, id=org_id)
     authorized_ids = authorized_resources("read", "Repository")
     if authorized_ids and authorized_ids[0] == "*":
         repos = g.session.query(Repository).filter_by(org_id=org_id)
@@ -25,20 +25,22 @@ def index(org_id):
 
 @bp.route("", methods=["POST"])
 def create(org_id):
-    payload = request.get_json(force=True)
-    org = g.session.get_or_404(Organization, id=org_id)
-    if not authorize("create_repos", org):
+    if not authorize("read", {"type": "Organization", "id": org_id}):
         raise NotFound
-    repo = Repository(name=payload["name"], org=org)
+    if not authorize("create_repositories", {"type": "Organization", "id": org_id}):
+        raise Forbidden("you do not have permission to create repositories")
+
+    payload = request.get_json(force=True)
+    repo = Repository(name=payload["name"], org_id=org_id)
     g.session.add(repo)
     g.session.commit()
-    oso.tell("has_relation", repo, "organization", org)
+    oso.tell("has_relation", {"type": "Repository", "id": repo.id}, "organization", {"type": "Organization", "id": org_id})
     return repo.as_json(), 201
 
 
 @bp.route("/<int:repo_id>", methods=["GET"])
 def show(org_id, repo_id):
-    repo = g.session.get_or_404(Repository, id=repo_id)
-    if not authorize("read", repo):
+    if not authorize("read", {"type": "Repository", "id": repo_id}):
         raise NotFound
+    repo = g.session.get_or_404(Repository, id=repo_id)
     return repo.as_json()
