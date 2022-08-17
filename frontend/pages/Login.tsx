@@ -5,7 +5,7 @@ import { session as sessionApi } from "../api";
 import { useRouter } from 'next/router'
 import useUser from "../lib/useUser";
 
-export default async function Login() {
+export default function Login() {
   const { currentUser, mutateUser } = useUser({ redirectIfFound: true });
   const router = useRouter();
   const { error } = useContext(NoticeContext);
@@ -18,8 +18,7 @@ export default async function Login() {
     try {
       const u = await sessionApi.login({ username: username });
       mutateUser(u);
-      await router.push("/");
-      // window.history.back()
+      router.push("/");
     } catch (e) {
       error(`Failed to log in: ${e}`);
     }

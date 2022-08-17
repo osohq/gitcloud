@@ -16,8 +16,7 @@ function MyApp({ Component, pageProps }: AppPropsWithTitle) {
   const title = Component.title || "GitCloud";
   return (
     <Layout title={title}>
-      <></>
-      {/* <Component {...pageProps} /> */}
+      <Component {...pageProps} />
     </Layout>
   )
 }

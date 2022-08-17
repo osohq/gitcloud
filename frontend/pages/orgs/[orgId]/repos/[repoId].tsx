@@ -5,10 +5,14 @@ import { org as orgApi, repo as repoApi } from "../../../../api";
 import { NoticeContext } from "../../../../components";
 import useUser from "../../../../lib/useUser";
 import Link from 'next/link';
-type Props = { orgId?: string; repoId?: string };
+import { useRouter } from 'next/router';
 
-export default function Show({ orgId, repoId }: Props) {
+
+export default function Show() {
   const { currentUser: { user, isLoggedIn } } = useUser();
+  const router = useRouter()
+  const { orgId, repoId } = router.query as { orgId: string, repoId: string };
+
   const { redirectWithError } = useContext(NoticeContext);
   const [org, setOrg] = useState<Org>();
   const [repo, setRepo] = useState<Repo>();
