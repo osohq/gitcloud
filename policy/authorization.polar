@@ -2,11 +2,26 @@ actor User { }
 
 actor Group { }
 
+has_permission(_: User, "read", _: Organization);
+
+
 resource Organization { 
-    permissions = ["set_default_role"];
+    permissions = [
+        "read",
+        "read_details",
+        "view_members",
+        "manage_members",
+        "set_default_role",
+        "create_repositories",
+    ];
     roles = ["admin", "member"];
 
+    "read_details" if "member";
+    "view_members" if "member";
+    "create_repositories" if "member";
+
     "member" if "admin";
+    "manage_members" if "admin";
     "set_default_role" if "admin";
 }
 
@@ -19,7 +34,6 @@ resource Repository {
     "admin" if "admin" on "organization";
     
     "read" if "reader";
-    "create" if "admin";
     "update" if "admin";
     "delete" if "admin";
     "invite" if "admin" ;
@@ -85,11 +99,9 @@ has_role(actor: Actor, role: String, repo: Repository) if
 has_permission(_: Actor, "read", repo: Repository) if
     is_public(repo);
 
-allow(actor: Actor, action: String, resource: Resource) if
-    is_active(actor) and
-    has_permission(actor, action, resource);
 
 has_permission(actor: Actor, "delete", repo: Repository) if
     has_role(actor, "member", repo) and
     is_protected(repo, false);
+
 
