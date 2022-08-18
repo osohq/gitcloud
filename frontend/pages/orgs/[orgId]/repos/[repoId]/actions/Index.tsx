@@ -1,16 +1,14 @@
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { formatDistance } from "date-fns";
 
-import { Action, Org, Repo, User } from "../../models";
-import { action as actionApi, org as orgApi, repo as repoApi } from "../../api";
-import useUser from "../../lib/useUser";
 import Link from 'next/link';
-import error from "next/error";
 import { useRouter } from "next/router";
-import ErrorMessage from "../../components/ErrorMessage";
-import LoadingPage from "../../components/LoadingPage";
-import useSWR from "swr";
-import { index } from "../../api/common";
+import { Action, User } from "../../../../../../models";
+import { action as actionApi, org as orgApi, repo as repoApi } from "../../../../../../api";
+import useUser from "../../../../../../lib/useUser";
+import ErrorMessage from "../../../../../../components/ErrorMessage";
+import LoadingPage from "../../../../../../components/LoadingPage";
+import { index } from "../../../../../../api/common";
 
 function runningTime(a: Action): number {
   const updatedAt =
