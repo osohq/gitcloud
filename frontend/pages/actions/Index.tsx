@@ -1,13 +1,16 @@
-import { ChangeEvent, FormEvent, useContext, useEffect, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { formatDistance } from "date-fns";
 
 import { Action, Org, Repo, User } from "../../models";
 import { action as actionApi, org as orgApi, repo as repoApi } from "../../api";
-import { NoticeContext } from "../../components";
 import useUser from "../../lib/useUser";
 import Link from 'next/link';
-
-type Props = { orgId?: string; repoId?: string };
+import error from "next/error";
+import { useRouter } from "next/router";
+import ErrorMessage from "../../components/ErrorMessage";
+import LoadingPage from "../../components/LoadingPage";
+import useSWR from "swr";
+import { index } from "../../api/common";
 
 function runningTime(a: Action): number {
   const updatedAt =
@@ -30,48 +33,23 @@ function RunningTime({ a }: { a: Action }) {
   return <span>{time}s</span>;
 }
 
-export default function Index({ orgId, repoId }: Props) {
+export default function Index() {
   const { currentUser: { user } } = useUser();
-  const { redirectWithError } = useContext(NoticeContext);
-  const [org, setOrg] = useState<Org>();
-  const [repo, setRepo] = useState<Repo>();
-  const [actions, setActions] = useState<Action[]>([]);
-  const [name, setName] = useState<string>("");
-  const { error } = useContext(NoticeContext);
-  const [refetch, setRefetch] = useState(false);
+  const router = useRouter()
+  const { orgId, repoId } = router.query as { orgId: string, repoId: string, issueId: string };
+  const { data: org, isLoading: orgLoading, error: orgError } = orgApi.show(orgId);
+  const { data: repo, isLoading: repoLoading, error: repoError } = repoApi(orgId).show(repoId);
+  const { data: actions, error: actionError, mutate } = index(`/orgs/${orgId}/repos/${repoId}/actions`, Action, user?.username || "", { refreshInterval: 2000 })
+  const [name, setName] = useState("");
 
-  useEffect(() => {
-    if (!orgId) return;
-    orgApi
-      .show(orgId)
-      .then(setOrg)
-      .catch((e) => redirectWithError(`Failed to fetch org: ${e.message}`));
-  }, [orgId, user]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (!orgId || !repoId) return;
-    repoApi(orgId)
-      .show(repoId)
-      .then(setRepo)
-      .catch((e) => redirectWithError(`Failed to fetch repo: ${e.message}`));
-  }, [orgId, repoId, user]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (!(user instanceof User) || !orgId || !repoId) return;
-    actionApi(user.username, orgId, repoId)
-      .index()
-      .then(setActions)
-      .catch((e) => redirectWithError(`Failed to fetch actions: ${e.message}`));
-  }, [refetch, orgId, repoId, user]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    const timeout = setInterval(() => setRefetch((x) => !x), 2000);
-    return () => clearInterval(timeout);
-  }, []);
+  if (orgLoading || repoLoading || (!actions && !actionError)) return <LoadingPage />;
+  if (orgError) return <ErrorMessage error={orgError} />;
+  if (repoError) return <ErrorMessage error={repoError} />;
+  if (actionError) return <ErrorMessage error={actionError} />;
+  if (!user || !actions || !org || !repo) return null;
 
   if (!(user instanceof User) || !org || !repo) return null;
   const api = actionApi(user.username, "" + org.id, "" + repo.id);
-
   const inputEmpty = !name.replaceAll(" ", "");
 
   async function handleSubmit(e: FormEvent) {
@@ -80,9 +58,9 @@ export default function Index({ orgId, repoId }: Props) {
     try {
       await api.create({ name });
       setName("");
-      setRefetch((x) => !x);
+      mutate()
     } catch (e) {
-      error(`Failed to create new action: ${e}`);
+      // error(`Failed to create new action: ${e}`);
     }
   }
 

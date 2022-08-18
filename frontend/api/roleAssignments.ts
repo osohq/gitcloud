@@ -5,9 +5,9 @@ import { create, del, index, update } from "./common";
 export type RoleAssignmentsApi = {
   create: (body: Params) => Promise<RoleAssignment>;
   delete: (body: Params) => Promise<RoleAssignment>;
-  index: () => Promise<RoleAssignment[]>;
+  index: () => { data: RoleAssignment[] | undefined; isLoading: boolean; error: Error | undefined };
   update: (body: Params) => Promise<RoleAssignment>;
-  unassignedUsers: () => Promise<User[]>;
+  unassignedUsers: () => { data: User[] | undefined; isLoading: boolean; error: Error | undefined };
 };
 
 function org(id: string): RoleAssignmentsApi {

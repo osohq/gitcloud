@@ -5,6 +5,8 @@ import { RoleAssignmentsApi } from "../api";
 import { NoticeContext, RoleSelector } from ".";
 import Link from "next/link";
 import useUser from "../lib/useUser";
+import ErrorPage from "./ErrorMessage";
+import LoadingPage from "./LoadingPage";
 
 type Props = {
   api: RoleAssignmentsApi;
@@ -22,14 +24,10 @@ export function RoleAssignments({
   setRefetch,
 }: Props) {
   const { currentUser: { isLoggedIn, user } } = useUser();
-  const { error } = useContext(NoticeContext);
 
-  useEffect(() => {
-    api
-      .index()
-      .then(setAssignments)
-      .catch((e) => error(`Failed to fetch role assignments: ${e.message}`));
-  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
+  const { data: users, isLoading, error } = api.index();
+  if (isLoading) return <LoadingPage />;
+  if (error) return <ErrorPage error={error} />
 
   function update(user: User, role: string) {
     api
@@ -39,7 +37,7 @@ export function RoleAssignments({
         // NOTE(gj): Assumes a user has a single role per resource.
         setAssignments((as) => as.map((a) => (a.user.username === username ? next : a)));
       })
-      .catch((e) => error(`Failed to update role assignment: ${e.message}`));
+    // .catch((e) => error(`Failed to update role assignment: ${e.message}`));
   }
 
   function remove({ user, role }: RoleAssignment) {
@@ -50,7 +48,7 @@ export function RoleAssignments({
         setAssignments((as) => as.filter((a) => a.user.username !== user.username));
         setRefetch((x) => !x);
       })
-      .catch((e) => error(`Failed to delete role assignment: ${e.message}`));
+    // .catch((e) => error(`Failed to delete role assignment: ${e.message}`));
   }
 
   return (

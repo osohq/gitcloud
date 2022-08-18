@@ -9,7 +9,6 @@ import ErrorMessage from "../../../../components/ErrorMessage";
 
 export default function Show() {
   const router = useRouter()
-  console.log(router);
   const { orgId, repoId } = router.query as { orgId: string, repoId: string };
   const { data: org, isLoading: orgLoading, error: orgError } = orgApi.show(orgId);
   const { data: repo, isLoading: repoLoading, error: repoError } = repoApi(orgId).show(repoId);

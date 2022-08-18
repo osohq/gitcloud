@@ -51,23 +51,25 @@ export const del = (path: string, body: obj, userId?: string) =>
         headers: userId ? { USER: userId } : [],
     });
 
-export function index<T>(path: string, cls: Class<T>, userId?: string) {
-    const { data, error } = useSWR<obj[]>(path, (p) => get(p, userId));
+export function index<T>(path: string, cls: Class<T>, userId?: string, params?: any) {
+    const { data, error, mutate } = useSWR<obj[]>(path, (p) => get(p, userId), params);
 
     return {
         data: data ? data.map((d) => new cls(camelizeKeys(d))) : undefined,
         isLoading: !error && !data,
-        error
+        error,
+        mutate
     }
 }
 
-export function show<T>(path: string, cls: Class<T>, userId?: string) {
-    const { data, error } = useSWR<obj>(path, (p) => get(p, userId));
+export function show<T>(path: string, cls: Class<T>, userId?: string, params?: any) {
+    const { data, error, mutate } = useSWR<obj>(path, (p) => get(p, userId), params);
 
     return {
         data: data ? new cls(camelizeKeys(data)) : undefined,
         isLoading: !error && !data,
-        error
+        error,
+        mutate
     }
 }
 

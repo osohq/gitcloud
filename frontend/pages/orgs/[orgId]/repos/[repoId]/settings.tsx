@@ -1,54 +1,44 @@
 import { useContext, useEffect, useState } from "react";
 
-import { Org, Repo, RoleAssignment } from "../../../../models";
+import { Org, Repo, RoleAssignment } from "../../../../../models";
 import {
   NewRoleAssignment,
   NoticeContext,
   RoleAssignments,
-} from "../../../../components";
+} from "../../../../../components";
 import {
   org as orgApi,
   repo as repoApi,
   roleAssignments as roleAssignmentsApi,
   roleChoices as roleChoicesApi,
-} from "../../../../api";
-import useUser from "../../../../lib/useUser";
+} from "../../../../../api";
+import useUser from "../../../../../lib/useUser";
 import Link from 'next/link';
+import { useRouter } from "next/router";
+import ErrorMessage from "../../../../../components/ErrorMessage";
+import LoadingPage from "../../../../../components/LoadingPage";
 
-type Props = { orgId?: string; repoId?: string };
-
-export default function Settings({ orgId, repoId }: Props) {
+export default function Settings() {
   const { currentUser: { user, isLoggedIn } } = useUser();
-  const { error, redirectWithError } = useContext(NoticeContext);
-  const [org, setOrg] = useState<Org>();
-  const [repo, setRepo] = useState<Repo>();
-  const [roleAssignments, setRoleAssignments] = useState<RoleAssignment[]>([]);
-  const [roleChoices, setRoleChoices] = useState<string[]>([]);
-  const [refetch, setRefetch] = useState(false);
-
-  useEffect(() => {
-    if (!orgId) return;
-    orgApi
-      .show(orgId)
-      .then(setOrg)
-      .catch((e) => redirectWithError(`Failed to fetch org: ${e.message}`));
-  }, [user, orgId]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (!orgId || !repoId) return;
-    repoApi(orgId)
-      .show(repoId)
-      .then(setRepo)
-      .catch((e) => redirectWithError(`Failed to fetch repo: ${e.message}`));
-  }, [user, orgId, repoId]); // eslint-disable-line react-hooks/exhaustive-deps
+  const router = useRouter();
+  const { orgId, repoId } = router.query as { orgId: string, repoId: string };
+  const { data: org, isLoading: orgLoading, error: orgError } = orgApi.show(orgId);
+  const { data: repo, isLoading: repoLoading, error: repoError } = repoApi(orgId).show(repoId);
 
   useEffect(() => {
     roleChoicesApi
       .repo()
       .then(setRoleChoices)
-      .catch((e) => error(`Failed to fetch repo role choices: ${e.message}`));
+    // .catch((e) => error(`Failed to fetch repo role choices: ${e.message}`));
   }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
+  const [roleAssignments, setRoleAssignments] = useState<RoleAssignment[]>([]);
+  const [roleChoices, setRoleChoices] = useState<string[]>([]);
+  const [refetch, setRefetch] = useState(false);
 
+
+  if (orgLoading || repoLoading) return <LoadingPage />;
+  if (repoError) return <ErrorMessage error={repoError} />;
+  if (orgError) return <ErrorMessage error={orgError} />;
   if (!orgId || !repoId) return null;
   const show = `/orgs/${orgId}/repos/${repoId}`;
 

@@ -16,6 +16,8 @@ import {
 import type { RoleAssignmentsApi } from "../api";
 import { NoticeContext, RoleSelector } from ".";
 import useUser from "../lib/useUser";
+import LoadingPage from "./LoadingPage";
+import ErrorPage from "./ErrorMessage";
 
 type Props = {
   api: RoleAssignmentsApi;
@@ -32,27 +34,17 @@ export function NewRoleAssignment({
   refetch,
   setRefetch,
 }: Props) {
-  const { currentUser } = useUser();
-  const { error } = useContext(NoticeContext);
-  const [users, setUsers] = useState<User[]>([]);
+  const { currentUser: { user: u, isLoggedIn } } = useUser();
   const [details, setDetails] = useState<RoleAssignmentParams>({
     username: "",
     role: roleChoices[0],
   });
 
-  useEffect(() => {
-    if (currentUser.isLoggedIn) {
-      api
-        .unassignedUsers()
-        .then((users) => {
-          setUsers(users);
-          setDetails((ds) => ({ ...ds, username: users[0] ? users[0].username : "" }));
-        })
-        .catch((e) => error(`Failed to fetch unassigned users: ${e.message}`));
-    }
-  }, [refetch, currentUser.user]); // eslint-disable-line react-hooks/exhaustive-deps
+  const { data: users, isLoading, error } = api.index();
+  if (isLoading) return <LoadingPage />;
+  if (error) return <ErrorPage error={error} />
 
-  if (!currentUser.isLoggedIn || !users.length) return null;
+  if (!isLoggedIn || !users) return null;
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -62,7 +54,7 @@ export function NewRoleAssignment({
       setDetails((details) => ({ ...details, userId: "" }));
       setAssignments((assignments) => [...assignments, { ...assignment }]);
     } catch (e) {
-      error(`Failed to create new role assignment: ${e}`);
+      // error(`Failed to create new role assignment: ${e}`);
     }
   }
 
@@ -78,8 +70,8 @@ export function NewRoleAssignment({
         user:{" "}
         <select name="username" value={details.username} onChange={handleChange}>
           {users.map((u) => (
-            <option key={u.username} value={u.username}>
-              {u.username}
+            <option key={u.user.username} value={u.user.username}>
+              {u.user.username}
             </option>
           ))}
         </select>
