@@ -9,7 +9,7 @@ import {
 
 import { org as orgApi, roleChoices as roleChoicesApi } from "../../api";
 import { OrgParams } from "../../models";
-import { NoticeContext, RoleSelector } from "../../components";
+import { NoticeContext } from "../../components";
 import useUser from "../../lib/useUser";
 import Router from 'next/router';
 

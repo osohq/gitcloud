@@ -1,15 +1,10 @@
-import { useContext, useEffect, useState } from "react";
-
-import { Org, Repo, User } from "../../models";
 import { user as userApi } from "../../api";
-import { NoticeContext } from "../../components";
 import useUser from "../../lib/useUser";
 import { useRouter } from "next/router";
 import { OrganizationList } from "../../components/OrganizationList";
 import { RepositoryList } from "../../components/RepositoryList";
 import ErrorMessage from "../../components/ErrorMessage";
 import LoadingPage from "../../components/LoadingPage";
-import orgs from "../orgs";
 
 export default function Show() {
   const { currentUser: { user, isLoggedIn } } = useUser();

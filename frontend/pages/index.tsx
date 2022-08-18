@@ -40,7 +40,7 @@ export default function Home() {
               <div className="absolute inset-y-0 left-1/2 w-screen bg-gray-50 rounded-l-3xl lg:left-80 lg:right-0 lg:w-full" />
             </div>
             <div className="pl-4 -mr-40 sm:mx-auto sm:max-w-3xl sm:px-0 lg:max-w-none lg:h-full lg:pl-12">
-              <Image src={BearCabinet} />
+              <Image src={BearCabinet} alt="Bear putting code in a file cabinet" />
             </div>
           </div>
         </div>
