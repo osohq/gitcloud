@@ -8,13 +8,15 @@ from werkzeug.exceptions import Forbidden, NotFound, Unauthorized
 
 oso = Oso(url=getenv("OSO_URL", "https://cloud.osohq.com"), api_key=getenv("OSO_AUTH"))
 
-def object_to_typed_id(obj: Any) -> dict:
+def object_to_typed_id(obj: Any, allow_unbound=False) -> dict:
     if isinstance(obj, str):
         return obj
     elif isinstance(obj, dict):
-        assert "type" in obj and "id" in obj
-        obj["type"] = str(obj["type"])
-        obj["id"] = str(obj["id"])
+        assert allow_unbound or ("type" in obj and "id" in obj)
+        if "type" in obj:
+            obj["type"] = str(obj["type"])
+        if "id" in obj:
+            obj["id"] = str(obj["id"])
         return obj
     else:
         return { "type": obj.__class__.__name__, "id": str(obj.id) }
@@ -38,6 +40,8 @@ def authorized_resources(action: str, resource_type: str) -> List[str]:
         return []
     return oso.list({ "type": "User", "id": g.current_user.username }, action, resource_type)
 
+def query(predicate: str, *args: Any):
+    return oso.query(predicate, *[object_to_typed_id(a, True) for a in args])
 
 def get_or_raise(self, cls: Type[Any], error, **kwargs):
     resource = self.query(cls).filter_by(**kwargs).one_or_none()

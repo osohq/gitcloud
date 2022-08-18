@@ -1,31 +1,53 @@
 import { useContext, useEffect, useState } from "react";
 
-import { User } from "../../models";
+import { Org, Repo, User } from "../../models";
 import { user as userApi } from "../../api";
 import { NoticeContext } from "../../components";
 import useUser from "../../lib/useUser";
-import Link from 'next/link';
+import { useRouter } from "next/router";
+import { OrganizationList } from "../../components/OrganizationList";
+import { RepositoryList } from "../../components/RepositoryList";
+import ErrorMessage from "../../components/ErrorMessage";
+import LoadingPage from "../../components/LoadingPage";
+import orgs from "../orgs";
 
-type Props = { userId?: string };
-
-export default function Show({ userId }: Props) {
+export default function Show() {
   const { currentUser: { user, isLoggedIn } } = useUser();
-  const { redirectWithError } = useContext(NoticeContext);
-  const [userProfile, setUser] = useState<User>();
+  const router = useRouter()
+  const { userId } = router.query as { userId: string };
+  const { orgId, repoId, issueId } = router.query as { orgId: string, repoId: string, issueId: string };
+  const { data: userProfile, isLoading: userLoading, error: userError } = userApi.show(userId);
+  const { data: orgs, isLoading: orgLoading, error: orgError } = userApi.orgs(userId);
+  const { data: repos, isLoading: repoLoading, error: repoError } = userApi.repos(userId);
+  // const { data: issue, isLoading: issueLoading, error: issueError } = userApi.issues(userId);
 
-  useEffect(() => {
-    if (!userId) return;
-    userApi.show(userId).then(setUser).catch(redirectWithError);
-  }, [user, userId]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  if (!userId || !userProfile) return null;
+  if (userLoading || orgLoading || repoLoading) return <LoadingPage />;
+  if (userError) return <ErrorMessage error={userError} />;
+  if (orgError) return <ErrorMessage error={orgError} />;
+  if (repoError) return <ErrorMessage error={repoError} />;
+  if (!userId || !userProfile || !orgs || !repos) return null;
 
   return (
     <>
-      <h1>{userProfile.username}</h1>
-      <h2>
-        <Link href={`/users/${userId}/repos`}>Repos</Link>
-      </h2>
+      <div className="text-gray-900 text-lg">{userProfile.name}</div>
+      <div className="text-gray-600 text-md">{userProfile.email}</div>
+
+      <div className="mt-8 bg-white px-4 py-5 border-b border-gray-200 sm:px-6">
+        <div className="-ml-4 -mt-2 flex items-center justify-between flex-wrap sm:flex-nowrap">
+          <div className="ml-4 mt-2">
+            <h3 className="text-lg leading-6 font-medium text-gray-900">Organizations</h3>
+          </div>
+        </div>
+      </div>
+      <OrganizationList organizations={orgs} />
+      <div className="mt-8 bg-white px-4 py-5 border-b border-gray-200 sm:px-6">
+        <div className="-ml-4 -mt-2 flex items-center justify-between flex-wrap sm:flex-nowrap">
+          <div className="ml-4 mt-2">
+            <h3 className="text-lg leading-6 font-medium text-gray-900">Repositories</h3>
+          </div>
+        </div>
+      </div>
+      <RepositoryList repositories={repos} />
     </>
   );
 }

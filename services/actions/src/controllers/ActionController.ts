@@ -12,7 +12,7 @@ export class ActionController {
   }
 
   async all({ oso, repo, user }: Request, res: Response) {
-    if (!(await oso.authorize({ type: "User", id: user.username }, "view_actions", { type: "Repo", id: repo.id })))
+    if (!(await oso.authorize({ type: "User", id: user.username }, "view_actions", { type: "Repository", id: repo.id })))
       return res.status(403).send("Forbidden");
 
     const actionIds = await oso.list({ type: "User", id: user.username }, "view", "Action");
@@ -62,7 +62,7 @@ export class ActionController {
   }
 
   async save({ body, oso, repo, user }: Request, res: Response) {
-    if (!(await oso.authorize({ type: "User", id: user.username }, "schedule_action", { type: "Repo", id: repo.id })))
+    if (!(await oso.authorize({ type: "User", id: user.username }, "schedule_action", { type: "Repository", id: repo.id })))
       return res.status(403).send("Forbidden");
     let action = this.actionRepository().create({
       ...body,
@@ -72,7 +72,7 @@ export class ActionController {
     action = await this.actionRepository().save(action);
     await oso.bulkTell([
       ["has_relation", { type: "User", id: user.username }, "creator", { type: "Action", id: action.id.toString() }],
-      ["has_relation", { type: "Action", id: action.id.toString() }, "repo", { type: "Repo", id: repo.id }],
+      ["has_relation", { type: "Action", id: action.id.toString() }, "repository", { type: "Repository", id: repo.id }],
     ]);
     return res.status(201).json(action);
   }

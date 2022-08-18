@@ -1,4 +1,5 @@
 import merge from "lodash.merge";
+import useSWR from "swr";
 import { obj, snakeifyKeys, camelizeKeys } from "../lib/helpers";
 
 type Class<T extends {} = {}> = new (...args: any[]) => T;
@@ -50,14 +51,24 @@ export const del = (path: string, body: obj, userId?: string) =>
         headers: userId ? { USER: userId } : [],
     });
 
-export async function index<T>(path: string, cls: Class<T>, userId?: string) {
-    const data = (await get(path, userId)) as obj[];
-    return data.map((d) => new cls(camelizeKeys(d)));
+export function index<T>(path: string, cls: Class<T>, userId?: string) {
+    const { data, error } = useSWR<obj[]>(path, (p) => get(p, userId));
+
+    return {
+        data: data ? data.map((d) => new cls(camelizeKeys(d))) : undefined,
+        isLoading: !error && !data,
+        error
+    }
 }
 
-export async function show<T>(path: string, cls: Class<T>, userId?: string) {
-    const data = (await get(path, userId)) as obj;
-    return new cls(camelizeKeys(data));
+export function show<T>(path: string, cls: Class<T>, userId?: string) {
+    const { data, error } = useSWR<obj>(path, (p) => get(p, userId));
+
+    return {
+        data: data ? new cls(camelizeKeys(data)) : undefined,
+        isLoading: !error && !data,
+        error
+    }
 }
 
 export async function create<T>(

@@ -53,6 +53,10 @@ resource Issue {
     "reader" if "admin";
 }
 
+resource Action {
+    relations = { repository: Repository };
+}
+
 resource Folder { 
     roles = ["reader", "writer"];
     relations = { repository: Repository, folder: Folder };

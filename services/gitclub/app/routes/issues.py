@@ -13,16 +13,10 @@ bp = Blueprint(
 
 @bp.route("", methods=["GET"])
 def index(org_id, repo_id):
-    repo = g.session.get_or_404(Repository, id=repo_id)
-    if not authorize("list_issues", repo):
+    if not authorize("read", {"type": "Repository", "id": repo_id}):
         raise NotFound
-    authorized_ids = authorized_resources("read", "Issue")
-    if authorized_ids and authorized_ids[0] == "*":
-        issues = g.session.query(Issue)
-        return jsonify([issue.as_json() for issue in issues])
-    else:
-        issues = g.session.query(Issue).filter(Issue.id.in_(authorized_ids))
-        return jsonify([issue.as_json() for issue in issues])
+    issues = g.session.query(Issue).filter(Issue.repo_id == repo_id)
+    return jsonify([issue.as_json() for issue in issues])
 
 
 @bp.route("", methods=["POST"])
@@ -45,9 +39,9 @@ def create(org_id, repo_id):
 
 @bp.route("/<int:issue_id>", methods=["GET"])
 def show(org_id, repo_id, issue_id):
-    issue = g.session.get_or_404(Issue, id=issue_id)
-    if not authorize("read", issue):
+    if not authorize("read", {"type": "Repository", "id": repo_id}):
         raise NotFound
+    issue = g.session.get_or_404(Issue, id=issue_id)
     return issue.as_json()
 
 

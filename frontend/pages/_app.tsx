@@ -13,7 +13,7 @@ type AppPropsWithTitle = AppProps & {
 
 
 function MyApp({ Component, pageProps }: AppPropsWithTitle) {
-  const title = Component.title || "GitCloud";
+  const title = Component.title;
   return (
     <Layout title={title}>
       <Component {...pageProps} />

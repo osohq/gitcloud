@@ -20,7 +20,6 @@ export default function New() {
   const [details, setDetails] = useState<OrgParams>({
     name: "",
     billingAddress: "",
-    baseRepoRole: "",
   });
   const [repoRoleChoices, setRepoRoleChoices] = useState<string[]>([]);
 
@@ -79,17 +78,6 @@ export default function New() {
           </label>{" "}
         </Fragment>
       ))}
-      {repoRoleChoices.length && (
-        <label>
-          base repo role:{" "}
-          <RoleSelector
-            choices={repoRoleChoices}
-            name="baseRepoRole"
-            update={handleChange}
-            selected={details.baseRepoRole}
-          />
-        </label>
-      )}{" "}
       <input type="submit" value="create" disabled={!validInputs()} />
     </form>
   );

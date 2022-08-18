@@ -1,6 +1,6 @@
 import { Fragment } from 'react'
 import { Disclosure, Menu, Transition } from '@headlessui/react'
-import { BellIcon, MenuIcon, XIcon } from '@heroicons/react/outline'
+import { BellIcon, MenuIcon, XIcon, UserCircleIcon } from '@heroicons/react/outline'
 import { useContext } from "react";
 
 import { NoticeContext } from "../components";
@@ -8,19 +8,16 @@ import Link from 'next/link';
 import Image from 'next/image';
 import logo from "../images/bear-8bit-transparent.png"
 import useUser from '../lib/useUser';
+import { useRouter } from 'next/router';
 
-const navigation = [
-    { name: 'Dashboard', href: '/', current: true },
-    { name: 'Organizations', href: '/orgs', current: false },
-]
+
 
 function classNames(...classes: string[]) {
     return classes.filter(Boolean).join(' ')
 }
 
-export default function Layout({ children, title }: { children: JSX.Element, title: string }) {
-
-    const { error } = useContext(NoticeContext);
+export default function Layout({ children, title }: { children: JSX.Element, title: string | undefined }) {
+    const router = useRouter();
     const { currentUser } = useUser();
     const user = currentUser.user;
 
@@ -28,6 +25,11 @@ export default function Layout({ children, title }: { children: JSX.Element, tit
         { name: 'Your Profile', href: `/users/${user!.username}` },
         { name: 'Sign out', href: '/logout' },
     ] : []
+
+    const path = router.asPath;
+    const navigation = [
+        { name: 'Organizations', href: '/orgs', current: path.startsWith('/orgs') },
+    ]
 
     return (
         <>
@@ -39,7 +41,9 @@ export default function Layout({ children, title }: { children: JSX.Element, tit
                                 <div className="flex items-center justify-between h-16">
                                     <div className="flex items-center">
                                         <div className="flex-shrink-0">
-                                            <Image height={50} width={50} src={logo} alt="GitCloud" className='h-8 w-8' />
+                                            <Link href="/">
+                                                <Image height={50} width={50} src={logo} alt="GitCloud" className='h-8 w-8' />
+                                            </Link>
                                         </div>
                                         <div className="hidden md:block">
                                             <div className="ml-10 flex items-baseline space-x-4">
@@ -62,22 +66,14 @@ export default function Layout({ children, title }: { children: JSX.Element, tit
                                     </div>
                                     <div className="hidden md:block">
                                         <div className="ml-4 flex items-center md:ml-6">
-                                            {/* <button
-                                                type="button"
-                                                className="bg-gray-800 p-1 rounded-full text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white"
-                                            >
-                                                <span className="sr-only">View notifications</span>
-                                                <BellIcon className="h-6 w-6" aria-hidden="true" />
-                                            </button> */}
-
                                             {/* Profile dropdown */}
                                             {
                                                 currentUser.isLoggedIn ? (
                                                     <Menu as="div" className="ml-3 relative">
                                                         <div>
-                                                            <Menu.Button className="max-w-xs bg-gray-800 rounded-full flex items-center text-sm text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white">
+                                                            <Menu.Button className="max-w-xs bg-gray-800 rounded-full flex items-center text-sm text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800">
                                                                 <span className="sr-only">Open user menu</span>
-                                                                <Image className="h-8 w-8 rounded-full" alt="" src={''} />
+                                                                <UserCircleIcon className="h-8 w-8" aria-hidden="true"></UserCircleIcon>
                                                             </Menu.Button>
                                                         </div>
                                                         <Transition
@@ -94,13 +90,10 @@ export default function Layout({ children, title }: { children: JSX.Element, tit
                                                                     <Menu.Item key={item.name}>
                                                                         {({ active }) => (
                                                                             <Link href={item.href}
-                                                                                className={classNames(
-                                                                                    active ? 'bg-gray-100' : '',
-                                                                                    'block px-4 py-2 text-sm text-gray-700'
-                                                                                )}
                                                                                 key={item.name}
-                                                                            >
-                                                                                {item.name}
+                                                                            ><a className={classNames(active ? 'bg-gray-100' : '', 'block px-4 py-2 text-sm text-gray-700')}>
+                                                                                    {item.name}
+                                                                                </a>
                                                                             </Link>
                                                                         )}
                                                                     </Menu.Item>
@@ -185,11 +178,13 @@ export default function Layout({ children, title }: { children: JSX.Element, tit
                     )}
                 </Disclosure>
 
-                <header className="bg-white shadow-sm">
-                    <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
-                        <h1 className="text-lg leading-6 font-semibold text-gray-900">{title || "GitCloud"}</h1>
-                    </div>
-                </header>
+                {title ? (
+                    <header className="bg-white shadow-sm">
+                        <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
+                            <h1 className="text-lg leading-6 font-semibold text-gray-900">{title}</h1>
+                        </div>
+                    </header>
+                ) : <></>}
                 <main>
                     <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
                         {children}

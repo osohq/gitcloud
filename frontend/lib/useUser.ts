@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import Router from "next/router";
 import useSWR from "swr";
 import { User } from "../models/User";
+import { get } from "../api/common";
 
 export type CurrentUser = {
     isLoggedIn: false
@@ -11,7 +12,7 @@ export default function useUser({
     redirectTo = "",
     redirectIfFound = false,
 } = {}) {
-    const { data: user, mutate: mutateUser } = useSWR<User>("/api/user");
+    const { data: user, mutate: mutateUser, error } = useSWR<User>("/session", get);
 
     useEffect(() => {
         // if no redirect needed, just return (example: already on /dashboard)
