@@ -19,7 +19,6 @@
     "jsx": "preserve",
     "incremental": true
   },
-  "baseUrl": ".",
   "include": [
     "next-env.d.ts",
     "**/*.ts",

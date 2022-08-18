@@ -4,8 +4,8 @@ import { obj, snakeifyKeys, camelizeKeys } from "../lib/helpers";
 
 type Class<T extends {} = {}> = new (...args: any[]) => T;
 
-const GITCLUB_ROOT = process.env.REACT_APP_PRODUCTION == "1" ? "https://gitcloud-gitclub.fly.dev" : "http://localhost:5000";
-const ACTIONS_ROOT = process.env.REACT_APP_PRODUCTION == "1" ? "https://gitcloud-actions.fly.dev" : "http://localhost:5001";
+const GITCLUB_ROOT = process.env.NEXT_PUBLIC_PRODUCTION == "1" ? "https://gitcloud-gitclub.fly.dev" : "http://localhost:5000";
+const ACTIONS_ROOT = process.env.NEXT_PUBLIC_PRODUCTION == "1" ? "https://gitcloud-actions.fly.dev" : "http://localhost:5001";
 
 const defaultOpts: RequestInit = {
     headers: {
