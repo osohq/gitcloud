@@ -6,9 +6,17 @@ import useSWR from "swr";
 export type RoleAssignmentsApi = {
   create: (body: Params) => Promise<RoleAssignment>;
   delete: (body: Params) => Promise<RoleAssignment>;
-  index: () => { data: RoleAssignment[] | undefined; isLoading: boolean; error: Error | undefined };
+  index: () => {
+    data: RoleAssignment[] | undefined;
+    isLoading: boolean;
+    error: Error | undefined;
+  };
   update: (body: Params) => Promise<RoleAssignment>;
-  unassignedUsers: () => { data: User[] | undefined; isLoading: boolean; error: Error | undefined };
+  unassignedUsers: () => {
+    data: User[] | undefined;
+    isLoading: boolean;
+    error: Error | undefined;
+  };
 };
 
 function org(id?: string): RoleAssignmentsApi {
@@ -20,11 +28,11 @@ function org(id?: string): RoleAssignmentsApi {
 
     delete: (body: Params) => del(roleAssignments, body),
 
-    index: () => id ? index(roleAssignments, RoleAssignment) : noData(),
+    index: () => (id ? index(roleAssignments, RoleAssignment) : noData()),
 
     update: (body: Params) => update(roleAssignments, body, RoleAssignment),
 
-    unassignedUsers: () => id ? index(unassignedUsers, User) : noData(),
+    unassignedUsers: () => (id ? index(unassignedUsers, User) : noData()),
   };
 }
 
@@ -38,11 +46,11 @@ function repo(orgId?: string, repoId?: string): RoleAssignmentsApi {
 
     delete: (body: Params) => del(roleAssignments, body),
 
-    index: () => defined ? index(roleAssignments, RoleAssignment) : noData(),
+    index: () => (defined ? index(roleAssignments, RoleAssignment) : noData()),
 
     update: (body: Params) => update(roleAssignments, body, RoleAssignment),
 
-    unassignedUsers: () => defined ? index(unassignedUsers, User) : noData(),
+    unassignedUsers: () => (defined ? index(unassignedUsers, User) : noData()),
   };
 }
 

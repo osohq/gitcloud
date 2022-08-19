@@ -11,11 +11,12 @@ import { org as orgApi, roleChoices as roleChoicesApi } from "../../api";
 import { OrgParams } from "../../models";
 import { NoticeContext } from "../../components";
 import useUser from "../../lib/useUser";
-import Router from 'next/router';
-
+import Router from "next/router";
 
 export default function New() {
-  const { currentUser: { user, isLoggedIn } } = useUser({ redirectTo: "/login" });
+  const {
+    currentUser: { user, isLoggedIn },
+  } = useUser({ redirectTo: "/login" });
   const { error, redirectWithError } = useContext(NoticeContext);
   const [details, setDetails] = useState<OrgParams>({
     name: "",

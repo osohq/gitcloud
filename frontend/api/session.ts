@@ -10,6 +10,5 @@ export const session = {
 
   logout: () => del(path, {}),
 
-  whoami: () =>
-    get(path)
+  whoami: () => get(path),
 };

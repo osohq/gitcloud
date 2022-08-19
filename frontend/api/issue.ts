@@ -10,8 +10,9 @@ export function issue(orgId?: string, repoId?: string) {
   return {
     create: (body: Params) => create(path, body, Issue),
 
-    index: () => defined ? index(path, Issue) : noData(),
+    index: () => (defined ? index(path, Issue) : noData()),
 
-    show: (id?: string) => defined && id ? show(`${path}/${id}`, Issue) : noData(),
+    show: (id?: string) =>
+      defined && id ? show(`${path}/${id}`, Issue) : noData(),
   };
 }

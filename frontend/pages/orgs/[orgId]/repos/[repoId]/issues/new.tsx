@@ -3,17 +3,18 @@ import { ChangeEvent, FormEvent, useContext, useState } from "react";
 import { issue as issueApi } from "../../../../../../api";
 import { NoticeContext } from "../../../../../../components";
 import useUser from "../../../../../../lib/useUser";
-import { useRouter } from 'next/router';
+import { useRouter } from "next/router";
 
 export default function New() {
-  const { currentUser: { user } } = useUser({ redirectTo: "/login" });
+  const {
+    currentUser: { user },
+  } = useUser({ redirectTo: "/login" });
   const router = useRouter();
-  const { orgId, repoId } = router.query as { orgId?: string, repoId?: string };
+  const { orgId, repoId } = router.query as { orgId?: string; repoId?: string };
 
   const { error } = useContext(NoticeContext);
   const [title, setTitle] = useState<string>("");
   const index = `/orgs/${orgId}/repos/${repoId}/issues`;
-
 
   const inputEmpty = !title.replaceAll(" ", "");
 

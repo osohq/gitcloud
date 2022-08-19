@@ -13,28 +13,35 @@ import {
   roleChoices as roleChoicesApi,
 } from "../../../../../api";
 import useUser from "../../../../../lib/useUser";
-import Link from 'next/link';
+import Link from "next/link";
 import { useRouter } from "next/router";
 import ErrorMessage from "../../../../../components/ErrorMessage";
 import LoadingPage from "../../../../../components/LoadingPage";
 
 export default function Settings() {
-  const { currentUser: { user, isLoggedIn } } = useUser();
+  const {
+    currentUser: { user, isLoggedIn },
+  } = useUser();
   const router = useRouter();
-  const { orgId, repoId } = router.query as { orgId?: string, repoId?: string };
-  const { data: org, isLoading: orgLoading, error: orgError } = orgApi.show(orgId);
-  const { data: repo, isLoading: repoLoading, error: repoError } = repoApi(orgId).show(repoId);
+  const { orgId, repoId } = router.query as { orgId?: string; repoId?: string };
+  const {
+    data: org,
+    isLoading: orgLoading,
+    error: orgError,
+  } = orgApi.show(orgId);
+  const {
+    data: repo,
+    isLoading: repoLoading,
+    error: repoError,
+  } = repoApi(orgId).show(repoId);
 
   useEffect(() => {
-    roleChoicesApi
-      .repo()
-      .then(setRoleChoices)
+    roleChoicesApi.repo().then(setRoleChoices);
     // .catch((e) => error(`Failed to fetch repo role choices: ${e.message}`));
   }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
   const [roleAssignments, setRoleAssignments] = useState<RoleAssignment[]>([]);
   const [roleChoices, setRoleChoices] = useState<string[]>([]);
   const [refetch, setRefetch] = useState(false);
-
 
   if (orgLoading || repoLoading) return <LoadingPage />;
   if (repoError) return <ErrorMessage error={repoError} />;

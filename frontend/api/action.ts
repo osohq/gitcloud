@@ -10,7 +10,7 @@ export function action(userId?: string, orgId?: string, repoId?: string) {
   return {
     create: (body: Params) => create(path, body, Action, userId),
 
-    index: () => defined ? index(path, Action, userId) : noData(),
+    index: () => (defined ? index(path, Action, userId) : noData()),
 
     cancel: (id: number) => update(`${path}/${id}/cancel`, {}, Action, userId),
   };

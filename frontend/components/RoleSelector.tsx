@@ -9,7 +9,9 @@ type Props = {
 };
 
 export function RoleSelector({ choices, name, selected, update }: Props) {
-  const { currentUser: { isLoggedIn } } = useUser();
+  const {
+    currentUser: { isLoggedIn },
+  } = useUser();
 
   return (
     <select

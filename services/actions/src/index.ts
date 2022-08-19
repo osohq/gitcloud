@@ -10,7 +10,7 @@ import { resetData } from "./test";
 import { localDataSource, pgDataSource } from "./db";
 
 class User {
-  constructor(readonly username: string) { }
+  constructor(readonly username: string) {}
 }
 
 // Type screwery to get TS to stop complaining.
@@ -22,14 +22,17 @@ declare module "express" {
   }
 }
 
-const config = process.env.PRODUCTION == "1" ? {
-  db: pgDataSource,
-  frontend: "https://gitcloud.vercel.app"
-} : {
-  // db: localDataSource,
-  db: pgDataSource,
-  frontend: "http://localhost:3000"
-};
+const config =
+  process.env.PRODUCTION == "1"
+    ? {
+        db: pgDataSource,
+        frontend: "https://gitcloud.vercel.app",
+      }
+    : {
+        // db: localDataSource,
+        db: pgDataSource,
+        frontend: "http://localhost:3000",
+      };
 
 export const db = config.db;
 

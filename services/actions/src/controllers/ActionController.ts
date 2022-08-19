@@ -8,17 +8,28 @@ const toComplete = new Set();
 
 export class ActionController {
   actionRepository() {
-    return db.getRepository(Action)
+    return db.getRepository(Action);
   }
 
   async all({ oso, repo, user }: Request, res: Response) {
-    if (!(await oso.authorize({ type: "User", id: user.username }, "read", { type: "Repository", id: repo.id })))
+    if (
+      !(await oso.authorize({ type: "User", id: user.username }, "read", {
+        type: "Repository",
+        id: repo.id,
+      }))
+    )
       return res.status(404).send("Not Found?");
 
     // const actionIds = await oso.list({ type: "User", id: user.username }, "view", "Action");
-    const actions = await db.createQueryBuilder().select("action").from(Action, "action").where({
-      repoId: repo.id
-    }).orderBy("action.createdAt", "DESC").getMany();
+    const actions = await db
+      .createQueryBuilder()
+      .select("action")
+      .from(Action, "action")
+      .where({
+        repoId: repo.id,
+      })
+      .orderBy("action.createdAt", "DESC")
+      .getMany();
 
     // Complete running actions.
     actions
@@ -55,8 +66,7 @@ export class ActionController {
       actions.map((a) => ({
         ...a,
         cancelable:
-          (a.status === "scheduled" || a.status === "running")
-          &&
+          (a.status === "scheduled" || a.status === "running") &&
           (cancelableIds.includes(a.id.toString()) ||
             cancelableIds.includes("*")),
       }))
@@ -64,7 +74,13 @@ export class ActionController {
   }
 
   async save({ body, oso, repo, user }: Request, res: Response) {
-    if (!(await oso.authorize({ type: "User", id: user.username }, "manage_actions", { type: "Repository", id: repo.id })))
+    if (
+      !(await oso.authorize(
+        { type: "User", id: user.username },
+        "manage_actions",
+        { type: "Repository", id: repo.id }
+      ))
+    )
       return res.status(403).send("Forbidden");
     let action = this.actionRepository().create({
       ...body,
@@ -80,9 +96,17 @@ export class ActionController {
   }
 
   async cancel({ oso, params, repo, user }: Request, res: Response) {
-    if (!(await oso.authorize({ type: "User", id: user.username }, "manage_actions", { type: "Repository", id: repo.id })))
+    if (
+      !(await oso.authorize(
+        { type: "User", id: user.username },
+        "manage_actions",
+        { type: "Repository", id: repo.id }
+      ))
+    )
       return res.status(403).send("Forbidden");
-    const action = await this.actionRepository().findOneOrFail({ where: { id: parseInt(params.id) } });
+    const action = await this.actionRepository().findOneOrFail({
+      where: { id: parseInt(params.id) },
+    });
     // if (!(await oso.authorize({ type: "User", id: user.username }, "cancel", { type: "Action", id: action.id.toString() })))
     //   return res.status(403).send("Forbidden");
     await this.actionRepository().update(action.id, { status: "canceled" });

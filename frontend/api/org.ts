@@ -9,5 +9,5 @@ export const org = {
 
   index: () => index(path, Org),
 
-  show: (id?: string) => id ? show(`${path}/${id}`, Org) : noData()
+  show: (id?: string) => (id ? show(`${path}/${id}`, Org) : noData()),
 };

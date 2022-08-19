@@ -1,11 +1,13 @@
-import { ChevronRightIcon, StarIcon } from '@heroicons/react/solid'
-import Image from 'next/image';
-import Link from 'next/link';
+import { ChevronRightIcon, StarIcon } from "@heroicons/react/solid";
+import Image from "next/image";
+import Link from "next/link";
 import BearCabinet from "../images/bear-cabinet.png";
-import useUser from '../lib/useUser';
+import useUser from "../lib/useUser";
 
 export default function Home() {
-  const { currentUser: { isLoggedIn } } = useUser();
+  const {
+    currentUser: { isLoggedIn },
+  } = useUser();
   return (
     <main>
       {/* Hero section */}
@@ -18,14 +20,13 @@ export default function Home() {
                   Welcome to GitCloud
                 </h1>
                 <p className="mt-6 text-xl text-gray-500">
-                  Anim aute id magna aliqua ad ad non deserunt sunt. Qui irure qui lorem cupidatat commodo.
+                  Anim aute id magna aliqua ad ad non deserunt sunt. Qui irure
+                  qui lorem cupidatat commodo.
                 </p>
               </div>
               <Link href={isLoggedIn ? "/orgs" : "/login"}>
                 <div className="mt-4">
-                  <button
-                    className="block w-full rounded-md border border-transparent px-5 py-3 bg-rose-500 text-base font-medium text-white shadow hover:bg-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 sm:px-10"
-                  >
+                  <button className="block w-full rounded-md border border-transparent px-5 py-3 bg-rose-500 text-base font-medium text-white shadow hover:bg-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 sm:px-10">
                     Get Started
                   </button>
                 </div>
@@ -40,11 +41,14 @@ export default function Home() {
               <div className="absolute inset-y-0 left-1/2 w-screen bg-gray-50 rounded-l-3xl lg:left-80 lg:right-0 lg:w-full" />
             </div>
             <div className="pl-4 -mr-40 sm:mx-auto sm:max-w-3xl sm:px-0 lg:max-w-none lg:h-full lg:pl-12">
-              <Image src={BearCabinet} alt="Bear putting code in a file cabinet" />
+              <Image
+                src={BearCabinet}
+                alt="Bear putting code in a file cabinet"
+              />
             </div>
           </div>
         </div>
       </div>
-    </main >
-  )
+    </main>
+  );
 }

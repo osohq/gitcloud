@@ -8,11 +8,7 @@ import {
   useState,
 } from "react";
 
-import {
-  RoleAssignment,
-  RoleAssignmentParams,
-  User,
-} from "../models";
+import { RoleAssignment, RoleAssignmentParams, User } from "../models";
 import type { RoleAssignmentsApi } from "../api";
 import { NoticeContext, RoleSelector } from ".";
 import useUser from "../lib/useUser";
@@ -34,7 +30,9 @@ export function NewRoleAssignment({
   refetch,
   setRefetch,
 }: Props) {
-  const { currentUser: { user: u, isLoggedIn } } = useUser();
+  const {
+    currentUser: { user: u, isLoggedIn },
+  } = useUser();
   const [details, setDetails] = useState<RoleAssignmentParams>({
     username: "",
     role: roleChoices[0],
@@ -42,7 +40,7 @@ export function NewRoleAssignment({
 
   const { data: users, isLoading, error } = api.index();
   if (isLoading) return <LoadingPage />;
-  if (error) return <ErrorPage error={error} />
+  if (error) return <ErrorPage error={error} />;
 
   if (!isLoggedIn || !users) return null;
 
@@ -68,7 +66,11 @@ export function NewRoleAssignment({
     <form onSubmit={handleSubmit}>
       <label>
         user:{" "}
-        <select name="username" value={details.username} onChange={handleChange}>
+        <select
+          name="username"
+          value={details.username}
+          onChange={handleChange}
+        >
           {users.map((u) => (
             <option key={u.user.username} value={u.user.username}>
               {u.user.username}

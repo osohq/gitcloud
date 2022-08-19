@@ -1,19 +1,21 @@
 import { org as orgApi } from "../../api";
 import useUser from "../../lib/useUser";
-import Link from 'next/link';
+import Link from "next/link";
 import { OrganizationList } from "../../components/OrganizationList";
 import LoadingPage from "../../components/LoadingPage";
 import ErrorMessage from "../../components/ErrorMessage";
 
 export default function Index() {
-  const { currentUser: { user, isLoggedIn } } = useUser();
+  const {
+    currentUser: { user, isLoggedIn },
+  } = useUser();
   const { data: orgs, isLoading, error } = orgApi.index();
 
   if (isLoading) {
-    return <LoadingPage />
+    return <LoadingPage />;
   }
   if (error) {
-    throw new Error(error)
+    throw new Error(error);
   }
   if (isLoading) return <LoadingPage />;
   if (error) return <ErrorMessage error={error} />;
@@ -23,7 +25,9 @@ export default function Index() {
       <div className="mt-8 bg-white px-4 py-5 border-b border-gray-200 sm:px-6">
         <div className="-ml-4 -mt-2 flex items-center justify-between flex-wrap sm:flex-nowrap">
           <div className="ml-4 mt-2">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">Organizations</h3>
+            <h3 className="text-lg leading-6 font-medium text-gray-900">
+              Organizations
+            </h3>
           </div>
           <div className="ml-4 mt-2 flex-shrink-0">
             <Link href="/orgs/new">
@@ -41,5 +45,5 @@ export default function Index() {
 
       <OrganizationList organizations={orgs!} />
     </>
-  )
+  );
 }

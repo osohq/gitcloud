@@ -2,13 +2,15 @@ import { ChangeEvent, FormEvent, useContext, useState } from "react";
 import { NoticeContext } from "../../../../components";
 import { repo as repoApi } from "../../../../api";
 import useUser from "../../../../lib/useUser";
-import { useRouter } from 'next/router';
+import { useRouter } from "next/router";
 
 export default function New() {
-  const { currentUser: { user, isLoggedIn } } = useUser({ redirectTo: "/login" });
+  const {
+    currentUser: { user, isLoggedIn },
+  } = useUser({ redirectTo: "/login" });
   const { error } = useContext(NoticeContext);
   const [name, setName] = useState<string>("");
-  const router = useRouter()
+  const router = useRouter();
   const { orgId } = router.query as { orgId?: string };
   const index = `/orgs/${orgId}/repos`;
 

@@ -1,10 +1,14 @@
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { formatDistance } from "date-fns";
 
-import Link from 'next/link';
+import Link from "next/link";
 import { useRouter } from "next/router";
 import { Action, User } from "../../../../../../models";
-import { action as actionApi, org as orgApi, repo as repoApi } from "../../../../../../api";
+import {
+  action as actionApi,
+  org as orgApi,
+  repo as repoApi,
+} from "../../../../../../api";
 import useUser from "../../../../../../lib/useUser";
 import ErrorMessage from "../../../../../../components/ErrorMessage";
 import LoadingPage from "../../../../../../components/LoadingPage";
@@ -32,15 +36,34 @@ function RunningTime({ a }: { a: Action }) {
 }
 
 export default function Index() {
-  const { currentUser: { user, isLoggedIn } } = useUser();
-  const router = useRouter()
-  const { orgId, repoId } = router.query as { orgId?: string, repoId?: string };
-  const { data: org, isLoading: orgLoading, error: orgError } = orgApi.show(orgId);
-  const { data: repo, isLoading: repoLoading, error: repoError } = repoApi(orgId).show(repoId);
-  const { data: actions, error: actionError, mutate } = (orgId && repoId && user) ? index(`/orgs/${orgId}/repos/${repoId}/actions`, Action, user.username, { refreshInterval: 2_000 }) : noData();
+  const {
+    currentUser: { user, isLoggedIn },
+  } = useUser();
+  const router = useRouter();
+  const { orgId, repoId } = router.query as { orgId?: string; repoId?: string };
+  const {
+    data: org,
+    isLoading: orgLoading,
+    error: orgError,
+  } = orgApi.show(orgId);
+  const {
+    data: repo,
+    isLoading: repoLoading,
+    error: repoError,
+  } = repoApi(orgId).show(repoId);
+  const {
+    data: actions,
+    error: actionError,
+    mutate,
+  } = orgId && repoId && user
+    ? index(`/orgs/${orgId}/repos/${repoId}/actions`, Action, user.username, {
+        refreshInterval: 2_000,
+      })
+    : noData();
   const [name, setName] = useState("");
 
-  if (orgLoading || repoLoading || (!actions && !actionError)) return <LoadingPage />;
+  if (orgLoading || repoLoading || (!actions && !actionError))
+    return <LoadingPage />;
   if (orgError) return <ErrorMessage error={orgError} />;
   if (repoError) return <ErrorMessage error={repoError} />;
   if (actionError) return <ErrorMessage error={actionError} />;
@@ -55,7 +78,7 @@ export default function Index() {
     try {
       await api.create({ name });
       setName("");
-      mutate()
+      mutate();
     } catch (e) {
       // error(`Failed to create new action: ${e}`);
     }

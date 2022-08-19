@@ -9,8 +9,9 @@ export function repo(orgId?: string) {
   return {
     create: (body: Params) => create(path, body, Repo),
 
-    index: () => orgId ? index(path, Repo) : noData(),
+    index: () => (orgId ? index(path, Repo) : noData()),
 
-    show: (id?: string) => (orgId && id) ? show(`${path}/${id}`, Repo) : noData(),
+    show: (id?: string) =>
+      orgId && id ? show(`${path}/${id}`, Repo) : noData(),
   };
 }

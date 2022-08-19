@@ -1,9 +1,9 @@
 import { FunctionComponent } from "react";
 
 const Spinner: FunctionComponent<{ size?: number }> = ({ size }) => {
-    return (
-        <>
-            <style jsx>{`
+  return (
+    <>
+      <style jsx>{`
         .spinner {
           animation: rotate 2s linear infinite;
         }
@@ -35,22 +35,22 @@ const Spinner: FunctionComponent<{ size?: number }> = ({ size }) => {
           }
         }
       `}</style>
-            <svg
-                className="spinner"
-                viewBox="0 0 50 50"
-                style={{ width: size || 25, height: size || 25 }}
-            >
-                <circle
-                    className="path"
-                    cx="25"
-                    cy="25"
-                    r="20"
-                    fill="none"
-                    strokeWidth="5"
-                ></circle>
-            </svg>
-        </>
-    );
+      <svg
+        className="spinner"
+        viewBox="0 0 50 50"
+        style={{ width: size || 25, height: size || 25 }}
+      >
+        <circle
+          className="path"
+          cx="25"
+          cy="25"
+          r="20"
+          fill="none"
+          strokeWidth="5"
+        ></circle>
+      </svg>
+    </>
+  );
 };
 
 export default Spinner;

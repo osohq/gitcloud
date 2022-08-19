@@ -1,9 +1,8 @@
-import * as path from 'path';
-import { Builder, Loader, Parser, Resolver } from 'typeorm-fixtures-cli/dist';
-import { Connection, DataSource, getRepository } from 'typeorm';
+import * as path from "path";
+import { Builder, Loader, Parser, Resolver } from "typeorm-fixtures-cli/dist";
+import { Connection, DataSource, getRepository } from "typeorm";
 
-const fixturesPath = "./fixtures/"
-
+const fixturesPath = "./fixtures/";
 
 export async function resetData(connection: DataSource) {
   try {
