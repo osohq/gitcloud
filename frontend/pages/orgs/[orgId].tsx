@@ -16,7 +16,8 @@ import ErrorMessage from "../../components/ErrorMessage";
 export default function Show() {
   const { currentUser: { user, isLoggedIn } } = useUser();
   const router = useRouter()
-  const { orgId } = router.query as { orgId: string };
+  const { orgId } = router.query as { orgId?: string };
+  if (!orgId) return null;
 
   const { data: org, isLoading: orgLoading, error: orgError } = orgApi.show(orgId);
   const { data: repos, isLoading: repoLoading, error: repoError } = repoApi(orgId).index();

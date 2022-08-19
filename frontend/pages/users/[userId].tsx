@@ -7,20 +7,18 @@ import ErrorMessage from "../../components/ErrorMessage";
 import LoadingPage from "../../components/LoadingPage";
 
 export default function Show() {
-  const { currentUser: { user, isLoggedIn } } = useUser();
   const router = useRouter()
-  const { userId } = router.query as { userId: string };
-  const { orgId, repoId, issueId } = router.query as { orgId: string, repoId: string, issueId: string };
+  const { userId } = router.query as { userId: string | undefined };
+  if (!userId) return null;
   const { data: userProfile, isLoading: userLoading, error: userError } = userApi.show(userId);
   const { data: orgs, isLoading: orgLoading, error: orgError } = userApi.orgs(userId);
   const { data: repos, isLoading: repoLoading, error: repoError } = userApi.repos(userId);
-  // const { data: issue, isLoading: issueLoading, error: issueError } = userApi.issues(userId);
 
   if (userLoading || orgLoading || repoLoading) return <LoadingPage />;
   if (userError) return <ErrorMessage error={userError} />;
   if (orgError) return <ErrorMessage error={orgError} />;
   if (repoError) return <ErrorMessage error={repoError} />;
-  if (!userId || !userProfile || !orgs || !repos) return null;
+  if (!userProfile || !orgs || !repos) return null;
 
   return (
     <>

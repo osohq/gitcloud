@@ -34,7 +34,8 @@ function RunningTime({ a }: { a: Action }) {
 export default function Index() {
   const { currentUser: { user } } = useUser();
   const router = useRouter()
-  const { orgId, repoId } = router.query as { orgId: string, repoId: string, issueId: string };
+  const { orgId, repoId } = router.query as { orgId?: string, repoId?: string };
+  if (!orgId || !repoId) return null;
   const { data: org, isLoading: orgLoading, error: orgError } = orgApi.show(orgId);
   const { data: repo, isLoading: repoLoading, error: repoError } = repoApi(orgId).show(repoId);
   const { data: actions, error: actionError, mutate } = index(`/orgs/${orgId}/repos/${repoId}/actions`, Action, user?.username || "", { refreshInterval: 2000 })

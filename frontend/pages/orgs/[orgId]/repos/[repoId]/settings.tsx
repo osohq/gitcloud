@@ -21,8 +21,8 @@ import LoadingPage from "../../../../../components/LoadingPage";
 export default function Settings() {
   const { currentUser: { user, isLoggedIn } } = useUser();
   const router = useRouter();
-  const { orgId, repoId } = router.query as { orgId: string, repoId: string };
-  const { data: org, isLoading: orgLoading, error: orgError } = orgApi.show(orgId);
+  const { orgId, repoId } = router.query as { orgId?: string, repoId?: string };
+  if (!orgId || !repoId) return null; const { data: org, isLoading: orgLoading, error: orgError } = orgApi.show(orgId);
   const { data: repo, isLoading: repoLoading, error: repoError } = repoApi(orgId).show(repoId);
 
   useEffect(() => {

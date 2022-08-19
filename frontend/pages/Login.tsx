@@ -18,7 +18,7 @@ export default function Login() {
     try {
       const u = await sessionApi.login({ username: username });
       mutateUser(u);
-      router.push("/");
+      router.replace(`/users/${username}`);
     } catch (e) {
       error(`Failed to log in: ${e}`);
     }
