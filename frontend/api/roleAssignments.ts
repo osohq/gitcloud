@@ -1,6 +1,7 @@
 import { User, RoleAssignment } from "../models";
 import type { RoleAssignmentParams as Params } from "../models";
-import { create, del, index, update } from "./common";
+import { create, del, index, noData, update } from "./common";
+import useSWR from "swr";
 
 export type RoleAssignmentsApi = {
   create: (body: Params) => Promise<RoleAssignment>;
@@ -10,7 +11,7 @@ export type RoleAssignmentsApi = {
   unassignedUsers: () => { data: User[] | undefined; isLoading: boolean; error: Error | undefined };
 };
 
-function org(id: string): RoleAssignmentsApi {
+function org(id?: string): RoleAssignmentsApi {
   const roleAssignments = `/orgs/${id}/role_assignments`;
   const unassignedUsers = `/orgs/${id}/unassigned_users`;
 
@@ -19,28 +20,29 @@ function org(id: string): RoleAssignmentsApi {
 
     delete: (body: Params) => del(roleAssignments, body),
 
-    index: () => index(roleAssignments, RoleAssignment),
+    index: () => id ? index(roleAssignments, RoleAssignment) : noData(),
 
     update: (body: Params) => update(roleAssignments, body, RoleAssignment),
 
-    unassignedUsers: () => index(unassignedUsers, User),
+    unassignedUsers: () => id ? index(unassignedUsers, User) : noData(),
   };
 }
 
-function repo(orgId: string, repoId: string): RoleAssignmentsApi {
+function repo(orgId?: string, repoId?: string): RoleAssignmentsApi {
   const roleAssignments = `/orgs/${orgId}/repos/${repoId}/role_assignments`;
   const unassignedUsers = `/orgs/${orgId}/repos/${repoId}/unassigned_users`;
+  const defined = orgId && repoId;
 
   return {
     create: (body: Params) => create(roleAssignments, body, RoleAssignment),
 
     delete: (body: Params) => del(roleAssignments, body),
 
-    index: () => index(roleAssignments, RoleAssignment),
+    index: () => defined ? index(roleAssignments, RoleAssignment) : noData(),
 
     update: (body: Params) => update(roleAssignments, body, RoleAssignment),
 
-    unassignedUsers: () => index(unassignedUsers, User),
+    unassignedUsers: () => defined ? index(unassignedUsers, User) : noData(),
   };
 }
 

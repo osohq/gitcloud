@@ -6,9 +6,8 @@ import {
   roleChoices as roleChoicesApi,
 } from "../../api";
 import useUser from "../../lib/useUser";
-import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { CalendarIcon, LocationMarkerIcon, UsersIcon } from '@heroicons/react/solid'
+import { LocationMarkerIcon } from '@heroicons/react/solid'
 import { RepositoryList } from "../../components/RepositoryList";
 import LoadingPage from "../../components/LoadingPage";
 import ErrorMessage from "../../components/ErrorMessage";
@@ -17,7 +16,6 @@ export default function Show() {
   const { currentUser: { user, isLoggedIn } } = useUser();
   const router = useRouter()
   const { orgId } = router.query as { orgId?: string };
-  if (!orgId) return null;
 
   const { data: org, isLoading: orgLoading, error: orgError } = orgApi.show(orgId);
   const { data: repos, isLoading: repoLoading, error: repoError } = repoApi(orgId).index();

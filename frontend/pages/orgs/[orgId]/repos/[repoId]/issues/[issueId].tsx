@@ -13,7 +13,6 @@ export default function Show() {
   const { currentUser: { user } } = useUser();
   const router = useRouter()
   const { orgId, repoId, issueId } = router.query as { orgId?: string, repoId?: string, issueId?: string };
-  if (!orgId || !repoId || !issueId) return null;
   const { data: org, isLoading: orgLoading, error: orgError } = orgApi.show(orgId);
   const { data: repo, isLoading: repoLoading, error: repoError } = repoApi(orgId).show(repoId);
   const { data: issue, isLoading: issueLoading, error: issueError } = issueApi(orgId, repoId).show(issueId);

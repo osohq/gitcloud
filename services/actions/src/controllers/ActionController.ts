@@ -12,12 +12,12 @@ export class ActionController {
   }
 
   async all({ oso, repo, user }: Request, res: Response) {
-    if (!(await oso.authorize({ type: "User", id: user.username }, "view_actions", { type: "Repository", id: repo.id })))
-      return res.status(403).send("Forbidden");
+    if (!(await oso.authorize({ type: "User", id: user.username }, "read", { type: "Repository", id: repo.id })))
+      return res.status(404).send("Not Found?");
 
-    const actionIds = await oso.list({ type: "User", id: user.username }, "view", "Action");
+    // const actionIds = await oso.list({ type: "User", id: user.username }, "view", "Action");
     const actions = await db.createQueryBuilder().select("action").from(Action, "action").where({
-      id: In(actionIds), repoId: repo.id
+      repoId: repo.id
     }).orderBy("action.createdAt", "DESC").getMany();
 
     // Complete running actions.
@@ -48,13 +48,15 @@ export class ActionController {
         toRun.add(a.id);
       });
 
-    const cancelableIds: string[] = await oso.list({ type: "User", id: user.username }, "cancel", "Action");
+    // const cancelableIds: string[] = await oso.list({ type: "User", id: user.username }, "cancel", "Action");
+    const cancelableIds = ["*"];
 
     return res.json(
       actions.map((a) => ({
         ...a,
         cancelable:
-          (a.status === "scheduled" || a.status === "running") &&
+          (a.status === "scheduled" || a.status === "running")
+          &&
           (cancelableIds.includes(a.id.toString()) ||
             cancelableIds.includes("*")),
       }))
@@ -62,7 +64,7 @@ export class ActionController {
   }
 
   async save({ body, oso, repo, user }: Request, res: Response) {
-    if (!(await oso.authorize({ type: "User", id: user.username }, "schedule_action", { type: "Repository", id: repo.id })))
+    if (!(await oso.authorize({ type: "User", id: user.username }, "manage_actions", { type: "Repository", id: repo.id })))
       return res.status(403).send("Forbidden");
     let action = this.actionRepository().create({
       ...body,
@@ -70,17 +72,19 @@ export class ActionController {
       repoId: repo.id,
     } as DeepPartial<Action>);
     action = await this.actionRepository().save(action);
-    await oso.bulkTell([
-      ["has_relation", { type: "User", id: user.username }, "creator", { type: "Action", id: action.id.toString() }],
-      ["has_relation", { type: "Action", id: action.id.toString() }, "repository", { type: "Repository", id: repo.id }],
-    ]);
+    // await oso.bulkTell([
+    //   ["has_relation", { type: "User", id: user.username }, "creator", { type: "Action", id: action.id.toString() }],
+    //   ["has_relation", { type: "Action", id: action.id.toString() }, "repository", { type: "Repository", id: repo.id }],
+    // ]);
     return res.status(201).json(action);
   }
 
-  async cancel({ oso, params, user }: Request, res: Response) {
-    const action = await this.actionRepository().findOneOrFail({ where: { id: parseInt(params.id) } });
-    if (!(await oso.authorize({ type: "User", id: user.username }, "cancel", { type: "Action", id: action.id.toString() })))
+  async cancel({ oso, params, repo, user }: Request, res: Response) {
+    if (!(await oso.authorize({ type: "User", id: user.username }, "manage_actions", { type: "Repository", id: repo.id })))
       return res.status(403).send("Forbidden");
+    const action = await this.actionRepository().findOneOrFail({ where: { id: parseInt(params.id) } });
+    // if (!(await oso.authorize({ type: "User", id: user.username }, "cancel", { type: "Action", id: action.id.toString() })))
+    //   return res.status(403).send("Forbidden");
     await this.actionRepository().update(action.id, { status: "canceled" });
     return res.json(action);
   }

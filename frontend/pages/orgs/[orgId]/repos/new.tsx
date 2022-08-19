@@ -2,14 +2,14 @@ import { ChangeEvent, FormEvent, useContext, useState } from "react";
 import { NoticeContext } from "../../../../components";
 import { repo as repoApi } from "../../../../api";
 import useUser from "../../../../lib/useUser";
-import Router from 'next/router';
+import { useRouter } from 'next/router';
 
-type Props = { orgId?: string };
-
-export default function New({ orgId }: Props) {
+export default function New() {
   const { currentUser: { user, isLoggedIn } } = useUser({ redirectTo: "/login" });
   const { error } = useContext(NoticeContext);
   const [name, setName] = useState<string>("");
+  const router = useRouter()
+  const { orgId } = router.query as { orgId?: string };
   const index = `/orgs/${orgId}/repos`;
 
   const inputEmpty = !name.replaceAll(" ", "");
@@ -19,7 +19,7 @@ export default function New({ orgId }: Props) {
     if (inputEmpty || !orgId) return;
     try {
       const repo = await repoApi(orgId).create({ name });
-      await Router.push(`${index}/${repo.id}`);
+      await router.push(`${index}/${repo.id}`);
     } catch (e) {
       error(`Failed to create new repo: ${e}`);
     }

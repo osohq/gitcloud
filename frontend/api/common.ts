@@ -27,6 +27,16 @@ async function req(path: string, expected: number, opts?: RequestInit) {
     } else throw new Error(res.statusText);
 }
 
+export const noData = () => {
+    const _ = useSWR(null);
+    return {
+        data: undefined,
+        isLoading: true,
+        error: undefined,
+        mutate: async () => undefined
+    }
+}
+
 export const get = (path: string, userId?: string) =>
     req(path, 200, userId ? { headers: { USER: userId } } : {});
 

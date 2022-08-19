@@ -26,7 +26,8 @@ const config = process.env.PRODUCTION == "1" ? {
   db: pgDataSource,
   frontend: "https://gitcloud.vercel.app"
 } : {
-  db: localDataSource,
+  // db: localDataSource,
+  db: pgDataSource,
   frontend: "http://localhost:3000"
 };
 

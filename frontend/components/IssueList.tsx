@@ -2,7 +2,7 @@ import { UsersIcon, LocationMarkerIcon, CalendarIcon } from "@heroicons/react/ou
 import Link from "next/link"
 import { Issue } from "../models/Issue"
 
-export function IssueList({ orgId, repoId, issues }: { orgId: string, repoId: string, issues: Issue[] }) {
+export function IssueList({ orgId, repoId, issues }: { orgId: number, repoId: number, issues: Issue[] }) {
     return <div className="bg-white shadow overflow-hidden sm:rounded-md">
         <ul role="list" className="divide-y divide-gray-200">
             {issues.map((issue) => (

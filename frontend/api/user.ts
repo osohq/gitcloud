@@ -1,10 +1,10 @@
 import { Org, Repo, User } from "../models";
-import { show, index } from "./common";
+import { show, index, noData } from "./common";
 
 const path = "/users";
 
 export const user = {
-  show: (id: string) => show(`${path}/${id}`, User),
-  repos: (id: string) => index(`${path}/${id}/repos`, Repo),
-  orgs: (id: string) => index(`${path}/${id}/orgs`, Org),
+  show: (id?: string) => id ? show(`${path}/${id}`, User) : noData(),
+  repos: (id?: string) => id ? index(`${path}/${id}/repos`, Repo) : noData(),
+  orgs: (id?: string) => id ? index(`${path}/${id}/orgs`, Org) : noData(),
 };

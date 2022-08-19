@@ -8,7 +8,7 @@ import { action as actionApi, org as orgApi, repo as repoApi } from "../../../..
 import useUser from "../../../../../../lib/useUser";
 import ErrorMessage from "../../../../../../components/ErrorMessage";
 import LoadingPage from "../../../../../../components/LoadingPage";
-import { index } from "../../../../../../api/common";
+import { index, noData } from "../../../../../../api/common";
 
 function runningTime(a: Action): number {
   const updatedAt =
@@ -32,13 +32,12 @@ function RunningTime({ a }: { a: Action }) {
 }
 
 export default function Index() {
-  const { currentUser: { user } } = useUser();
+  const { currentUser: { user, isLoggedIn } } = useUser();
   const router = useRouter()
   const { orgId, repoId } = router.query as { orgId?: string, repoId?: string };
-  if (!orgId || !repoId) return null;
   const { data: org, isLoading: orgLoading, error: orgError } = orgApi.show(orgId);
   const { data: repo, isLoading: repoLoading, error: repoError } = repoApi(orgId).show(repoId);
-  const { data: actions, error: actionError, mutate } = index(`/orgs/${orgId}/repos/${repoId}/actions`, Action, user?.username || "", { refreshInterval: 2000 })
+  const { data: actions, error: actionError, mutate } = (orgId && repoId && user) ? index(`/orgs/${orgId}/repos/${repoId}/actions`, Action, user.username, { refreshInterval: 2_000 }) : noData();
   const [name, setName] = useState("");
 
   if (orgLoading || repoLoading || (!actions && !actionError)) return <LoadingPage />;
@@ -47,8 +46,7 @@ export default function Index() {
   if (actionError) return <ErrorMessage error={actionError} />;
   if (!user || !actions || !org || !repo) return null;
 
-  if (!(user instanceof User) || !org || !repo) return null;
-  const api = actionApi(user.username, "" + org.id, "" + repo.id);
+  const api = actionApi(user.username, orgId, repoId);
   const inputEmpty = !name.replaceAll(" ", "");
 
   async function handleSubmit(e: FormEvent) {

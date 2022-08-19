@@ -1,7 +1,7 @@
 import { action } from "./action";
 import { issue } from "./issue";
 import { org } from "./org";
-import { repo, userRepo } from "./repo";
+import { repo } from "./repo";
 import { RoleAssignmentsApi, roleAssignments } from "./roleAssignments";
 import { roleChoices } from "./roleChoices";
 import { session } from "./session";
@@ -12,7 +12,6 @@ export {
   issue,
   org,
   repo,
-  userRepo,
   roleAssignments,
   roleChoices,
   session,

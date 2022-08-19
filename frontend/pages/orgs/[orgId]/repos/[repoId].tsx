@@ -10,8 +10,6 @@ import ErrorMessage from "../../../../components/ErrorMessage";
 export default function Show() {
   const router = useRouter()
   const { orgId, repoId } = router.query as { orgId?: string, repoId?: string };
-  if (!orgId || !repoId) return null;
-
   const { data: org, isLoading: orgLoading, error: orgError } = orgApi.show(orgId);
   const { data: repo, isLoading: repoLoading, error: repoError } = repoApi(orgId).show(repoId);
   const { data: issues, isLoading: issueLoading, error: issueError } = issueApi(orgId, repoId).index();
@@ -28,7 +26,7 @@ export default function Show() {
 
   return (
     <>
-      <IssueList orgId={orgId} repoId={repoId} issues={issues} />
+      <IssueList orgId={org.id} repoId={repo.id} issues={issues} />
     </>
   );
 }
