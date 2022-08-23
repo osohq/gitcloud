@@ -12,9 +12,8 @@ type AppPropsWithTitle = AppProps & {
 };
 
 function MyApp({ Component, pageProps }: AppPropsWithTitle) {
-  const title = Component.title;
   return (
-    <Layout title={title}>
+    <Layout>
       <Component {...pageProps} />
     </Layout>
   );

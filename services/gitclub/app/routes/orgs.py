@@ -2,7 +2,7 @@ from flask import Blueprint, g, request, jsonify
 from werkzeug.exceptions import Forbidden, NotFound
 
 from ..models import Organization
-from .helpers import authorize, authorized_resources, oso
+from .helpers import authorize, authorized_resources, oso, query
 
 bp = Blueprint("orgs", __name__, url_prefix="/orgs")
 
@@ -11,10 +11,10 @@ bp = Blueprint("orgs", __name__, url_prefix="/orgs")
 def index():
     authorized_ids = authorized_resources("read", "Organization")
     if authorized_ids and authorized_ids[0] == "*":
-        orgs = g.session.query(Organization)
+        orgs = g.session.query(Organization).limit(5)
         return jsonify([o.as_json() for o in orgs])
     else:
-        orgs = g.session.query(Organization).filter(Organization.id.in_(authorized_ids))
+        orgs = g.session.query(Organization).filter(Organization.id.in_(authorized_ids)).limit(5)
         return jsonify([o.as_json() for o in orgs])
 
 
@@ -33,8 +33,13 @@ def create():
 @bp.route("/<int:org_id>", methods=["GET"])
 def show(org_id):
     if not authorize("read", {"type": "Organization", "id": org_id}):
-        print("Denied")
-        # raise NotFound("but really permission denied")
-    print(f"Fetching org: {org_id}")
+        raise NotFound
     org = g.session.get_or_404(Organization, id=org_id)
     return org.as_json()
+
+@bp.route("/<int:org_id>/user_count", methods=["GET"])
+def user_count(org_id):
+    if not authorize("read", {"type": "Organization", "id": org_id}):
+        raise NotFound
+    orgs = query("has_role", { "type": "User",  }, {}, { "type": "Organization", "id": org_id })
+    return str(len(orgs))

@@ -2,6 +2,9 @@ from sqlalchemy.types import Integer, String, Boolean
 from sqlalchemy.schema import Column, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy import select, func
+from sqlalchemy.orm.relationships import RelationshipProperty
 
 Base = declarative_base()
 
@@ -32,6 +35,17 @@ class Organization(Base):
     description = Column(String)
     billing_address = Column(String)
 
+    @hybrid_property
+    def repository_count(self):
+        return len(self.repos)
+
+    @repository_count.expression
+    def repository_count(cls):
+        return select(func.count(Repository.id)).\
+                where(Repository.org_id==cls.id).\
+                label('total_repo_count')
+
+
 class Repository(Base):
     __tablename__ = "repositories"
 
@@ -43,6 +57,18 @@ class Repository(Base):
 
     unique_name_in_org = UniqueConstraint(name, org_id)
 
+
+    @hybrid_property
+    def issue_count(self):
+        return len(self.issues)
+
+    @issue_count.expression
+    def issue_count(cls):
+        return select(func.count(Issue.id)).\
+                where(Issue.repo_id==cls.id).\
+                label('total_issue_count')
+
+
 class Issue(Base):
     __tablename__ = "issues"
 
@@ -52,10 +78,10 @@ class Issue(Base):
     closed = Column(Boolean, default=False)
 
     repo_id = Column(Integer, ForeignKey("repositories.id"))
-    repo = relationship(Repository, backref=backref("issues", lazy=False), lazy=False)
+    repo = relationship(Repository, backref=backref("issues"))
 
     creator_id = Column(String, ForeignKey("users.username"))
-    creator = relationship(User, backref=backref("issues", lazy=False), lazy=False)
+    creator = relationship(User, backref=backref("issues"))
 
 
 # Creates Marshmallow schemas for all models which makes
@@ -64,7 +90,21 @@ def setup_schema(base):
     for mapper in base.registry.mappers:
         class_ = mapper.class_
         if hasattr(class_, "__tablename__"):
-            columns = list(c.name for c in mapper.columns)
+            columns = []
+            for d in mapper.all_orm_descriptors:
+                # print(d.__dict__)
+                # breakpoint()
+                if hasattr(d, "property") and isinstance(d.property, RelationshipProperty):
+                    continue
+                if hasattr(d, "key"):
+                    columns.append(d.key)
+                elif hasattr(d, "__name__"):
+                    columns.append(d.__name__)
+                else:
+                    raise Exception("Unable to find column name for %s" % d)
+
+            print("Creating schema for %s" % class_.__name__
+                    + " with columns %s" % columns)
             setattr(class_, "__columns", columns)
             setattr(class_, "as_json", lambda self: {c: getattr(self, c) for c in self.__class__.__columns})
 

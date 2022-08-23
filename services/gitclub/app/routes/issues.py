@@ -21,6 +21,8 @@ def index(org_id, repo_id):
 
 @bp.route("", methods=["POST"])
 def create(org_id, repo_id):
+    if not authorize("read", {"type": "Repository", "id": repo_id}):
+        raise NotFound
     payload = request.get_json(force=True)
     repo = g.session.get_or_404(Repository, id=repo_id)
     if not authorize("create_issues", repo):
@@ -47,6 +49,8 @@ def show(org_id, repo_id, issue_id):
 
 @bp.route("/<int:issue_id>/close", methods=["PUT"])
 def close(org_id, repo_id, issue_id):
+    if not authorize("read", {"type": "Repository", "id": repo_id}):
+        raise NotFound
     issue = g.session.get_or_404(Issue, id=issue_id)
     if not authorize("read", issue):
         raise NotFound

@@ -12,7 +12,7 @@ export function RepositoryList({ repositories }: { repositories: Repo[] }) {
       <ul role="list" className="divide-y divide-gray-200">
         {repositories.map((repo) => (
           <li key={repo.id}>
-            <Link href={`/orgs/${repo.orgId}/repos/${repo.id}`}>
+            <Link href={{ pathname: "/orgs/[orgId]/repos/[repoId]", query: { orgId: repo.orgId, repoId: repo.id } }}>
               <a className="block hover:bg-gray-50">
                 <div className="px-4 py-4 sm:px-6">
                   <div className="flex items-center justify-between">

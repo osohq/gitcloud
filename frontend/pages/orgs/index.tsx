@@ -20,7 +20,9 @@ export default function Index() {
   if (isLoading) return <LoadingPage />;
   if (error) return <ErrorMessage error={error} />;
 
-  return (
+  if (!orgs) return null;
+
+  return [
     <>
       <div className="mt-8 bg-white px-4 py-5 border-b border-gray-200 sm:px-6">
         <div className="-ml-4 -mt-2 flex items-center justify-between flex-wrap sm:flex-nowrap">
@@ -43,7 +45,7 @@ export default function Index() {
         </div>
       </div>
 
-      <OrganizationList organizations={orgs!} />
+      <OrganizationList organizations={orgs} />
     </>
-  );
+  ];
 }

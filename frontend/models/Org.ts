@@ -6,11 +6,15 @@ export type OrgParams = {
 export class Org {
   id: number;
   name: string;
-  billingAddress?: string;
+  billingAddress: string;
+  repositoryCount: number;
+  userCount?: number;
 
-  constructor({ id, name, billingAddress }: Org) {
-    this.id = id;
-    this.name = name;
-    this.billingAddress = billingAddress;
+  constructor(org: Org) {
+    this.id = org.id;
+    this.name = org.name;
+    this.billingAddress = org.billingAddress;
+    this.repositoryCount = org.repositoryCount;
+    this.userCount = org.userCount;
   }
 }

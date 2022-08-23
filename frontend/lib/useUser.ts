@@ -6,12 +6,12 @@ import { get } from "../api/common";
 
 export type CurrentUser =
   | {
-      isLoggedIn: false;
-    }
+    isLoggedIn: false;
+  }
   | { isLoggedIn: true; user: User };
 
 export default function useUser({
-  redirectTo = "",
+  redirectTo = undefined,
   redirectIfFound = false,
 } = {}) {
   const {
@@ -31,7 +31,7 @@ export default function useUser({
       // If redirectIfFound is also set, redirect if the user was found
       (redirectIfFound && user)
     ) {
-      Router.push(redirectTo);
+      Router.replace(redirectTo || `/users/${user.username}`);
     }
   }, [user, redirectIfFound, redirectTo]);
 
