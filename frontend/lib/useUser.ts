@@ -10,10 +10,10 @@ export type CurrentUser =
   }
   | { isLoggedIn: true; user: User };
 
-export default function useUser({
-  redirectTo = undefined,
-  redirectIfFound = false,
-} = {}) {
+export default function useUser({ redirectTo, redirectIfFound }: {
+  redirectTo?: string,
+  redirectIfFound?: boolean,
+} = { redirectIfFound: false }) {
   const {
     data: user,
     mutate: mutateUser,
