@@ -51,9 +51,13 @@ class Repository(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(256))
+    description = Column(String(256))
 
     org_id = Column(Integer, ForeignKey("organizations.id"))
     org = relationship(Organization, backref=backref("repos", lazy=False), lazy=False)
+
+    public = Column(Boolean, default=False)
+    protected = Column(Boolean, default=False)
 
     unique_name_in_org = UniqueConstraint(name, org_id)
 
@@ -82,6 +86,28 @@ class Issue(Base):
 
     creator_id = Column(String, ForeignKey("users.username"))
     creator = relationship(User, backref=backref("issues"))
+
+
+### Authorization Models
+
+class RepoRole(Base):
+    __tablename__ = "repo_roles"
+
+    id = Column(Integer, primary_key=True)
+    repo_id = Column(Integer, ForeignKey("repositories.id"))
+    user_id = Column(String, ForeignKey("users.username"))
+    role = Column(String(256))
+
+class OrgRole(Base):
+    __tablename__ = "org_roles"
+
+    id = Column(Integer, primary_key=True)
+    org_id = Column(Integer, ForeignKey("organizations.id"))
+    user_id = Column(String, ForeignKey("users.username"))
+    role = Column(String(256))
+
+
+
 
 
 # Creates Marshmallow schemas for all models which makes

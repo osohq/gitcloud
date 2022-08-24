@@ -45,6 +45,8 @@ export default function Show() {
   if (issueError) return <ErrorMessage error={issueError} />;
   if (!issue || !org || !repo) return null;
 
+  console.log(issue)
+
   return (
     <>
       {/* <h1>
@@ -53,7 +55,9 @@ export default function Show() {
         <Link href={`/orgs/${org.id}/repos/${repo.id}/issues`}>issues</Link> /{" "}
         {issue.id}
       </h1> */}
-      <h2>{issue.title}</h2>
+      <h2>#{issue.issueNumber || 0} -- {issue.title}</h2>
+
+      {issue.permissions?.includes("close") ? "Close Button" : "Grayed out close button"}
     </>
   );
 }

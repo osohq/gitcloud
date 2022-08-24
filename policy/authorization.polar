@@ -2,7 +2,14 @@ actor User { }
 
 actor Group { }
 
+# Misc rules:
+## All organizations are public
 has_permission(_: User, "read", _: Organization);
+## Users can read all users
+has_permission(_: User, "read", _: User);
+## Users can only read their own profiles
+has_permission(user: User, "read_profile", user: User);
+has_permission(_: User, "read_profile", _: User);
 
 
 resource Organization { 
@@ -26,7 +33,7 @@ resource Organization {
 }
 
 resource Repository { 
-    permissions = ["read", "create", "update", "delete", "invite", "write"];
+    permissions = ["read", "create", "update", "delete", "invite", "write", "manage_actions"];
     roles = ["reader", "admin", "maintainer", "editor"];
     relations = { organization: Organization };
 
@@ -38,23 +45,22 @@ resource Repository {
     "delete" if "admin";
     "invite" if "admin" ;
     "write" if "editor";
+    "manage_actions" if "editor";
 }
 
 resource Issue { 
     permissions = ["read", "comment", "close"];
     roles = ["reader", "admin", "creator"];
+    relations = { repository: Repository };
+
+    "reader" if "reader" on "repository";
+    "admin" if "admin" on "repository";
 
     "read" if "reader";
-    "comment" if "reader";
-    
+    "comment" if "admin";
     "close" if "creator";
     "close" if "admin";
     
-    "reader" if "admin";
-}
-
-resource Action {
-    relations = { repository: Repository };
 }
 
 resource Folder { 
@@ -82,7 +88,7 @@ has_role(user: User, role: String, resource: Resource) if
     has_group(user, group) and
     has_role(group, role, resource);
 
-# Nested groups
+# Nested group
 has_group(user: User, group: Group) if
     g matches Group and
     has_group(user, g) and
@@ -108,4 +114,8 @@ has_permission(actor: Actor, "delete", repo: Repository) if
     has_role(actor, "member", repo) and
     is_protected(repo, false);
 
+# readers can only comment on open issues
+has_permission(actor: Actor, "comment", issue: Issue) if
+    has_permission(actor, "read", issue) and
+    is_closed(issue, false);
 

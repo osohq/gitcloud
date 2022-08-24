@@ -1,5 +1,6 @@
+from collections import OrderedDict
 from random import choice, randint
-from .models import Issue, Organization, Repository, User
+from .models import Issue, OrgRole, RepoRole, Organization, Repository, User
 from .routes.helpers import oso
 
 from faker import Faker
@@ -18,7 +19,7 @@ def load_fixture_data(session):
     faker = Faker()
     Faker.seed(0)
     faker.add_provider(faker_microservice.Provider)
-    faker = faker.unique
+    faker_uniq = faker.unique
 
     session.query(User).delete()
     session.query(Organization).delete()
@@ -27,6 +28,7 @@ def load_fixture_data(session):
 
     john = User(username="john", name="John Lennon", email="john@beatles.com")
     paul = User(username="paul", name="Paul McCartney", email="paul@beatles.com")
+    george = User(username="george", name="George Harrison", email="george@beatles.com")
     admin = User(username="admin", name="admin", email="admin@admin.com")
     mike = User(username="mike", name="Mike Wazowski", email="mike@monsters.com")
     sully = User(username="sully", name="James P Sullivan", email="sully@monsters.com")
@@ -35,6 +37,7 @@ def load_fixture_data(session):
     users = [
         john,
         paul,
+        george,
         admin,
         mike,
         sully,
@@ -43,7 +46,7 @@ def load_fixture_data(session):
     ]
 
     for _ in range(FAKE_USERS):
-        users.append(User(username=faker.user_name(), name=faker.name(), email=faker.company_email()))
+        users.append(User(username=faker_uniq.user_name(), name=faker_uniq.name(), email=faker_uniq.company_email()))
 
     for user in users:
         session.add(user)
@@ -73,8 +76,8 @@ def load_fixture_data(session):
     # Repos #
     ########
 
-    abbey_road = Repository(name="Abbey Road", org=beatles)
-    paperwork = Repository(name="Paperwork", org=monsters)
+    abbey_road = Repository(name="Abbey Road", org=beatles, description="In the end, the love you take is equal to the love you make", public=True)
+    paperwork = Repository(name="Paperwork", org=monsters, description="Oh, that darn paperwork! Wouldn't it be easier if it all just blew away?")
     repos = [abbey_road, paperwork]
 
     for repo in repos:
@@ -84,18 +87,19 @@ def load_fixture_data(session):
     # Issues #
     ##########
 
+    beatles_members = [john, ringo, paul, george]
     issues = [
-        Issue(issue_number=1, title="Here Comes the Sun", repo=abbey_road),
-        Issue(issue_number=2, title="Because", repo=abbey_road),
-        Issue(issue_number=3, title="You Never Give Me Your Money", repo=abbey_road),
-        Issue(issue_number=4, title="Sun King", repo=abbey_road),
-        Issue(issue_number=5, title="Mean Mr. Mustard", repo=abbey_road),
-        Issue(issue_number=6, title="Polythene Pam", repo=abbey_road),
-        Issue(issue_number=7, title="She Came In Through the Bathroom Window", repo=abbey_road),
-        Issue(issue_number=8, title="Golden Slumbers", repo=abbey_road),
-        Issue(issue_number=9, title="Carry That Weight", repo=abbey_road),
-        Issue(issue_number=10, title="The End", repo=abbey_road),
-        Issue(issue_number=11, title="Her Majesty", repo=abbey_road)
+        Issue(issue_number=1, title="Here Comes the Sun", repo=abbey_road, creator=faker.random_element(beatles_members), closed=randint(0, 2) == 0),
+        Issue(issue_number=2, title="Because", repo=abbey_road, creator=faker.random_element(beatles_members), closed=randint(0, 2) == 0),
+        Issue(issue_number=3, title="You Never Give Me Your Money", repo=abbey_road, creator=faker.random_element(beatles_members), closed=randint(0, 2) == 0),
+        Issue(issue_number=4, title="Sun King", repo=abbey_road, creator=faker.random_element(beatles_members), closed=randint(0, 2) == 0),
+        Issue(issue_number=5, title="Mean Mr. Mustard", repo=abbey_road, creator=faker.random_element(beatles_members), closed=randint(0, 2) == 0),
+        Issue(issue_number=6, title="Polythene Pam", repo=abbey_road, creator=faker.random_element(beatles_members), closed=randint(0, 2) == 0),
+        Issue(issue_number=7, title="She Came In Through the Bathroom Window", repo=abbey_road, creator=faker.random_element(beatles_members), closed=randint(0, 2) == 0),
+        Issue(issue_number=8, title="Golden Slumbers", repo=abbey_road, creator=faker.random_element(beatles_members), closed=randint(0, 2) == 0),
+        Issue(issue_number=9, title="Carry That Weight", repo=abbey_road, creator=faker.random_element(beatles_members), closed=randint(0, 2) == 0),
+        Issue(issue_number=10, title="The End", repo=abbey_road, creator=faker.random_element(beatles_members), closed=randint(0, 2) == 0),
+        Issue(issue_number=11, title="Her Majesty", repo=abbey_road, creator=faker.random_element(beatles_members), closed=randint(0, 2) == 0),
     ]
 
 
@@ -109,17 +113,20 @@ def load_fixture_data(session):
 
     for _ in range(FAKE_ORGANIZATIONS):
         org = Organization(
-            name=faker.domain_word(),
-            description=faker.catch_phrase(),
-            billing_address=faker.address(),
+            name=faker_uniq.domain_word(),
+            description=faker_uniq.catch_phrase(),
+            billing_address=faker_uniq.address(),
         )
         orgs.append(org)
         session.add(org)
 
         for _ in range(randint(0, FAKE_REPOSITORIES)):
             repo = Repository(
-                name=faker.microservice(),
+                name=faker_uniq.microservice(),
                 org=org,
+                description=faker_uniq.bs(),
+                public=(randint(0, 10) < 1),
+                protected=(randint(0, 20) < 1),
             )
             repos.append(repo)
             session.add(repo)
@@ -127,7 +134,7 @@ def load_fixture_data(session):
             for idx, _ in enumerate(range(randint(0, FAKE_ISSUES))):
                 issue = Issue(
                     issue_number=idx,
-                    title=faker.sentence(),
+                    title=faker_uniq.sentence(),
                     closed=(randint(0, FAKE_ISSUES) < idx),
                     creator=choice(users),
                     repo=repo,
@@ -150,7 +157,9 @@ def load_fixture_data(session):
 
     for repo in repos:
         oso.tell("has_relation", { "type": "Repository", "id": str(repo.id)}, "organization", { "type": "Organization", "id": str(repo.org.id) })
-        oso.tell("is_protected", { "type": "Repository", "id": str(repo.id)}, { "type": "Boolean", "id": "false"})
+        oso.tell("is_protected", { "type": "Repository", "id": str(repo.id)}, { "type": "Boolean", "id": str(repo.protected).lower()})
+        if repo.public:
+            oso.tell("is_public", { "type": "Repository", "id": str(repo.id)})
 
     # for issue in issues:
     #     oso.tell("has_relation", { "type": "Issue", "id": str(issue.id)}, "repository", { "type": "Repository", "id": issue.str(repo.id)})
@@ -174,16 +183,50 @@ def load_fixture_data(session):
     #############
 
     org_roles = [
-        (john, beatles, "admin"),
-        (paul, beatles, "member"),
-        (ringo, beatles, "member"),
-        (mike, monsters, "admin"),
-        (sully, monsters, "member"),
-        (randall, monsters, "member"),
+        OrgRole(user_id=john.username, org_id=beatles.id, role="admin"),
+        OrgRole(user_id=paul.username, org_id=beatles.id, role="member"),
+        OrgRole(user_id=ringo.username, org_id=beatles.id, role="member"),
+        OrgRole(user_id=george.username, org_id=beatles.id, role="member"),
+        OrgRole(user_id=mike.username, org_id=monsters.id, role="admin"),
+        OrgRole(user_id=sully.username, org_id=monsters.id, role="member"),
+        OrgRole(user_id=randall.username, org_id=monsters.id, role="member"),
     ]
 
-    # for user in users:
-    #     oso.tell("is_active", { "type": "User", "id": user.username })
+    org_role_choices = OrderedDict([
+        ("admin", 0.1), 
+        ("member", 0.9), 
+    ])
 
-    for (user, org, role) in org_roles:
-        oso.tell("has_role", { "type": "User", "id": user.username }, role, { "type": "Organization", "id": str(org.id) })
+    ### Faker Org Roles
+    for org in orgs:
+        admin = faker.random_element(elements=users)
+        org_roles.append(
+            OrgRole(user_id=admin.username, org_id=org.id, role="admin")
+        )
+        org_users = faker.random_elements(elements=users, length=randint(1, 10), unique=True)
+        for user in org_users:
+            org_roles.append(
+                OrgRole(user_id=user.username, org_id=org.id, role=faker.random_element(org_role_choices))
+            )
+
+    for org_role in org_roles:
+        session.add(org_role)
+        oso.tell("has_role", { "type": "User", "id": org_role.user_id }, org_role.role, { "type": "Organization", "id": str(org_role.org_id) })
+
+    repo_roles = []
+
+    repo_role_choices = OrderedDict([
+        ("editor", 0.5), 
+        ("maintainer", 0.5), 
+    ])
+    for repo in repos:
+        repo_users = faker.random_elements(elements=users, length=randint(0, 4), unique=True)
+        for user in repo_users:
+            repo_roles.append(
+                RepoRole(user_id=user.username, repo_id=repo.id, role=faker.random_element(repo_role_choices))
+            )
+
+    for repo_role in repo_roles:
+        session.add(repo_role)
+        oso.tell("has_role", { "type": "User", "id": repo_role.user_id }, repo_role.role, { "type": "Repository", "id": str(repo_role.repo_id) })
+

@@ -13,10 +13,9 @@ export function OrganizationList({ organizations }: { organizations: Org[] }) {
 
   useEffect(() => {
     const updateOrgs = async () => {
-      let counts: { id: number, userCount: number }[] = []
       for (const org of orgs) {
         const userCount = await orgApi.userCount("" + org.id);
-        setOrgs((orgs) => orgs.map(item => item.id == org.id ? ({ ...item, userCount }) : item))
+        setOrgs((orgs) => orgs.map(item => item.id === org.id ? ({ ...item, userCount }) : item))
       }
     }
     if (orgs) {
