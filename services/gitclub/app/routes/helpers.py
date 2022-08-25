@@ -1,5 +1,5 @@
 from os import getenv
-from typing import Any, List, Type
+from typing import Any, List, Optional, Type
 
 from flask import g
 from oso_cloud import Oso
@@ -34,35 +34,44 @@ def authorize(action: str, resource: Any) -> bool:
         raise Unauthorized
     actor = current_user()
     resource = object_to_typed_id(resource)
-    print(f"oso-cloud authorize {actor} {action} {resource}")
     try:
         context_facts = []
-        if resource["type"] == "Organization":
-            context_facts = get_facts_for_org(resource["id"])
-        if resource["type"] == "Repository":
-            context_facts = get_facts_for_repo(resource["id"])
         if resource["type"] == "Issue":
-            context_facts = get_facts_for_issue(resource["id"])
+            context_facts = get_facts_for_issue(None, resource["id"])
+        print(f"oso-cloud list {actor} {action} {resource} -c \"{context_facts}\"")
         res = oso.authorize(actor, action, resource, context_facts)
         print("Allowed" if res else "Denied")
         return res
     except Exception as e:
         print(f"error from Oso Cloud: {e} for request: allow({actor}, {action}, {resource})")
 
-def authorized_repositories(action: str, org_id: str) -> List[str]:
-    facts = get_facts_for_repo(org_id)
-    repos = g.session.query(Repository).filter(Repository.org_id==org_id).all()
-    for r in repos:
-        facts.extend(get_facts_for_repo(r.id, False))
-    actor = current_user()
-    print(f"oso-cloud list {actor} {action} Repository -c {facts}")
-    return oso.list(actor, action, "Repository", context_facts=facts)
 
-
-def authorized_resources(action: str, resource_type: str) -> List[str]:
+def actions(resource: Any) -> List[str]:
     if g.current_user is None:
         return []
-    return oso.list({ "type": "User", "id": g.current_user.username }, action, resource_type)
+    actor = current_user()
+    resource = object_to_typed_id(resource)
+    context_facts = []
+    try:
+        if resource["type"] == "Issue":
+            context_facts = get_facts_for_issue(None, resource["id"])
+        print(f"oso-cloud actions {actor} {resource} -c \"{context_facts}\"")
+        res = oso.actions(actor, resource, context_facts=context_facts)
+        return res
+    except Exception as e:
+        print(f"error from Oso Cloud: {e} for request: allow({actor}, _, {resource}) -c {context_facts}")
+
+
+def authorized_resources(action: str, resource_type: str, parent: Optional[str] = None) -> List[str]:
+    facts = []
+    if g.current_user is None:
+        return []
+    if resource_type == "Issue":
+        if not parent:
+            raise Exception("cannot get issues without a parent repository")
+        facts = get_facts_for_issue(parent, None)
+    print(f"oso-cloud list User:{g.current_user.username} {action} {resource_type} -c \"{facts}\"")
+    return oso.list({ "type": "User", "id": g.current_user.username }, action, resource_type, context_facts=facts)
 
 def query(predicate: str, *args: Any):
     return oso.query(predicate, *[object_to_typed_id(a, True) for a in args])
@@ -86,46 +95,28 @@ Session.get_or_404 = get_or_404  # type: ignore
 Session.get_or_403 = get_or_403  # type: ignore
 Session.get_or_raise = get_or_raise  # type: ignore
 
-# TODO: optimize these
-def get_facts_for_org(org_id: int):
-    actor = current_user()
-    org = g.session.query(Organization).filter_by(id=org_id).one_or_none()
-    if not org:
-        return []
-    resource = { "type": "Organization", "id": str(org_id) }
-    has_org_role = list(map(lambda org_role: ["has_role", {"type": "User", "id": org_role.user_id}, org_role.role, resource], g.session.query(OrgRole).filter(OrgRole.user_id==actor["id"], OrgRole.org_id==org_id).all()))
-    # TODO: this could be an org attribute too
-    default_role = ["has_default_role", resource, "reader"]
-    return [*has_org_role, default_role]
+def get_facts_for_issue(repo_id: Optional[int], issue_id: Optional[int]):
+    if repo_id is None and issue_id is None:
+        raise Exception("need to get issues by at least one of repo_id or issue_id")
+    query = g.session.query(Issue)
+    if repo_id:
+        query = query.filter_by(repo_id=repo_id)
+    if issue_id:
+        query = query.filter_by(id=issue_id)
 
-def get_facts_for_repo(repo_id: int, recurse=True):
-    actor = current_user()
-    repo = g.session.query(Repository).filter_by(id=repo_id).one_or_none()
-    if not repo:
-        return []
-    resource = { "type": "Repository", "id": str(repo_id) }
-    parent = { "type": "Organization", "id": str(repo.org_id) }
+    issues = query.all()
+    facts = []
 
-    has_parent = ["has_relation", resource, "organization", parent]
-    has_repo_role = list(map(lambda repo_role: ["has_role", actor, repo_role.role, resource], g.session.query(RepoRole).filter(RepoRole.user_id==actor["id"], RepoRole.repo_id==repo_id).all()))
-    is_protected = ["is_protected", resource, {"type": "Boolean", "id": str(repo.protected).lower()}]
-    is_public = [["is_public", resource]] if repo.public else []
+    for issue in issues:
+        parent = { "type": "Repository", "id": str(issue.repo_id) }
+        resource = { "type": "Issue", "id": str(issue.id) }
+        
+        has_parent = ["has_relation", resource, "repository", parent]
+        creator = ["has_role", {"type": "User", "id": str(issue.creator_id)}, "creator", resource]
+        closed = [["is_closed", resource]] if issue.closed else []
+        facts.extend([has_parent, creator, *closed])
 
-    return [has_parent, *has_repo_role, is_protected, *is_public, *(get_facts_for_org(repo.org_id) if recurse else [])]
-
-def get_facts_for_issue(issue_id: int):
-    #  actor = current_user()
-     issue = g.session.query(Issue).filter_by(id=issue_id).one_or_none()
-     if not issue:
-        return []
-     resource = { "type": "Issue", "id": str(issue_id) }
-     parent = { "type": "Repository", "id": str(issue.repo_id) }
-
-     has_parent = ["has_relation", resource, "repository", parent]
-     creator = list(map(lambda issue: ["has_role", {"type": "User", "id": str(issue.creator_id)}], issue))
-     closed = list(map(lambda issue: ["is_closed", {"type": "Issue", "id": str(issue.id)}], [i for i in issue if i.closed]))
-
-     return [has_parent, *creator, *closed, *get_facts_for_repo(issue.repo)]
+    return facts
 
 import functools
 
