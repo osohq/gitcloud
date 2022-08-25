@@ -90,7 +90,7 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
 
     @app.after_request
     def add_cors_headers(res):
-        res.headers.add("Access-Control-Allow-Origin", "https://gitcloud.vercel.app" if PRODUCTION else "http://localhost:3000")
+        res.headers.add("Access-Control-Allow-Origin", "https://gitcloud.vercel.app" if PRODUCTION else "http://localhost:8000")
         res.headers.add("Vary", "Origin")
         res.headers.add("Access-Control-Allow-Headers", "Accept,Content-Type")
         res.headers.add("Access-Control-Allow-Methods", "DELETE,GET,OPTIONS,PATCH,POST")

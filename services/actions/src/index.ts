@@ -31,7 +31,7 @@ const config =
     : {
         // db: localDataSource,
         db: pgDataSource,
-        frontend: "http://localhost:3000",
+        frontend: "http://localhost:8000",
       };
 
 export const db = config.db;

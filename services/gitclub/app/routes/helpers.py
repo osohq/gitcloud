@@ -4,9 +4,10 @@ from typing import Any, List, Type
 from flask import g
 from oso_cloud import Oso
 from sqlalchemy.orm.session import Session
+from sqlalchemy.future import select
 from werkzeug.exceptions import Forbidden, NotFound, Unauthorized
 
-from app.models import Repository, Organization, Issue
+from app.models import Repository, Organization, Issue, OrgRole, RepoRole
 
 oso = Oso(url=getenv("OSO_URL", "https://cloud.osohq.com"), api_key=getenv("OSO_AUTH"))
 
@@ -35,11 +36,27 @@ def authorize(action: str, resource: Any) -> bool:
     resource = object_to_typed_id(resource)
     print(f"oso-cloud authorize {actor} {action} {resource}")
     try:
-        res = oso.authorize(actor, action, resource)
+        context_facts = []
+        if resource["type"] == "Organization":
+            context_facts = get_facts_for_org(resource["id"])
+        if resource["type"] == "Repository":
+            context_facts = get_facts_for_repo(resource["id"])
+        if resource["type"] == "Issue":
+            context_facts = get_facts_for_issue(resource["id"])
+        res = oso.authorize(actor, action, resource, context_facts)
         print("Allowed" if res else "Denied")
         return res
     except Exception as e:
         print(f"error from Oso Cloud: {e} for request: allow({actor}, {action}, {resource})")
+
+def authorized_repositories(action: str, org_id: str) -> List[str]:
+    facts = get_facts_for_repo(org_id)
+    repos = g.session.query(Repository).filter(Repository.org_id==org_id).all()
+    for r in repos:
+        facts.extend(get_facts_for_repo(r.id, False))
+    actor = current_user()
+    print(f"oso-cloud list {actor} {action} Repository -c {facts}")
+    return oso.list(actor, action, "Repository", context_facts=facts)
 
 
 def authorized_resources(action: str, resource_type: str) -> List[str]:
@@ -69,37 +86,44 @@ Session.get_or_404 = get_or_404  # type: ignore
 Session.get_or_403 = get_or_403  # type: ignore
 Session.get_or_raise = get_or_raise  # type: ignore
 
-
-def get_facts_for_org(org: Organization):
+# TODO: optimize these
+def get_facts_for_org(org_id: int):
     actor = current_user()
-    resource = { "type": "Organization", "id": str(org.id) }
-    # come from DB
-    has_org_role = oso.get("has_role", actor, {}, resource)
+    org = g.session.query(Organization).filter_by(id=org_id).one_or_none()
+    if not org:
+        return []
+    resource = { "type": "Organization", "id": str(org_id) }
+    has_org_role = list(map(lambda org_role: ["has_role", {"type": "User", "id": org_role.user_id}, org_role.role, resource], g.session.query(OrgRole).filter(OrgRole.user_id==actor["id"], OrgRole.org_id==org_id).all()))
+    # TODO: this could be an org attribute too
     default_role = ["has_default_role", resource, "reader"]
     return [*has_org_role, default_role]
 
-def get_facts_for_repo(repository: Repository):
+def get_facts_for_repo(repo_id: int, recurse=True):
     actor = current_user()
-    resource = { "type": "Repository", "id": str(repository.id) }
-    parent = { "type": "Organization", "id": str(repository.org_id) }
+    repo = g.session.query(Repository).filter_by(id=repo_id).one_or_none()
+    if not repo:
+        return []
+    resource = { "type": "Repository", "id": str(repo_id) }
+    parent = { "type": "Organization", "id": str(repo.org_id) }
 
-    # this is nice; no DB hit
     has_parent = ["has_relation", resource, "organization", parent]
+    has_repo_role = list(map(lambda repo_role: ["has_role", actor, repo_role.role, resource], g.session.query(RepoRole).filter(RepoRole.user_id==actor["id"], RepoRole.repo_id==repo_id).all()))
+    is_protected = ["is_protected", resource, {"type": "Boolean", "id": str(repo.protected).lower()}]
+    is_public = [["is_public", resource]] if repo.public else []
 
-    # come from DB
-    has_repo_role = oso.get("has_role", actor, {}, resource)
-    is_protected = ["is_protected", resource, {"type": "Boolean", "id": "false"}]
+    return [has_parent, *has_repo_role, is_protected, *is_public, *(get_facts_for_org(repo.org_id) if recurse else [])]
 
-    return [has_parent, *has_repo_role, is_protected, *get_facts_for_org(repository.org)]
-
-def get_facts_for_issue(issue: Issue):
+def get_facts_for_issue(issue_id: int):
     #  actor = current_user()
-     resource = { "type": "Issue", "id": str(issue.id) }
+     issue = g.session.query(Issue).filter_by(id=issue_id).one_or_none()
+     if not issue:
+        return []
+     resource = { "type": "Issue", "id": str(issue_id) }
      parent = { "type": "Repository", "id": str(issue.repo_id) }
 
      has_parent = ["has_relation", resource, "repository", parent]
-     creator = [["has_role", {"type": "User", "id": str(issue.creator_id)}, "creator", resource]] if issue.creator_id is not None else []
-     closed = [["is_closed", resource]] if issue.closed else []
+     creator = list(map(lambda issue: ["has_role", {"type": "User", "id": str(issue.creator_id)}], issue))
+     closed = list(map(lambda issue: ["is_closed", {"type": "Issue", "id": str(issue.id)}], [i for i in issue if i.closed]))
 
      return [has_parent, *creator, *closed, *get_facts_for_repo(issue.repo)]
 
@@ -107,6 +131,7 @@ import functools
 
 # Fake decorator thingy
 def fact(*args):
+    @functools.wraps
     def decorator(fn):
         return fn
     return decorator

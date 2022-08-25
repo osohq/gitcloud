@@ -26,6 +26,8 @@ def load_fixture_data(session):
     session.query(Repository).delete()
     session.query(Issue).delete()
 
+    facts = []
+
     john = User(username="john", name="John Lennon", email="john@beatles.com")
     paul = User(username="paul", name="Paul McCartney", email="paul@beatles.com")
     george = User(username="george", name="George Harrison", email="george@beatles.com")
@@ -156,13 +158,13 @@ def load_fixture_data(session):
     #################
 
     for repo in repos:
-        oso.tell("has_relation", { "type": "Repository", "id": str(repo.id)}, "organization", { "type": "Organization", "id": str(repo.org.id) })
-        oso.tell("is_protected", { "type": "Repository", "id": str(repo.id)}, { "type": "Boolean", "id": str(repo.protected).lower()})
+        facts.append(["has_relation", { "type": "Repository", "id": str(repo.id)}, "organization", { "type": "Organization", "id": str(repo.org.id) }])
+        facts.append(["is_protected", { "type": "Repository", "id": str(repo.id)}, { "type": "Boolean", "id": str(repo.protected).lower()}])
         if repo.public:
-            oso.tell("is_public", { "type": "Repository", "id": str(repo.id)})
+            facts.append(["is_public", { "type": "Repository", "id": str(repo.id)}])
 
     # for issue in issues:
-    #     oso.tell("has_relation", { "type": "Issue", "id": str(issue.id)}, "repository", { "type": "Repository", "id": issue.str(repo.id)})
+    #     facts.append(["has_relation", { "type": "Issue", "id": str(issue.id)}, "repository", { "type": "Repository", "id": issue.str(repo.id)}])
 
     ##############
     # Repo roles #
@@ -176,7 +178,7 @@ def load_fixture_data(session):
     #     (sully, paperwork, "reader"),
     # ]
     # for (user, repo, role) in repo_roles:
-    #     oso.tell("has_role", { "type": "User", "id": user.username }, role, { "type": "Repository", "id": str(repo.id) })
+    #     facts.append(["has_role", { "type": "User", "id": user.username }, role, { "type": "Repository", "id": str(repo.id) }])
 
     #############
     # Org roles #
@@ -198,7 +200,7 @@ def load_fixture_data(session):
     ])
 
     ### Faker Org Roles
-    for org in orgs:
+    for org in orgs[2:]:
         admin = faker.random_element(elements=users)
         org_roles.append(
             OrgRole(user_id=admin.username, org_id=org.id, role="admin")
@@ -211,7 +213,7 @@ def load_fixture_data(session):
 
     for org_role in org_roles:
         session.add(org_role)
-        oso.tell("has_role", { "type": "User", "id": org_role.user_id }, org_role.role, { "type": "Organization", "id": str(org_role.org_id) })
+        facts.append(["has_role", { "type": "User", "id": org_role.user_id }, org_role.role, { "type": "Organization", "id": str(org_role.org_id) }])
 
     repo_roles = []
 
@@ -219,7 +221,7 @@ def load_fixture_data(session):
         ("editor", 0.5), 
         ("maintainer", 0.5), 
     ])
-    for repo in repos:
+    for repo in repos[2:]:
         repo_users = faker.random_elements(elements=users, length=randint(0, 4), unique=True)
         for user in repo_users:
             repo_roles.append(
@@ -228,5 +230,7 @@ def load_fixture_data(session):
 
     for repo_role in repo_roles:
         session.add(repo_role)
-        oso.tell("has_role", { "type": "User", "id": repo_role.user_id }, repo_role.role, { "type": "Repository", "id": str(repo_role.repo_id) })
+        facts.append(["has_role", { "type": "User", "id": repo_role.user_id }, repo_role.role, { "type": "Repository", "id": str(repo_role.repo_id) }])
 
+
+    print(oso.bulk_tell(facts=facts))
