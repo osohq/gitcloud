@@ -13,7 +13,8 @@ bp = Blueprint(
 
 @bp.route("", methods=["GET"])
 def index(org_id, repo_id):
-    if not authorize("read", {"type": "Repository", "id": repo_id}):
+    repo = {"type": "Repository", "id": repo_id}
+    if not authorize("read", repo):
         raise NotFound
     args = request.args
     filters = []
@@ -24,7 +25,7 @@ def index(org_id, repo_id):
     
 
     repo = g.session.get_or_404(Repository, id=repo_id)
-    issue_ids = authorized_resources("read", "Issue", repo_id)
+    issue_ids = authorized_resources("read", "Issue", repo)
     issues = g.session.query(Issue).filter(Issue.repo_id == repo_id, *filters, Issue.id.in_(issue_ids))
     return jsonify([issue.as_json() for issue in issues])
 

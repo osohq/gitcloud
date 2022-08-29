@@ -234,3 +234,5 @@ def load_fixture_data(session):
 
 
     print(oso.bulk_tell(facts=facts))
+    session.flush()
+    session.commit()

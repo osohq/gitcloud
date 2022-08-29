@@ -11,11 +11,14 @@ from .routes.helpers import oso
 from .tracing import instrument_app
 
 PRODUCTION = os.environ.get("PRODUCTION", "0") == "1"
+PRODUCTION_DB = os.environ.get("PRODUCTION_DB", PRODUCTION)
+TRACING = os.environ.get("TRACING", PRODUCTION)
+WEB_URL = "https://gitcloud.vercel.app" if PRODUCTION else os.environ.get("WEB_URL", "http://localhost:8000")
 
 def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
     from . import routes
 
-    if PRODUCTION or True:
+    if PRODUCTION_DB:
         engine=create_engine(os.environ["DATABASE_URL"] + "gitclub")
     else:
         # Init DB engine.
@@ -28,7 +31,7 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
 
     # Init Flask app.
     app = Flask(__name__)
-    instrument_app(app) if PRODUCTION else None
+    instrument_app(app) if TRACING else None
     app.secret_key = b"ball outside of the school"
     app.register_blueprint(routes.issues.bp)
     app.register_blueprint(routes.orgs.bp)
@@ -90,7 +93,7 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
 
     @app.after_request
     def add_cors_headers(res):
-        res.headers.add("Access-Control-Allow-Origin", "https://gitcloud.vercel.app" if PRODUCTION else "http://localhost:8000")
+        res.headers.add("Access-Control-Allow-Origin", WEB_URL)
         res.headers.add("Vary", "Origin")
         res.headers.add("Access-Control-Allow-Headers", "Accept,Content-Type")
         res.headers.add("Access-Control-Allow-Methods", "DELETE,GET,OPTIONS,PATCH,POST")

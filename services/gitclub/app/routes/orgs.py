@@ -42,4 +42,4 @@ def user_count(org_id):
     if not authorize("read", {"type": "Organization", "id": org_id}):
         raise NotFound
     orgs = query("has_role", { "type": "User",  }, {}, { "type": "Organization", "id": org_id })
-    return str(len(orgs))
+    return str(len(list(orgs)))

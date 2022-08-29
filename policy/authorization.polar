@@ -119,3 +119,10 @@ has_permission(actor: Actor, "comment", issue: Issue) if
     has_permission(actor, "read", issue) and
     is_closed(issue, false);
 
+allow_with_parent(actor, action, resource: Issue, parent: Repository) if
+    has_relation(resource, "repository", parent) and
+    allow(actor, action, resource);
+
+allow_with_parent(actor, action, resource: Repository, parent: Organization) if
+    has_relation(resource, "organization", parent) and
+    allow(actor, action, resource);
