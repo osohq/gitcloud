@@ -39,7 +39,7 @@ def show(org_id):
 
 @bp.route("/<int:org_id>/user_count", methods=["GET"])
 def user_count(org_id):
-    if not authorize("read", {"type": "Organization", "id": org_id}):
+    if not authorize("read", {"type": "Organization", "id": str(org_id)}):
         raise NotFound
-    orgs = query("has_role", { "type": "User",  }, {}, { "type": "Organization", "id": org_id })
+    orgs = query("has_role", { "type": "User",  }, {}, { "type": "Organization", "id": str(org_id) })
     return str(len(list(orgs)))

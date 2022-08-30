@@ -23,9 +23,7 @@ def index(org_id, repo_id):
     if "is:closed" in args:
         filters.append(Issue.closed == True)
     
-
-    repo = g.session.get_or_404(Repository, id=repo_id)
-    issue_ids = authorized_resources("read", "Issue", repo)
+    issue_ids = authorized_resources("read", "Issue", repo_id)
     issues = g.session.query(Issue).filter(Issue.repo_id == repo_id, *filters, Issue.id.in_(issue_ids))
     return jsonify([issue.as_json() for issue in issues])
 

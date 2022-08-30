@@ -38,7 +38,7 @@ def authorize(action: str, resource: Any) -> bool:
         context_facts = []
         if resource["type"] == "Issue":
             context_facts = get_facts_for_issue(None, resource["id"])
-        print(f"oso-cloud list {actor} {action} {resource} -c \"{context_facts}\"")
+        print(f"oso-cloud authorize {actor} {action} {resource} -c \"{context_facts}\"")
         res = oso.authorize(actor, action, resource, context_facts)
         print("Allowed" if res else "Denied")
         return res
@@ -74,6 +74,7 @@ def authorized_resources(action: str, resource_type: str, parent: Optional[str] 
     return oso.list({ "type": "User", "id": g.current_user.username }, action, resource_type, context_facts=facts)
 
 def query(predicate: str, *args: Any):
+    print(f'oso-cloud query {predicate} {",".join([str(a) for a in args])}')
     return oso.query(predicate, *[object_to_typed_id(a, True) for a in args])
 
 def get_or_raise(self, cls: Type[Any], error, **kwargs):
@@ -117,12 +118,3 @@ def get_facts_for_issue(repo_id: Optional[int], issue_id: Optional[int]):
         facts.extend([has_parent, creator, *closed])
 
     return facts
-
-import functools
-
-# Fake decorator thingy
-def fact(*args):
-    @functools.wraps
-    def decorator(fn):
-        return fn
-    return decorator
