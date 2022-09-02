@@ -11,8 +11,8 @@ from .routes.helpers import oso
 from .tracing import instrument_app
 
 PRODUCTION = os.environ.get("PRODUCTION", "0") == "1"
-PRODUCTION_DB = os.environ.get("PRODUCTION_DB", PRODUCTION)
-TRACING = os.environ.get("TRACING", PRODUCTION)
+PRODUCTION_DB = os.environ.get("PRODUCTION_DB", "0") == "1" or PRODUCTION
+TRACING = os.environ.get("TRACING", "0") == "1" or PRODUCTION
 WEB_URL = "https://gitcloud.vercel.app" if PRODUCTION else os.environ.get("WEB_URL", "http://localhost:8000")
 
 def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
