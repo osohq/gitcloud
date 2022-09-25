@@ -1,8 +1,7 @@
 import {
   UsersIcon,
-  CalendarIcon,
   FolderOpenIcon,
-} from "@heroicons/react/outline";
+} from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Org } from "../models/Org";
@@ -15,6 +14,7 @@ export function OrganizationList({ organizations }: { organizations: Org[] }) {
     const updateOrgs = async () => {
       for (const org of orgs) {
         const userCount = await orgApi.userCount("" + org.id);
+        console.log(`Got user count ${userCount} for org ${org.id}`)
         setOrgs((orgs) => orgs.map(item => item.id === org.id ? ({ ...item, userCount }) : item))
       }
     }

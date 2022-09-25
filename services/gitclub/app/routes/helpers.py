@@ -2,6 +2,7 @@ from os import getenv
 from typing import Any, List, Optional, Type
 
 from flask import g
+from flask_caching import Cache
 from oso_cloud import Oso
 from sqlalchemy.orm.session import Session
 from sqlalchemy.future import select
@@ -10,6 +11,7 @@ from werkzeug.exceptions import Forbidden, NotFound, Unauthorized
 from app.models import Repository, Organization, Issue, OrgRole, RepoRole
 
 oso = Oso(url=getenv("OSO_URL", "https://cloud.osohq.com"), api_key=getenv("OSO_AUTH"))
+cache = Cache(config={'CACHE_TYPE': 'SimpleCache'})
 
 def object_to_typed_id(obj: Any, allow_unbound=False) -> dict:
     if isinstance(obj, str):
@@ -76,6 +78,11 @@ def authorized_resources(action: str, resource_type: str, parent: Optional[str] 
 def query(predicate: str, *args: Any):
     print(f'oso-cloud query {predicate} {",".join([str(a) for a in args])}')
     return oso.query(predicate, *[object_to_typed_id(a, True) for a in args])
+
+def get(predicate: str, *args: Any):
+    print(f'oso-cloud get {predicate} {",".join([str(a) for a in args])}')
+    return oso.get(predicate, *[object_to_typed_id(a, True) for a in args])
+
 
 def get_or_raise(self, cls: Type[Any], error, **kwargs):
     resource = self.query(cls).filter_by(**kwargs).one_or_none()

@@ -1,8 +1,9 @@
 from flask import Blueprint, g, request, current_app, jsonify
 from werkzeug.exceptions import Forbidden, NotFound
 
+from .orgs import user_count
 from ..models import Organization, Repository, User
-from .helpers import authorize, authorized_resources, oso
+from .helpers import authorize, authorized_resources, oso, cache
 
 bp = Blueprint("role_assignments", __name__, url_prefix="/orgs/<int:org_id>")
 
@@ -39,6 +40,7 @@ def org_index(org_id):
 @bp.route("/role_assignments", methods=["POST"])
 def org_create(org_id):
     payload = request.get_json(force=True)
+    cache.delete_memoized(user_count, org_id)
     org = g.session.get_or_404(Organization, id=org_id)
     if not authorize("view_members", org):
         raise NotFound
@@ -54,6 +56,7 @@ def org_create(org_id):
 @bp.route("/role_assignments", methods=["PATCH"])
 def org_update(org_id):
     payload = request.get_json(force=True)
+    cache.delete_memoized(user_count, org_id)
     org = g.session.get_or_404(Organization, id=org_id)
     if not authorize("view_members", org):
         raise NotFound
@@ -75,6 +78,7 @@ def org_update(org_id):
 @bp.route("/role_assignments", methods=["DELETE"])
 def org_delete(org_id):
     payload = request.get_json(force=True)
+    cache.delete_memoized(user_count, org_id)
     org = g.session.get_or_404(Organization, id=org_id)
     if not authorize("view_members", org):
         raise NotFound

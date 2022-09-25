@@ -67,7 +67,7 @@ export const del = (path: string, body: obj, userId?: string) =>
     headers: userId ? { USER: userId } : [],
   });
 
-export function index<T>(
+export function index<T extends {}>(
   path: string,
   cls: Class<T>,
   userId?: string,
@@ -87,7 +87,7 @@ export function index<T>(
   };
 }
 
-export function show<T>(
+export function show<T extends {}>(
   path: string,
   cls: Class<T>,
   userId?: string,
@@ -107,7 +107,7 @@ export function show<T>(
   };
 }
 
-export async function create<T>(
+export async function create<T extends {}>(
   path: string,
   body: obj,
   cls: Class<T>,
@@ -117,7 +117,7 @@ export async function create<T>(
   return new cls(camelizeKeys(data));
 }
 
-export async function update<T>(
+export async function update<T extends {}>(
   path: string,
   body: obj,
   cls: Class<T>,

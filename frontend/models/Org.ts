@@ -9,6 +9,8 @@ export class Org {
   billingAddress: string;
   repositoryCount: number;
   userCount?: number;
+  permissions?: string[];
+
 
   constructor(org: Org) {
     this.id = org.id;
@@ -16,5 +18,6 @@ export class Org {
     this.billingAddress = org.billingAddress;
     this.repositoryCount = org.repositoryCount;
     this.userCount = org.userCount;
+    this.permissions = org.permissions;
   }
 }

@@ -7,7 +7,7 @@ from sqlalchemy.pool import StaticPool
 
 from .models import Base, User, setup_schema
 from .fixtures import load_fixture_data
-from .routes.helpers import oso
+from .routes.helpers import oso, cache
 from .tracing import instrument_app
 
 PRODUCTION = os.environ.get("PRODUCTION", "0") == "1"
@@ -31,6 +31,7 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
 
     # Init Flask app.
     app = Flask(__name__)
+    cache.init_app(app)
     instrument_app(app) if TRACING else None
     app.secret_key = b"ball outside of the school"
     app.register_blueprint(routes.issues.bp)
