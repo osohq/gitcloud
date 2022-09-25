@@ -10,7 +10,7 @@ bp = Blueprint("orgs", __name__, url_prefix="/orgs")
 @bp.route("", methods=["GET"])
 def index():
     authorized_ids = authorized_resources("read", "Organization")
-    if authorized_ids and authorized_ids[0] == "*":
+    if authorized_ids and authorized_ids[0] == "_":
         orgs = g.session.query(Organization).limit(5)
         return jsonify([o.as_json() for o in orgs])
     else:

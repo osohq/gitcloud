@@ -11,15 +11,15 @@ from .routes.helpers import oso
 from .tracing import instrument_app
 
 PRODUCTION = os.environ.get("PRODUCTION", "0") == "1"
-PRODUCTION_DB = os.environ.get("PRODUCTION_DB", "0") == "1" or PRODUCTION
-TRACING = os.environ.get("TRACING", "0") == "1" or PRODUCTION
+PRODUCTION_DB = os.environ.get("PRODUCTION_DB", PRODUCTION)
+TRACING = os.environ.get("TRACING", PRODUCTION)
 WEB_URL = "https://gitcloud.vercel.app" if PRODUCTION else os.environ.get("WEB_URL", "http://localhost:8000")
 
 def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
     from . import routes
 
     if PRODUCTION_DB:
-        engine=create_engine(os.environ["DATABASE_URL"] + "gitclub")
+        engine=create_engine(os.environ["DATABASE_URL"])
     else:
         # Init DB engine.
         engine = create_engine(
@@ -98,6 +98,8 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
         res.headers.add("Access-Control-Allow-Headers", "Accept,Content-Type")
         res.headers.add("Access-Control-Allow-Methods", "DELETE,GET,OPTIONS,PATCH,POST")
         res.headers.add("Access-Control-Allow-Credentials", "true")
+        res.headers.add("Access-Control-Max-Age", "60")
+
         return res
 
     @app.after_request

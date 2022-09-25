@@ -53,7 +53,7 @@ class Repository(Base):
     name = Column(String(256))
     description = Column(String(256))
 
-    org_id = Column(Integer, ForeignKey("organizations.id"))
+    org_id = Column(Integer, ForeignKey("organizations.id"), index=True)
     org = relationship(Organization, backref=backref("repos", lazy=False), lazy=False)
 
     public = Column(Boolean, default=False)
@@ -81,10 +81,10 @@ class Issue(Base):
     title = Column(String(256))
     closed = Column(Boolean, default=False)
 
-    repo_id = Column(Integer, ForeignKey("repositories.id"))
+    repo_id = Column(Integer, ForeignKey("repositories.id"), index=True)
     repo = relationship(Repository, backref=backref("issues"))
 
-    creator_id = Column(String, ForeignKey("users.username"))
+    creator_id = Column(String, ForeignKey("users.username"), index=True)
     creator = relationship(User, backref=backref("issues"))
 
 
@@ -94,16 +94,16 @@ class RepoRole(Base):
     __tablename__ = "repo_roles"
 
     id = Column(Integer, primary_key=True)
-    repo_id = Column(Integer, ForeignKey("repositories.id"))
-    user_id = Column(String, ForeignKey("users.username"))
+    repo_id = Column(Integer, ForeignKey("repositories.id"), index=True)
+    user_id = Column(String, ForeignKey("users.username"), index=True)
     role = Column(String(256))
 
 class OrgRole(Base):
     __tablename__ = "org_roles"
 
     id = Column(Integer, primary_key=True)
-    org_id = Column(Integer, ForeignKey("organizations.id"))
-    user_id = Column(String, ForeignKey("users.username"))
+    org_id = Column(Integer, ForeignKey("organizations.id"), index=True)
+    user_id = Column(String, ForeignKey("users.username"), index=True)
     role = Column(String(256))
 
 

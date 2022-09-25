@@ -12,7 +12,7 @@ def index(org_id):
     if not authorize("read", {"type": "Organization", "id": org_id}):
         raise NotFound
     authorized_ids = authorized_resources("read", "Repository")
-    if authorized_ids and authorized_ids[0] == "*":
+    if authorized_ids and authorized_ids[0] == "_":
         repos = g.session.query(Repository).filter_by(org_id=org_id)
         return jsonify([r.as_json() for r in repos])
     else:
