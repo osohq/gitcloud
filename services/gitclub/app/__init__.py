@@ -31,7 +31,9 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
 
     # Init Flask app.
     app = Flask(__name__)
+    app.config["SESSION_COOKIE_SECURE"] = True
     cache.init_app(app)
+    flask_session.permanent = True
     instrument_app(app) if TRACING else None
     app.secret_key = b"ball outside of the school"
     app.register_blueprint(routes.issues.bp)
@@ -87,7 +89,6 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
 
     @app.before_request
     def set_current_user_and_session():
-        flask_session.permanent = True
         g.session = Session()
 
         if "current_user" not in g:

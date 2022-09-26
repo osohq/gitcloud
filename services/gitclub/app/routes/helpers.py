@@ -74,7 +74,7 @@ def actions(resource: Any) -> List[str]:
         print(f"error from Oso Cloud: {e} for request: allow({actor}, _, {resource}) -c {context_facts}")
 
 
-def list(action: str, resource_type: str, parent: Optional[str] = None) -> List[str]:
+def list_resources(action: str, resource_type: str, parent: Optional[str] = None) -> List[str]:
     facts = []
     if g.current_user is None:
         return []

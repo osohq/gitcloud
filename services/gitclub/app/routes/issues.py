@@ -2,7 +2,7 @@ from flask import Blueprint, g, request, jsonify
 from werkzeug.exceptions import Forbidden, NotFound
 
 from ..models import Repository, Issue, User
-from .helpers import actions, authorize, list, oso
+from .helpers import actions, authorize, list_resources, oso
 
 bp = Blueprint(
     "issues",
@@ -18,12 +18,14 @@ def index(org_id, repo_id):
         raise NotFound
     args = request.args
     filters = []
+    # TODO: these aren't actually possible to set in
+    # the UI right now
     if "is:open" in args:
         filters.append(Issue.closed == False)
     if "is:closed" in args:
         filters.append(Issue.closed == True)
     
-    issue_ids = list("read", "Issue", repo_id)
+    issue_ids = list_resources("read", "Issue", repo_id)
     issues = g.session.query(Issue).filter(Issue.repo_id == repo_id, *filters, Issue.id.in_(issue_ids)).order_by(Issue.issue_number)
     return jsonify([issue.as_json() for issue in issues])
 

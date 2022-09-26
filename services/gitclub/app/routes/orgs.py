@@ -2,14 +2,14 @@ from flask import Blueprint, g, request, jsonify
 from werkzeug.exceptions import Forbidden, NotFound
 
 from ..models import Organization
-from .helpers import actions, authorize, list, oso, get, cache, tell
+from .helpers import actions, authorize, list_resources, oso, get, cache, tell
 
 bp = Blueprint("orgs", __name__, url_prefix="/orgs")
 
 
 @bp.route("", methods=["GET"])
 def index():
-    authorized_ids = list("read", "Organization")
+    authorized_ids = list_resources("read", "Organization")
     if authorized_ids and authorized_ids[0] == "*":
         orgs = g.session.query(Organization).order_by(Organization.id)
         return jsonify([o.as_json() for o in orgs])
