@@ -6,9 +6,9 @@ type Params = { username: string };
 const path = "/session";
 
 export const session = {
-  login: (body: Params) => create(path, body, User),
+  login: (body: Params) => create(path + "/login", body, User),
 
-  logout: () => del(path, {}),
+  logout: () => del(path + "/logout", {}),
 
   whoami: () => get(path),
 };

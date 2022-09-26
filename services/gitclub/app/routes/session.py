@@ -11,7 +11,7 @@ def show():
     return jsonify(g.current_user.as_json() if g.current_user else None)
 
 
-@bp.route("", methods=["POST"])
+@bp.route("/login", methods=["POST"])
 def create():
     payload = request.get_json(force=True)
     if "username" not in payload:
@@ -21,10 +21,10 @@ def create():
         flask_session.pop("current_username", None)
         raise Unauthorized
     flask_session["current_username"] = user.username
-    return user.as_json(), 201
+    return user.as_json(), 200
 
 
-@bp.route("", methods=["DELETE"])
+@bp.route("/logout", methods=["DELETE"])
 def delete():
     flask_session.pop("current_username", None)
     return {}, 204

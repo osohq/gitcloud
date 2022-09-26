@@ -33,10 +33,10 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
     # Init Flask app.
     app = Flask(__name__)
     app.config["SESSION_COOKIE_SECURE"] = PRODUCTION
-    app.config["SESSION_COOKIE_SAMESITE"] = "Strict"
+    app.config["SESSION_COOKIE_SAMESITE"] = "None"
     app.config["SESSION_COOKIE_HTTPONLY"] = True
     app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(1)
-    app.config["SESSION_COOKIE_DOMAIN"] = "gitcloud-gitclub.fly.dev"if PRODUCTION else False
+    # app.config["SESSION_COOKIE_DOMAIN"] = "gitcloud-gitclub.fly.dev"if PRODUCTION else False
 
     cache.init_app(app)
     instrument_app(app) if TRACING else None
@@ -111,10 +111,9 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
     def add_cors_headers(res):
         res.headers.add("Access-Control-Allow-Origin", WEB_URL)
         res.headers.add("Vary", "Origin")
-        res.headers.add("Access-Control-Allow-Headers", "Accept,Content-Type,Cookie")
+        res.headers.add("Access-Control-Allow-Headers", "Accept,Content-Type")
         res.headers.add("Access-Control-Allow-Methods", "DELETE,GET,OPTIONS,PATCH,POST")
         res.headers.add("Access-Control-Allow-Credentials", "true")
-        res.headers.add("Access-Control-Expose-Headers", "*, Authorization")
         res.headers.add("Access-Control-Max-Age", "60")
 
         return res
