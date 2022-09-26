@@ -1,3 +1,4 @@
+from datetime import timedelta
 import os
 from flask import g, Flask, session as flask_session
 from werkzeug.exceptions import BadRequest, Forbidden, NotFound, Unauthorized, InternalServerError
@@ -31,9 +32,12 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
 
     # Init Flask app.
     app = Flask(__name__)
-    app.config["SESSION_COOKIE_SECURE"] = True
+    app.config["SESSION_COOKIE_SECURE"] = PRODUCTION
+    app.config["SESSION_COOKIE_SAMESITE"] = "Strict"
+    app.config["SESSION_COOKIE_HTTPONLY"] = True
+    app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(1)
+
     cache.init_app(app)
-    flask_session.permanent = True
     instrument_app(app) if TRACING else None
     app.secret_key = b"ball outside of the school"
     app.register_blueprint(routes.issues.bp)
@@ -89,6 +93,7 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
 
     @app.before_request
     def set_current_user_and_session():
+        flask_session.permanent = True
         g.session = Session()
 
         if "current_user" not in g:
@@ -105,9 +110,10 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
     def add_cors_headers(res):
         res.headers.add("Access-Control-Allow-Origin", WEB_URL)
         res.headers.add("Vary", "Origin")
-        res.headers.add("Access-Control-Allow-Headers", "Accept,Content-Type")
+        res.headers.add("Access-Control-Allow-Headers", "Accept,Content-Type,Cookie")
         res.headers.add("Access-Control-Allow-Methods", "DELETE,GET,OPTIONS,PATCH,POST")
         res.headers.add("Access-Control-Allow-Credentials", "true")
+        res.headers.add("Access-Control-Expose-Headers", "*, Authorization")
         res.headers.add("Access-Control-Max-Age", "60")
 
         return res

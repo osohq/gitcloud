@@ -27,4 +27,4 @@ def create():
 @bp.route("", methods=["DELETE"])
 def delete():
     flask_session.pop("current_username", None)
-    return current_app.response_class(status=204, mimetype="application/json")
+    return {}, 204
