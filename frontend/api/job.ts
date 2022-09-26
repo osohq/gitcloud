@@ -3,15 +3,15 @@ import { create, index, noData, update } from "./common";
 
 type Params = { name: string };
 
-export function job(userId?: string, orgId?: string, repoId?: string) {
+export function job(orgId?: string, repoId?: string) {
   const path = `/orgs/${orgId}/repos/${repoId}/jobs`;
-  const defined = orgId && repoId && userId;
+  const defined = orgId && repoId;
 
   return {
-    create: (body: Params) => create(path, body, Job, userId),
+    create: (body: Params) => create(path, body, Job),
 
-    index: () => (defined ? index(path, Job, userId) : noData()),
+    index: () => (defined ? index(path, Job) : noData()),
 
-    cancel: (id: number) => update(`${path}/${id}/cancel`, {}, Job, userId),
+    cancel: (id: number) => update(`${path}/${id}/cancel`, {}, Job),
   };
 }

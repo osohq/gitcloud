@@ -9,6 +9,4 @@ export const session = {
   login: (body: Params) => create(path + "/login", body, User),
 
   logout: () => del(path + "/logout", {}),
-
-  whoami: () => get(path),
 };

@@ -1,6 +1,6 @@
 from datetime import timedelta
 import os
-from flask import g, Flask, session as flask_session
+from flask import g, Flask, request, session as flask_session
 from werkzeug.exceptions import BadRequest, Forbidden, NotFound, Unauthorized, InternalServerError
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -103,6 +103,10 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
                 user = g.session.query(User).filter_by(username=username).one_or_none()
                 if user is None:
                     flask_session.pop("current_username")
+                g.current_user = user
+            elif "x-user-id" in request.headers:
+                username = request.headers["x-user-id"]
+                user = g.session.query(User).filter_by(username=username).one_or_none()
                 g.current_user = user
             else:
                 g.current_user = None

@@ -21,7 +21,7 @@ export default function useUser({ redirectTo, redirectIfFound }: {
     data: user,
     mutate: mutateUser,
     error,
-  } = useSWR<User>("/session", () => get("/session"));
+  } = useSWR<User>("/session", get);
 
   useEffect(() => {
     // if no redirect needed, just return (example: already on /dashboard)
@@ -45,5 +45,5 @@ export default function useUser({ redirectTo, redirectIfFound }: {
     currentUser = { isLoggedIn: false };
   }
 
-  return { currentUser, mutateUser };
+  return { currentUser, mutateUser, userId: currentUser?.user?.username };
 }

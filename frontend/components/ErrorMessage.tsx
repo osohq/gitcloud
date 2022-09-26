@@ -9,6 +9,7 @@ export default function ErrorPage({ error, setError }: { error: Error, setError?
   } catch (e) {
     // do nothing
   }
+  console.error(error);
   return (
     <>
       <div className="bg-white min-h-full px-4 py-16 sm:px-6 sm:py-24 md:grid md:place-items-center lg:px-8">

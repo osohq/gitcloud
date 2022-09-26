@@ -55,7 +55,7 @@ export default function Index() {
     data: jobs,
     error: jobError,
     mutate,
-  } = jobApi(user?.username, orgId, repoId).index();
+  } = jobApi(orgId, repoId).index();
   const [name, setName] = useState("");
   const [error, setError] = useState<Error | undefined>(undefined);
 
@@ -67,7 +67,7 @@ export default function Index() {
   if (error) return <ErrorMessage error={error} setError={setError} />;
   if (!user || !jobs || !org || !repo) return null;
 
-  const api = jobApi(user.username, orgId, repoId);
+  const api = jobApi(orgId, repoId);
   const inputEmpty = !name.replaceAll(" ", "");
 
   async function handleSubmit(e: FormEvent) {

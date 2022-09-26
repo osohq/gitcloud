@@ -43,7 +43,7 @@ export const noData = () => {
 };
 
 export const get = (path: string, userId?: string) =>
-  req(path, 200, userId ? { headers: { USER: userId } } : {});
+  req(path, 200, userId ? { headers: { 'x-user-id': userId } } : {});
 
 const patch = (path: string, body: obj, userId?: string) =>
   req(path, 200, {
@@ -51,7 +51,7 @@ const patch = (path: string, body: obj, userId?: string) =>
     body: jsonify(body),
     headers: {
       'Content-Type': 'application/json',
-      ...(userId ? { USER: userId } : {}),
+      ...(userId ? { 'x-user-id': userId } : {}),
     }
   });
 
@@ -61,7 +61,7 @@ const post = (path: string, body: obj, userId?: string) =>
     body: jsonify(body),
     headers: {
       'Content-Type': 'application/json',
-      ...(userId ? { USER: userId } : {}),
+      ...(userId ? { 'x-user-id': userId } : {}),
     }
   });
 
@@ -71,7 +71,7 @@ export const del = (path: string, body: obj, userId?: string) =>
     body: jsonify(body),
     headers: {
       'Content-Type': 'application/json',
-      ...(userId ? { USER: userId } : {}),
+      ...(userId ? { 'x-user-id': userId } : {}),
     }
   });
 
