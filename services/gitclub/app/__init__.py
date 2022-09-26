@@ -36,6 +36,7 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
     app.config["SESSION_COOKIE_SAMESITE"] = "Strict"
     app.config["SESSION_COOKIE_HTTPONLY"] = True
     app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(1)
+    app.config["SESSION_COOKIE_DOMAIN"] = "fly.dev"if PRODUCTION else False
 
     cache.init_app(app)
     instrument_app(app) if TRACING else None
