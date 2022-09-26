@@ -21,7 +21,7 @@ def create():
         flask_session.pop("current_username", None)
         raise Unauthorized
     flask_session["current_username"] = user.username
-    return user.as_json(), 200
+    return jsonify(user.as_json()), 201
 
 
 @bp.route("/logout", methods=["DELETE"])
