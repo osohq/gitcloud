@@ -28,7 +28,7 @@ export default function Settings() {
     data: org,
     isLoading: orgLoading,
     error: orgError,
-  } = orgApi.show(orgId);
+  } = orgApi().show(orgId);
   const {
     data: repo,
     isLoading: repoLoading,
@@ -50,6 +50,8 @@ export default function Settings() {
   const [open, setOpen] = useState(false)
   const [error, setError] = useState<Error | undefined>(undefined);
 
+  const reposApi = repoApi(orgId);
+  const api = roleAssignmentsApi.repo(orgId, repoId);
 
   if (orgLoading || repoLoading || rolesLoading) return <LoadingPage />;
   if (orgError) return <ErrorMessage error={orgError} />;
@@ -59,7 +61,6 @@ export default function Settings() {
   if (!orgId || !org || !repoId || !repo || !roleAssignments) return null;
 
 
-  const api = roleAssignmentsApi.repo(orgId, repoId);
 
   function update(user: User, role: string) {
     api.update({ username: user.username, role }).then((next) => {
@@ -82,7 +83,7 @@ export default function Settings() {
   }
 
   function deleteRepo() {
-    repoApi(orgId).del(repoId!).then(() => {
+    reposApi.del(repoId!).then(() => {
       router.replace(`/orgs/${orgId}`);
     }).catch(setError);
   }

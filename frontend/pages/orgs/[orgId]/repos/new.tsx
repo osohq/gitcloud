@@ -20,13 +20,15 @@ export default function New() {
     data: org,
     isLoading: orgLoading,
     error: orgError,
-  } = orgApi.show(orgId);
+  } = orgApi().show(orgId);
 
   const [error, setError] = useState<string[]>([]);
   useUser({ redirectTo: "/login" });
   const [details, setDetails] = useState<RepoParams>({
     name: "",
   });
+
+  const api = repoApi(orgId);
 
   if (orgLoading) return <LoadingPage />;
   if (orgError) return <ErrorMessage error={orgError} />;
@@ -44,7 +46,7 @@ export default function New() {
     setError([])
     if (!validInputs()) return;
     try {
-      const repo = await repoApi(orgId).create(details);
+      const repo = await api.create(details);
       await Router.push(`/orgs/${orgId}/repos/${repo.id}`);
     } catch (e: any) {
       setError([e.message]);

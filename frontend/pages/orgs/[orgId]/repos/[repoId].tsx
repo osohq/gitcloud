@@ -19,7 +19,7 @@ export default function Show() {
     data: org,
     isLoading: orgLoading,
     error: orgError,
-  } = orgApi.show(orgId);
+  } = orgApi().show(orgId);
   const {
     data: repo,
     isLoading: repoLoading,

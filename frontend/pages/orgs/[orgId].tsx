@@ -25,7 +25,7 @@ export default function Show() {
     data: org,
     isLoading: orgLoading,
     error: orgError,
-  } = orgApi.show(orgId);
+  } = orgApi().show(orgId);
   const {
     data: repos,
     isLoading: repoLoading,
@@ -43,7 +43,6 @@ export default function Show() {
 
   if (!orgId || !org) return null;
 
-  const api = roleAssignmentsApi.org(orgId);
   return (
     <>
       <div className="-ml-4  flex items-center justify-between flex-wrap sm:flex-nowrap">

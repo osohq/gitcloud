@@ -18,7 +18,7 @@ export default function Login() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     try {
-      const u = await sessionApi.login({ username: username });
+      const u = await sessionApi().login({ username: username });
       mutateUser(u);
       router.replace(`/users/${username}`);
     } catch (e: any) {

@@ -30,18 +30,19 @@ export default function Show() {
     data: org,
     isLoading: orgLoading,
     error: orgError,
-  } = orgApi.show(orgId);
+  } = orgApi().show(orgId);
   const {
     data: repo,
     isLoading: repoLoading,
     error: repoError,
   } = repoApi(orgId).show(repoId);
+  const api = issueApi(orgId, repoId);
   const {
     data: issue,
     isLoading: issueLoading,
     error: issueError,
     mutate: setIssue,
-  } = issueApi(orgId, repoId).show(issueId);
+  } = api.show(issueId);
 
   if (orgLoading || repoLoading || issueLoading) return <LoadingPage />;
   if (orgError) return <ErrorMessage error={orgError} />;
@@ -51,7 +52,7 @@ export default function Show() {
   if (!issue || !issueId || !org || !repo) return null;
 
   function updateIssue(params: any) {
-    issueApi(orgId, repoId).update(issueId!, params).then(issue => setIssue(issue)).catch(setError)
+    api.update(issueId!, params).then(issue => setIssue(issue)).catch(setError)
   }
 
   return (

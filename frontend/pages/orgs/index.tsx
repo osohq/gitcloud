@@ -9,7 +9,7 @@ export default function Index() {
   const {
     currentUser: { user, isLoggedIn },
   } = useUser();
-  const { data: orgs, isLoading, error: orgError } = orgApi.index();
+  const { data: orgs, isLoading, error: orgError } = orgApi().index();
 
   if (isLoading) {
     return <LoadingPage />;

@@ -23,11 +23,12 @@ export default function Settings() {
     } = useUser();
     const router = useRouter();
     const { orgId } = router.query as { orgId?: string };
+    const orgsApi = orgApi();
     const {
         data: org,
         isLoading: orgLoading,
         error: orgError,
-    } = orgApi.show(orgId);
+    } = orgsApi.show(orgId);
     const {
         data: roleAssignments,
         isLoading: rolesLoading,
@@ -44,6 +45,7 @@ export default function Settings() {
     const [open, setOpen] = useState(false)
     const [error, setError] = useState<Error | undefined>(undefined);
 
+    const api = roleAssignmentsApi.org(orgId);
 
     if (orgLoading || rolesLoading) return <LoadingPage />;
     if (orgError) return <ErrorMessage error={orgError} />;
@@ -52,7 +54,6 @@ export default function Settings() {
     if (!orgId || !org || !roleAssignments) return null;
 
 
-    const api = roleAssignmentsApi.org(orgId);
 
     function update(user: User, role: string) {
         api.update({ username: user.username, role }).then((next) => {
@@ -74,7 +75,7 @@ export default function Settings() {
     }
 
     function deleteOrg() {
-        orgApi.del(orgId!).then(() => {
+        orgsApi.del(orgId!).then(() => {
             router.replace(`/orgs`);
         }).catch(setError);
     }

@@ -104,7 +104,7 @@ def org_delete(org_id):
             for [_, _, role, _] in get("has_role", user, None, org)
         ]
     )
-    return current_app.response_class(status=204, mimetype="application/json")
+    return {}, 204
 
 
 @bp.route("/repos/<int:repo_id>/unassigned_users", methods=["GET"])
@@ -114,7 +114,7 @@ def repo_unassigned_users_index(org_id, repo_id):
         raise NotFound
     if not authorize("manage_members", repo):
         raise Forbidden
-    existing = oso.get("has_role", {"type": User}, None, {"type": "Repository", "id": repo.id})
+    existing = get("has_role", {"type": User}, None, {"type": "Repository", "id": repo.id})
     existing_ids = {arg["id"] for [_, arg, *_] in existing}
     unassigned = g.session.query(User).filter(User.username.notin_(existing_ids))
     return jsonify([u.as_json() for u in unassigned])
@@ -152,6 +152,7 @@ def repo_create(org_id, repo_id):
     if not authorize("read", {"type": "User", "id": user.username}):
         raise NotFound
     tell("has_role", user, payload["role"], repo)
+    user = g.session.get_or_404(User, username=user["id"])
     return {"user": user.as_json(), "role": payload["role"]}, 201
 
 
@@ -166,11 +167,13 @@ def repo_update(org_id, repo_id):
     user = {"type": "User", "id": payload["username"]}
     oso.bulk_delete(
         [
-            ["has_role", user, role["id"], repo]
+            ["has_role", user, role["id"], object_to_typed_id(repo)]
             for [_, _, role, _] in get("has_role", user, None, repo)
         ]
     )
     tell("has_role", user, payload["role"], repo)
+    user = g.session.get_or_404(User, username=user["id"])
+
     return {"user": user.as_json(), "role": payload["role"]}
 
 
@@ -180,13 +183,13 @@ def repo_delete(org_id, repo_id):
     repo = g.session.get_or_404(Repository, id=repo_id, org_id=org_id)
     if not authorize("view_members", repo):
         raise NotFound
-    if not authorize("delete_role_assignments", repo):
+    if not authorize("manage_members", repo):
         raise Forbidden
     user = {"type": "User", "id": payload["username"]}
     oso.bulk_delete(
         [
-            ["has_role", user, role["args"][1]["id"], repo]
-            for role in get("has_role", user, None, repo)
+            ["has_role", user, role["id"], object_to_typed_id(repo)]
+            for [_, _, role, _] in get("has_role", user, None, repo)
         ]
     )
-    return current_app.response_class(status=204, mimetype="application/json")
+    return {}, 204

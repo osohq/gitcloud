@@ -9,11 +9,12 @@ import { org as orgApi } from "../api/org";
 
 export function OrganizationList({ organizations }: { organizations: Org[] }) {
   const [orgs, setOrgs] = useState<Org[]>(organizations)
+  const api = orgApi();
 
   useEffect(() => {
     const updateOrgs = async () => {
       for (const org of orgs) {
-        const userCount = await orgApi.userCount("" + org.id);
+        const userCount = await api.userCount("" + org.id);
         console.log(`Got user count ${userCount} for org ${org.id}`)
         setOrgs((orgs) => orgs.map(item => item.id === org.id ? ({ ...item, userCount }) : item))
       }

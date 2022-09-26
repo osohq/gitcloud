@@ -15,6 +15,7 @@ export default function New() {
   const [error, setError] = useState<Error | undefined>(undefined);
   const [title, setTitle] = useState<string>("");
   const index = `/orgs/${orgId}/repos/${repoId}/issues`;
+  const api = issueApi(orgId, repoId)
 
   const inputEmpty = !title.replaceAll(" ", "");
   if (error) return <ErrorPage error={error} setError={setError} />
@@ -23,7 +24,7 @@ export default function New() {
     e.preventDefault();
     if (inputEmpty || !orgId || !repoId) return;
     try {
-      const issue = await issueApi(orgId, repoId).create({ title });
+      const issue = await api.create({ title });
       await router.push(`${index}/${issue.id}`);
     } catch (e: any) {
       setError(e)

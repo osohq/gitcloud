@@ -2,7 +2,7 @@ from flask import Blueprint, g, request, jsonify
 from werkzeug.exceptions import Forbidden, NotFound
 
 from ..models import Repository, Issue, User
-from .helpers import actions, authorize, list_resources, oso
+from .helpers import actions, authorize, list_resources, object_to_typed_id, oso
 
 bp = Blueprint(
     "issues",
@@ -43,8 +43,8 @@ def create(org_id, repo_id):
     g.session.commit()
     oso.bulk_tell(
         [
-            ["has_role", g.current_user, "creator", issue],
-            ["has_relation", issue, "repository", repo],
+            ["has_role", *[object_to_typed_id(arg) for arg in [g.current_user, "creator", issue]]],
+            ["has_relation", *[object_to_typed_id(arg) for arg in [issue, "repository", repo]]],
         ]
     )
     return issue.as_json(), 201

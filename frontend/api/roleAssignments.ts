@@ -2,6 +2,7 @@ import { User, RoleAssignment } from "../models";
 import type { RoleAssignmentParams as Params } from "../models";
 import { create, del, index, noData, update } from "./common";
 import useSWR, { KeyedMutator } from "swr";
+import useUser from "../lib/useUser";
 
 export type RoleAssignmentsApi = {
   create: (body: Params) => Promise<RoleAssignment>;
@@ -23,17 +24,19 @@ export type RoleAssignmentsApi = {
 function org(id?: string): RoleAssignmentsApi {
   const roleAssignments = `/orgs/${id}/role_assignments`;
   const unassignedUsers = `/orgs/${id}/unassigned_users`;
+  const { userId } = useUser();
+
 
   return {
-    create: (body: Params) => create(roleAssignments, body, RoleAssignment),
+    create: (body: Params) => create(roleAssignments, body, RoleAssignment, userId),
 
-    delete: (body: Params) => del(roleAssignments, body),
+    delete: (body: Params) => del(roleAssignments, body, userId),
 
-    index: () => (id ? index(roleAssignments, RoleAssignment) : noData()),
+    index: () => (id ? index(roleAssignments, RoleAssignment, userId) : noData()),
 
-    update: (body: Params) => update(roleAssignments, body, RoleAssignment),
+    update: (body: Params) => update(roleAssignments, body, RoleAssignment, userId),
 
-    unassignedUsers: () => (id ? index(unassignedUsers, User) : noData()),
+    unassignedUsers: () => (id ? index(unassignedUsers, User, userId) : noData()),
   };
 }
 
@@ -41,17 +44,19 @@ function repo(orgId?: string, repoId?: string): RoleAssignmentsApi {
   const roleAssignments = `/orgs/${orgId}/repos/${repoId}/role_assignments`;
   const unassignedUsers = `/orgs/${orgId}/repos/${repoId}/unassigned_users`;
   const defined = orgId && repoId;
+  const { userId } = useUser();
+
 
   return {
-    create: (body: Params) => create(roleAssignments, body, RoleAssignment),
+    create: (body: Params) => create(roleAssignments, body, RoleAssignment, userId),
 
-    delete: (body: Params) => del(roleAssignments, body),
+    delete: (body: Params) => del(roleAssignments, body, userId),
 
-    index: () => (defined ? index(roleAssignments, RoleAssignment) : noData()),
+    index: () => (defined ? index(roleAssignments, RoleAssignment, userId) : noData()),
 
-    update: (body: Params) => update(roleAssignments, body, RoleAssignment),
+    update: (body: Params) => update(roleAssignments, body, RoleAssignment, userId),
 
-    unassignedUsers: () => (defined ? index(unassignedUsers, User) : noData()),
+    unassignedUsers: () => (defined ? index(unassignedUsers, User, userId) : noData()),
   };
 }
 

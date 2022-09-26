@@ -54,16 +54,16 @@ export const db = config.db;
         origin: config.frontend,
         methods: ["DELETE", "GET", "OPTIONS", "PATCH", "POST"],
         credentials: true,
-        allowedHeaders: ["Accept", "Content-Type", "USER"],
+        allowedHeaders: ["Accept", "Content-Type", "x-user-id"],
       })
     );
     app.use(bodyParser.json());
 
     // Make current user available on request object.
     app.use((req: Request, res, next) => {
-      if (!req.headers["user"]) return res.status(404).send("Not Found");
+      if (!req.headers["x-user-id"]) return res.status(404).send("Not Found");
 
-      req.user = new User(req.header("user"));
+      req.user = new User(req.header("x-user-id"));
       next();
     });
 

@@ -15,10 +15,11 @@ import { index, noData } from "../../../../../../api/common";
 import Breadcrumbs from "../../../../../../components/Breadcrumbs";
 
 function runningTime(a: Job): number {
+  const now = new Date();
   const updatedAt =
     a.status === "complete" || a.status === "canceled"
       ? new Date(a.updatedAt).getTime()
-      : Date.now();
+      : now.getTime() + now.getTimezoneOffset() * 60000;
   const createdAt = new Date(a.createdAt).getTime();
   return Math.round((updatedAt - createdAt) / 1000);
 }
@@ -45,7 +46,7 @@ export default function Index() {
     data: org,
     isLoading: orgLoading,
     error: orgError,
-  } = orgApi.show(orgId);
+  } = orgApi().show(orgId);
   const {
     data: repo,
     isLoading: repoLoading,
@@ -58,6 +59,7 @@ export default function Index() {
   } = jobApi(orgId, repoId).index();
   const [name, setName] = useState("");
   const [error, setError] = useState<Error | undefined>(undefined);
+  const api = jobApi(orgId, repoId);
 
   if (orgLoading || repoLoading || (!jobs && !jobError))
     return <LoadingPage />;
@@ -67,7 +69,6 @@ export default function Index() {
   if (error) return <ErrorMessage error={error} setError={setError} />;
   if (!user || !jobs || !org || !repo) return null;
 
-  const api = jobApi(orgId, repoId);
   const inputEmpty = !name.replaceAll(" ", "");
 
   async function handleSubmit(e: FormEvent) {

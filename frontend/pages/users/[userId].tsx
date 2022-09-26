@@ -14,17 +14,17 @@ export default function Show() {
     data: userProfile,
     isLoading: userLoading,
     error: userError,
-  } = userApi.show(userId);
+  } = userApi().show(userId);
   const {
     data: orgs,
     isLoading: orgLoading,
     error: orgError,
-  } = userApi.orgs(userId);
+  } = userApi().orgs(userId);
   const {
     data: repos,
     isLoading: repoLoading,
     error: repoError,
-  } = userApi.repos(userId);
+  } = userApi().repos(userId);
 
   if (userLoading || orgLoading || repoLoading) return <LoadingPage />;
   if (userError) return <ErrorMessage error={userError} />;

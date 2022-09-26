@@ -115,7 +115,7 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
     def add_cors_headers(res):
         res.headers.add("Access-Control-Allow-Origin", WEB_URL)
         res.headers.add("Vary", "Origin")
-        res.headers.add("Access-Control-Allow-Headers", "Accept,Content-Type")
+        res.headers.add("Access-Control-Allow-Headers", "Accept,Content-Type,x-user-id")
         res.headers.add("Access-Control-Allow-Methods", "DELETE,GET,OPTIONS,PATCH,POST")
         res.headers.add("Access-Control-Allow-Credentials", "true")
         res.headers.add("Access-Control-Max-Age", "60")

@@ -13,6 +13,7 @@ import { XCircleIcon } from "@heroicons/react/20/solid";
 export default function New() {
   const [error, setError] = useState<string[]>([]);
   useUser({ redirectTo: "/login" });
+  const api = orgApi();
   const [details, setDetails] = useState<OrgParams>({
     name: "",
     billingAddress: "San Diego",
@@ -29,7 +30,7 @@ export default function New() {
     setError([])
     if (!validInputs()) return;
     try {
-      const org = await orgApi.create(details);
+      const org = await api.create(details);
       await Router.push(`/orgs/${org.id}`);
     } catch (e: any) {
       setError([e.message]);
