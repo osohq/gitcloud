@@ -10,6 +10,8 @@ export default function Login() {
   const router = useRouter();
   const [username, setUsername] = useState<string>("");
 
+  const api = sessionApi();
+
   const [error, setError] = useState<Error | undefined>(undefined);
   if (error) return <ErrorPage error={error} setError={setError} />
 
@@ -18,7 +20,7 @@ export default function Login() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     try {
-      const u = await sessionApi().login({ username: username });
+      const u = await api.login({ username: username });
       mutateUser(u);
       router.replace(`/users/${username}`);
     } catch (e: any) {

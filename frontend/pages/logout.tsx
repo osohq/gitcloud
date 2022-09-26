@@ -10,9 +10,11 @@ export default function Logout() {
     const router = useRouter();
     const [error, setError] = useState<Error | undefined>(undefined);
 
+    const api = sessionApi();
+
     // If a logged-out user navigates to this page, redirect to home.
     useEffect(() => {
-        sessionApi(userId).logout().then(() => {
+        api.logout().then(() => {
             router.replace(`/`);
             mutateUser(undefined)
         }).catch(setError)
