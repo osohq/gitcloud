@@ -1,6 +1,6 @@
 import os
 from flask import g, Flask, session as flask_session
-from werkzeug.exceptions import BadRequest, Forbidden, NotFound
+from werkzeug.exceptions import BadRequest, Forbidden, NotFound, Unauthorized, InternalServerError
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
@@ -54,6 +54,14 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
     @app.errorhandler(NotFound)
     def handle_not_found(*_):
         return {"message": "Not Found"}, 404
+
+    @app.errorhandler(Unauthorized)
+    def handle_unauthorized(*_):
+        return {"message": "Unauthorized"}, 401
+
+    @app.errorhandler(InternalServerError)
+    def handle_ise(error: InternalServerError):
+        return {"message": error.description}, 500
 
     @app.route("/_reset", methods=["POST"])
     def reset_data():
