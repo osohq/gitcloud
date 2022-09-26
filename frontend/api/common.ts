@@ -16,7 +16,6 @@ const JOBS_ROOT =
 const defaultOpts: RequestInit = {
   headers: {
     Accept: "application/json",
-    "Content-Type": "application/json",
   },
   credentials: "include",
 };
@@ -50,21 +49,30 @@ const patch = (path: string, body: obj, userId?: string) =>
   req(path, 200, {
     method: "PATCH",
     body: jsonify(body),
-    headers: userId ? { USER: userId } : [],
+    headers: {
+      'Content-Type': 'application/json',
+      ...(userId ? { USER: userId } : {}),
+    }
   });
 
 const post = (path: string, body: obj, userId?: string) =>
   req(path, 201, {
     method: "POST",
     body: jsonify(body),
-    headers: userId ? { USER: userId } : [],
+    headers: {
+      'Content-Type': 'application/json',
+      ...(userId ? { USER: userId } : {}),
+    }
   });
 
 export const del = (path: string, body: obj, userId?: string) =>
   req(path, 204, {
     method: "DELETE",
     body: jsonify(body),
-    headers: userId ? { USER: userId } : [],
+    headers: {
+      'Content-Type': 'application/json',
+      ...(userId ? { USER: userId } : {}),
+    }
   });
 
 export function index<T extends {}>(
