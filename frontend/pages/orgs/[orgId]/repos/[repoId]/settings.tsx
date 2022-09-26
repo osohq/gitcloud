@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { RoleAssignment, User } from "../../../../../models";
 import {
   RoleSelector,
-} from "../../../../../components";
+} from "../../../../../components/RoleSelector";
 import {
   org as orgApi,
   repo as repoApi,

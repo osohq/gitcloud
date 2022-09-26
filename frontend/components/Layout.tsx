@@ -8,7 +8,6 @@ import {
 } from "@heroicons/react/24/outline";
 import { useContext } from "react";
 
-import { NoticeContext } from "../components";
 import Link from "next/link";
 import Image from "next/image";
 import logo from "../images/bear-8bit-transparent.png";

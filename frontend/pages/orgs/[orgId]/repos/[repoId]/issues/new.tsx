@@ -1,9 +1,9 @@
 import { ChangeEvent, FormEvent, useContext, useState } from "react";
 
 import { issue as issueApi } from "../../../../../../api";
-import { NoticeContext } from "../../../../../../components";
 import useUser from "../../../../../../lib/useUser";
 import { useRouter } from "next/router";
+import ErrorPage from "../../../../../../components/ErrorMessage";
 
 export default function New() {
   const {
@@ -12,11 +12,12 @@ export default function New() {
   const router = useRouter();
   const { orgId, repoId } = router.query as { orgId?: string; repoId?: string };
 
-  const { error } = useContext(NoticeContext);
+  const [error, setError] = useState<Error | undefined>(undefined);
   const [title, setTitle] = useState<string>("");
   const index = `/orgs/${orgId}/repos/${repoId}/issues`;
 
   const inputEmpty = !title.replaceAll(" ", "");
+  if (error) return <ErrorPage error={error} setError={setError} />
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -24,8 +25,8 @@ export default function New() {
     try {
       const issue = await issueApi(orgId, repoId).create({ title });
       await router.push(`${index}/${issue.id}`);
-    } catch (e) {
-      error(`Failed to create new issue: ${e}`);
+    } catch (e: any) {
+      setError(e)
     }
   }
 

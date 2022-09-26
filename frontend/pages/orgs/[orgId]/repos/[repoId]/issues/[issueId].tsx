@@ -1,18 +1,14 @@
-import { useContext, useEffect, useState } from "react";
+import { useState } from "react";
 
-import { Issue, Org, Repo } from "../../../../../../models";
 import {
   issue as issueApi,
   org as orgApi,
   repo as repoApi,
 } from "../../../../../../api";
-import { NoticeContext } from "../../../../../../components";
 import useUser from "../../../../../../lib/useUser";
-import Link from "next/link";
 import { useRouter } from "next/router";
 import ErrorMessage from "../../../../../../components/ErrorMessage";
 import LoadingPage from "../../../../../../components/LoadingPage";
-import { ChevronRightIcon } from "@heroicons/react/20/solid";
 import Breadcrumbs from "../../../../../../components/Breadcrumbs";
 
 function classNames(...classes: string[]) {

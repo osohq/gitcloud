@@ -1,15 +1,17 @@
 import { ChangeEvent, FormEvent, useContext, useState } from "react";
 
-import { NoticeContext } from "../components";
 import { session as sessionApi } from "../api";
 import { useRouter } from "next/router";
 import useUser from "../lib/useUser";
+import ErrorPage from "../components/ErrorMessage";
 
 export default function Login() {
   const { currentUser, mutateUser } = useUser({ redirectIfFound: true });
   const router = useRouter();
-  const { error } = useContext(NoticeContext);
   const [username, setUsername] = useState<string>("");
+
+  const [error, setError] = useState<Error | undefined>(undefined);
+  if (error) return <ErrorPage error={error} setError={setError} />
 
   // If a logged-in user navigates to this page, redirect to home.
   // if (currentUser.isLoggedIn) router.push("/");
@@ -19,8 +21,8 @@ export default function Login() {
       const u = await sessionApi.login({ username: username });
       mutateUser(u);
       router.replace(`/users/${username}`);
-    } catch (e) {
-      error(`Failed to log in: ${e}`);
+    } catch (e: any) {
+      setError(e);
     }
   }
 

@@ -21,15 +21,17 @@ export default function New() {
     isLoading: orgLoading,
     error: orgError,
   } = orgApi.show(orgId);
-  if (orgLoading) return <LoadingPage />;
-  if (orgError) return <ErrorMessage error={orgError} />;
-  if (!org) return;
 
   const [error, setError] = useState<string[]>([]);
   useUser({ redirectTo: "/login" });
   const [details, setDetails] = useState<RepoParams>({
     name: "",
   });
+
+  if (orgLoading) return <LoadingPage />;
+  if (orgError) return <ErrorMessage error={orgError} />;
+  if (!org) return;
+
 
   function validInputs() {
     const { name } = details;

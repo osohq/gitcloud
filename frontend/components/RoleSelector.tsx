@@ -15,7 +15,7 @@ export function RoleSelector({ choices, name, selected, update }: Props) {
       defaultValue={selected}
       onChange={({ target: { value } }) => update(value)}
     >
-      {choices.map(choice => <option>{choice}</option>)}
+      {choices.map(choice => <option key={choice}>{choice}</option>)}
     </select>
   )
 }
