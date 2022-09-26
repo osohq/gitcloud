@@ -9,16 +9,13 @@ export default function Index() {
   const {
     currentUser: { user, isLoggedIn },
   } = useUser();
-  const { data: orgs, isLoading, error } = orgApi.index();
+  const { data: orgs, isLoading, error: orgError } = orgApi.index();
 
   if (isLoading) {
     return <LoadingPage />;
   }
-  if (error) {
-    throw new Error(error);
-  }
   if (isLoading) return <LoadingPage />;
-  if (error) return <ErrorMessage error={error} />;
+  if (orgError) return <ErrorMessage error={orgError} />;
 
   if (!orgs) return null;
 

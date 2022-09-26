@@ -1,4 +1,4 @@
-import { Action } from "./Action";
+import { Job } from "./Job";
 import { Issue } from "./Issue";
 import { Org } from "./Org";
 import type { OrgParams } from "./Org";
@@ -9,5 +9,5 @@ import { User } from "./User";
 import { RoleAssignment } from "./RoleAssignment";
 import type { RoleAssignmentParams } from "./RoleAssignment";
 
-export { Action, Issue, Org, Repo, Role, User, RoleAssignment };
+export { Job, Issue, Org, Repo, Role, User, RoleAssignment };
 export type { OrgParams, RoleAssignmentParams, RepoParams };

@@ -1,16 +1,14 @@
-import { readFile } from "fs/promises";
-
 import express, { ErrorRequestHandler, Request } from "express";
 import * as bodyParser from "body-parser";
 import cors from "cors";
 import { Oso } from "oso-cloud";
 
-import { actionsRouter, Repo } from "./routes/actions";
+import { jobsRouter, Repo } from "./routes/jobs";
 import { resetData } from "./test";
-import { localDataSource, pgDataSource } from "./db";
+import { pgDataSource } from "./db";
 
 class User {
-  constructor(readonly username: string) {}
+  constructor(readonly username: string) { }
 }
 
 // Type screwery to get TS to stop complaining.
@@ -25,14 +23,14 @@ declare module "express" {
 const config =
   process.env.PRODUCTION == "1"
     ? {
-        db: pgDataSource,
-        frontend: "https://gitcloud.vercel.app",
-      }
+      db: pgDataSource,
+      frontend: "https://gitcloud.vercel.app",
+    }
     : {
-        // db: localDataSource,
-        db: pgDataSource,
-        frontend: "http://localhost:8000",
-      };
+      // db: localDataSource,
+      db: pgDataSource,
+      frontend: "http://localhost:8000",
+    };
 
 export const db = config.db;
 
@@ -100,7 +98,7 @@ export const db = config.db;
     };
     app.use(errorHandler);
 
-    app.use("/orgs/:orgId/repos/:repoId/actions", actionsRouter);
+    app.use("/orgs/:orgId/repos/:repoId/jobs", jobsRouter);
 
     // start express server
     app.listen(5001, "0.0.0.0");

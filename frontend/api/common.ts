@@ -8,7 +8,7 @@ const GITCLUB_ROOT =
   process.env.NEXT_PUBLIC_PRODUCTION == "1"
     ? "https://gitcloud-gitclub.fly.dev"
     : "http://localhost:5000";
-const ACTIONS_ROOT =
+const JOBS_ROOT =
   process.env.NEXT_PUBLIC_PRODUCTION == "1"
     ? "https://gitcloud-actions.fly.dev"
     : "http://localhost:5001";
@@ -24,8 +24,8 @@ const defaultOpts: RequestInit = {
 const jsonify = (x: obj) => JSON.stringify(snakeifyKeys(x));
 
 async function req(path: string, expected: number, opts?: RequestInit) {
-  const root = /^\/orgs\/\d+\/repos\/\d+\/actions/.test(path)
-    ? ACTIONS_ROOT
+  const root = /^\/orgs\/\d+\/repos\/\d+\/jobs/.test(path)
+    ? JOBS_ROOT
     : GITCLUB_ROOT;
   const res = await fetch(root + path, merge({}, defaultOpts, opts));
   if (res.status === expected) {

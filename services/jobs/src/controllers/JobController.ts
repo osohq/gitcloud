@@ -1,14 +1,14 @@
 import { DeepPartial, In } from "typeorm";
 import { Request, Response } from "express";
-import { Action } from "../entities/Action";
+import { Job } from "../entities/Job";
 import { db } from "..";
 
 const toRun = new Set();
 const toComplete = new Set();
 
-export class ActionController {
-  actionRepository() {
-    return db.getRepository(Action);
+export class JobController {
+  jobRepository() {
+    return db.getRepository(Job);
   }
 
   async all({ oso, repo, user }: Request, res: Response) {
@@ -20,23 +20,23 @@ export class ActionController {
     )
       return res.status(404).send("Not Found?");
 
-    // const actionIds = await oso.list({ type: "User", id: user.username }, "view", "Action");
-    const actions = await db
+    // const jobIds = await oso.list({ type: "User", id: user.username }, "view", "Job");
+    const jobs = await db
       .createQueryBuilder()
-      .select("action")
-      .from(Action, "action")
+      .select("job")
+      .from(Job, "job")
       .where({
         repoId: repo.id,
       })
-      .orderBy("action.createdAt", "DESC")
+      .orderBy("job.createdAt", "DESC")
       .getMany();
 
-    // Complete running actions.
-    actions
+    // Complete running jobs.
+    jobs
       .filter((a) => !toComplete.has(a.id) && a.status === "running")
       .forEach((a) => {
         setTimeout(() => {
-          this.actionRepository().update(
+          this.jobRepository().update(
             // Only update if status is still 'running'.
             { id: a.id, status: "running" },
             { status: Math.random() < 0.1 ? "failed" : "complete" }
@@ -45,12 +45,12 @@ export class ActionController {
         toComplete.add(a.id);
       });
 
-    // Run scheduled actions.
-    actions
+    // Run scheduled jobs.
+    jobs
       .filter((a) => !toRun.has(a.id) && a.status === "scheduled")
       .forEach((a) => {
         setTimeout(() => {
-          this.actionRepository().update(
+          this.jobRepository().update(
             // Only update if status is still 'scheduled'.
             { id: a.id, status: "scheduled" },
             { status: "running" }
@@ -59,11 +59,11 @@ export class ActionController {
         toRun.add(a.id);
       });
 
-    // const cancelableIds: string[] = await oso.list({ type: "User", id: user.username }, "cancel", "Action");
+    // const cancelableIds: string[] = await oso.list({ type: "User", id: user.username }, "cancel", "Job");
     const cancelableIds = ["*"];
 
     return res.json(
-      actions.map((a) => ({
+      jobs.map((a) => ({
         ...a,
         cancelable:
           (a.status === "scheduled" || a.status === "running") &&
@@ -77,39 +77,39 @@ export class ActionController {
     if (
       !(await oso.authorize(
         { type: "User", id: user.username },
-        "manage_actions",
+        "manage_jobs",
         { type: "Repository", id: repo.id }
       ))
     )
       return res.status(403).send("Forbidden");
-    let action = this.actionRepository().create({
+    let job = this.jobRepository().create({
       ...body,
       creatorId: user.username,
       repoId: repo.id,
-    } as DeepPartial<Action>);
-    action = await this.actionRepository().save(action);
+    } as DeepPartial<Job>);
+    job = await this.jobRepository().save(job);
     // await oso.bulkTell([
-    //   ["has_relation", { type: "User", id: user.username }, "creator", { type: "Action", id: action.id.toString() }],
-    //   ["has_relation", { type: "Action", id: action.id.toString() }, "repository", { type: "Repository", id: repo.id }],
+    //   ["has_relation", { type: "User", id: user.username }, "creator", { type: "Job", id: job.id.toString() }],
+    //   ["has_relation", { type: "Job", id: job.id.toString() }, "repository", { type: "Repository", id: repo.id }],
     // ]);
-    return res.status(201).json(action);
+    return res.status(201).json(job);
   }
 
   async cancel({ oso, params, repo, user }: Request, res: Response) {
     if (
       !(await oso.authorize(
         { type: "User", id: user.username },
-        "manage_actions",
+        "manage_jobs",
         { type: "Repository", id: repo.id }
       ))
     )
       return res.status(403).send("Forbidden");
-    const action = await this.actionRepository().findOneOrFail({
+    const job = await this.jobRepository().findOneOrFail({
       where: { id: parseInt(params.id) },
     });
-    // if (!(await oso.authorize({ type: "User", id: user.username }, "cancel", { type: "Action", id: action.id.toString() })))
+    // if (!(await oso.authorize({ type: "User", id: user.username }, "cancel", { type: "Job", id: job.id.toString() })))
     //   return res.status(403).send("Forbidden");
-    await this.actionRepository().update(action.id, { status: "canceled" });
-    return res.json(action);
+    await this.jobRepository().update(job.id, { status: "canceled" });
+    return res.json(job);
   }
 }

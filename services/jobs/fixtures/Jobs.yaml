@@ -1,0 +1,6 @@
+entity: Job
+items:
+  job1:
+    repoId: 1
+    name: "Run all tests"
+    creatorId: "john"

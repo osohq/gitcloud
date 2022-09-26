@@ -1,11 +1,10 @@
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { formatDistance } from "date-fns";
 
-import Link from "next/link";
 import { useRouter } from "next/router";
-import { Action, User } from "../../../../../../models";
+import { Job } from "../../../../../../models";
 import {
-  action as actionApi,
+  job as jobApi,
   org as orgApi,
   repo as repoApi,
 } from "../../../../../../api";
@@ -15,7 +14,7 @@ import LoadingPage from "../../../../../../components/LoadingPage";
 import { index, noData } from "../../../../../../api/common";
 import Breadcrumbs from "../../../../../../components/Breadcrumbs";
 
-function runningTime(a: Action): number {
+function runningTime(a: Job): number {
   const updatedAt =
     a.status === "complete" || a.status === "canceled"
       ? new Date(a.updatedAt).getTime()
@@ -24,7 +23,7 @@ function runningTime(a: Action): number {
   return Math.round((updatedAt - createdAt) / 1000);
 }
 
-function RunningTime({ a }: { a: Action }) {
+function RunningTime({ a }: { a: Job }) {
   const [time, setTime] = useState<number>(runningTime(a));
 
   useEffect(() => {
@@ -53,24 +52,22 @@ export default function Index() {
     error: repoError,
   } = repoApi(orgId).show(repoId);
   const {
-    data: actions,
-    error: actionError,
+    data: jobs,
+    error: jobError,
     mutate,
-  } = orgId && repoId && user
-      ? index(`/orgs/${orgId}/repos/${repoId}/actions`, Action, user.username, {
-        refreshInterval: 2_000,
-      })
-      : noData();
+  } = jobApi(user?.username, orgId, repoId).index();
   const [name, setName] = useState("");
+  const [error, setError] = useState<Error | undefined>(undefined);
 
-  if (orgLoading || repoLoading || (!actions && !actionError))
+  if (orgLoading || repoLoading || (!jobs && !jobError))
     return <LoadingPage />;
   if (orgError) return <ErrorMessage error={orgError} />;
   if (repoError) return <ErrorMessage error={repoError} />;
-  if (actionError) return <ErrorMessage error={actionError} />;
-  if (!user || !actions || !org || !repo) return null;
+  if (jobError) return <ErrorMessage error={jobError} />;
+  if (error) return <ErrorMessage error={error} setError={setError} />;
+  if (!user || !jobs || !org || !repo) return null;
 
-  const api = actionApi(user.username, orgId, repoId);
+  const api = jobApi(user.username, orgId, repoId);
   const inputEmpty = !name.replaceAll(" ", "");
 
   async function handleSubmit(e: FormEvent) {
@@ -80,8 +77,8 @@ export default function Index() {
       await api.create({ name });
       setName("");
       mutate();
-    } catch (e) {
-      // error(`Failed to create new action: ${e}`);
+    } catch (e: any) {
+      setError(e)
     }
   }
 
@@ -102,7 +99,7 @@ export default function Index() {
 
       <form className="mt-8" onSubmit={handleSubmit}>
         <label>
-          Schedule action:{" "}
+          Schedule job:{" "}
           <input
             type="text"
             value={name}
@@ -115,43 +112,6 @@ export default function Index() {
 
       <br />
 
-      {/* <table>
-        <thead>
-          <tr>
-            <th style={{ width: "150px", textAlign: "start" }}>Status</th>
-            <th style={{ width: "400px", textAlign: "start" }}>Name</th>
-            <th style={{ width: "200px", textAlign: "start" }}>Actor</th>
-            <th style={{ width: "200px", textAlign: "start" }}>Started</th>
-            <th style={{ width: "100px", textAlign: "start" }}>Duration</th>
-            <th style={{ width: "100px", textAlign: "start" }}></th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {actions.map((a) => (
-            <tr className="" key={"action-" + a.id}>
-              <td>{a.status}</td>
-              <td>{a.name}</td>
-              <td>{a.creatorId}</td>
-              <td>{formatDistance(new Date(), new Date(a.createdAt))} ago</td>
-              <td>
-                <RunningTime a={a} />
-              </td>
-              <td>
-                <button
-                  disabled={!a.cancelable}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    api.cancel(a.id);
-                  }}
-                >
-                  cancel
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table> */}
       <table className="min-w-full divide-y divide-gray-300">
         <thead className="bg-gray-50">
           <tr>
@@ -182,25 +142,25 @@ export default function Index() {
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-200 bg-white">
-          {actions.map((action) => (
-            <tr key={action.id}>
+          {jobs.map((job) => (
+            <tr key={job.id}>
               <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                {action.name}
+                {job.name}
               </td>
               <td className="hidden sm:table-cell whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                {action.creatorId}
+                {job.creatorId}
               </td>
               <td className="hidden lg:table-cell  whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                {formatDistance(new Date(), new Date(action.createdAt))} ago
+                {formatDistance(new Date(), new Date(job.createdAt))} ago
               </td>
               <td className="hidden sm:table-cell  whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                <RunningTime a={action} />
+                <RunningTime a={job} />
               </td>
-              <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{action.status}</td>
+              <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{job.status}</td>
               <td className="whitespace-nowrap py-4 px-2 text-right text-sm font-medium sm:pr-6 w-16">
-                {action.cancelable &&
-                  <a href="#" onClick={(e) => { e.preventDefault(); api.cancel(action.id) }} className="text-red-600 hover:text-red-900">
-                    Cancel<span className="sr-only">, {action.id}</span>
+                {job.cancelable &&
+                  <a href="#" onClick={(e) => { e.preventDefault(); api.cancel(job.id) }} className="text-red-600 hover:text-red-900">
+                    Cancel<span className="sr-only">, {job.id}</span>
                   </a>
                 }
               </td>

@@ -1,4 +1,4 @@
-import { action } from "./action";
+import { job } from "./job";
 import { issue } from "./issue";
 import { org } from "./org";
 import { repo } from "./repo";
@@ -8,7 +8,7 @@ import { session } from "./session";
 import { user } from "./user";
 
 export {
-  action,
+  job,
   issue,
   org,
   repo,

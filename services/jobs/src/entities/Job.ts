@@ -9,7 +9,7 @@ import {
 export type Status = "scheduled" | "running" | "complete" | "canceled" | "failed";
 
 @Entity()
-export class Action {
+export class Job {
   @PrimaryGeneratedColumn()
   id: number;
 
