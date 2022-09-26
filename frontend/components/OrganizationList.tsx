@@ -41,8 +41,8 @@ export function OrganizationList({ organizations }: { organizations: Org[] }) {
                       </p>
                     </div> */}
                   </div>
-                  <div className="mt-2 sm:flex sm:justify-between">
-                    <div className="sm:flex">
+                  <div className="mt-2 flex justify-between">
+                    <div className="flex">
                       <p className="flex items-center text-sm text-gray-500">
                         <UsersIcon
                           className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400"
@@ -50,7 +50,7 @@ export function OrganizationList({ organizations }: { organizations: Org[] }) {
                         />
                         {org.userCount !== undefined ? org.userCount : "-"}
                       </p>
-                      <p className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 sm:ml-6">
+                      <p className="mt-2 flex items-center text-sm text-gray-500 mt-0 ml-6">
                         <FolderOpenIcon
                           className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400"
                           aria-hidden="true"

@@ -1,7 +1,7 @@
 import { Issue } from "../models";
-import { create, index, noData, show } from "./common";
+import { create, index, noData, show, update } from "./common";
 
-type Params = { title: string };
+type Params = { title?: string, closed?: boolean };
 
 export function issue(orgId?: string, repoId?: string) {
   const path = `/orgs/${orgId}/repos/${repoId}/issues`;
@@ -14,5 +14,7 @@ export function issue(orgId?: string, repoId?: string) {
 
     show: (id?: string) =>
       defined && id ? show(`${path}/${id}`, Issue) : noData(),
+
+    update: (id: string, params: Params) => update(`${path}/${id}`, params, Issue),
   };
 }

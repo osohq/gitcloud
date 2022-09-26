@@ -8,14 +8,14 @@ from sqlalchemy.orm.session import Session
 from sqlalchemy.future import select
 from werkzeug.exceptions import Forbidden, NotFound, Unauthorized
 
-from app.models import Repository, Organization, Issue, OrgRole, RepoRole
+from app.models import Repository, Organization, Issue, OrgRole, RepoRole, User
 
 oso = Oso(url=getenv("OSO_URL", "https://cloud.osohq.com"), api_key=getenv("OSO_AUTH"))
 cache = Cache(config={'CACHE_TYPE': 'SimpleCache'})
 
 def object_to_typed_id(obj: Any, allow_unbound=False) -> dict:
     if isinstance(obj, str):
-        return obj
+        return {"type": "String", "id": obj}
     elif isinstance(obj, dict):
         assert allow_unbound or ("type" in obj and "id" in obj)
         if "type" in obj:
@@ -23,13 +23,22 @@ def object_to_typed_id(obj: Any, allow_unbound=False) -> dict:
         if "id" in obj:
             obj["id"] = str(obj["id"])
         return obj
+    elif isinstance(obj, User):
+        return { "type": "User", "id": obj.username}
+    elif obj is None:
+        return {}
     else:
         return { "type": obj.__class__.__name__, "id": str(obj.id) }
 
 def current_user():
     if g.current_user is None:
         raise Unauthorized
-    return { "type": "User", "id": g.current_user.username }
+    return object_to_typed_id(g.current_user)
+
+
+def tell(predicate: str, *args: Any):
+    print(f'oso-cloud tell {predicate} {",".join([str(a) for a in args])}')
+    return oso.tell(predicate, *[object_to_typed_id(a, True) for a in args])
 
 def authorize(action: str, resource: Any) -> bool:
     if g.current_user is None:
@@ -46,7 +55,7 @@ def authorize(action: str, resource: Any) -> bool:
         return res
     except Exception as e:
         print(f"error from Oso Cloud: {e} for request: allow({actor}, {action}, {resource})")
-
+        return False
 
 def actions(resource: Any) -> List[str]:
     if g.current_user is None:
@@ -59,6 +68,7 @@ def actions(resource: Any) -> List[str]:
             context_facts = get_facts_for_issue(None, resource["id"])
         print(f"oso-cloud actions {actor} {resource} -c \"{context_facts}\"")
         res = oso.actions(actor, resource, context_facts=context_facts)
+        print(res)
         return res
     except Exception as e:
         print(f"error from Oso Cloud: {e} for request: allow({actor}, _, {resource}) -c {context_facts}")

@@ -1,30 +1,21 @@
-import { ChangeEvent, useContext } from "react";
-import useUser from "../lib/useUser";
-
 type Props = {
   choices: string[];
   name?: string;
   selected: string;
-  update: (e: ChangeEvent<HTMLSelectElement>) => void;
+  update: (value: string) => void;
 };
 
-export function RoleSelector({ choices, name, selected, update }: Props) {
-  const {
-    currentUser: { isLoggedIn },
-  } = useUser();
 
+export function RoleSelector({ choices, name, selected, update }: Props) {
   return (
     <select
-      disabled={!isLoggedIn || !choices.length}
-      name={name || "role"}
-      value={selected}
-      onChange={update}
+      id="role"
+      name="role"
+      className="rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+      defaultValue={selected}
+      onChange={({ target: { value } }) => update(value)}
     >
-      {choices.map((r) => (
-        <option key={r} value={r}>
-          {r}
-        </option>
-      ))}
+      {choices.map(choice => <option>{choice}</option>)}
     </select>
-  );
+  )
 }

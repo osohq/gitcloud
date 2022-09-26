@@ -39,7 +39,7 @@ export class ActionController {
           this.actionRepository().update(
             // Only update if status is still 'running'.
             { id: a.id, status: "running" },
-            { status: "complete" }
+            { status: Math.random() < 0.1 ? "failed" : "complete" }
           );
         }, Math.random() * 30_000 + 15_000);
         toComplete.add(a.id);

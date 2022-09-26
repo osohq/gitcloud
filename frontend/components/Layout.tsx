@@ -126,7 +126,6 @@ export default function Layout({
                           </Menu.Items>
                         </Transition>
                       </Menu>
-                      )
                     </div>
                   </div>
                   <div className="-mr-2 flex md:hidden">
@@ -168,10 +167,7 @@ export default function Layout({
                 </div>
                 <div className="pt-4 pb-3 border-t border-gray-700">
                   <div className="flex items-center px-5">
-                    {/* <div className="flex-shrink-0">
-                                            <img className="h-10 w-10 rounded-full" src={user.imageUrl} alt="" />
-                                        </div> */}
-                    {currentUser.isLoggedIn ? (
+                    {currentUser.isLoggedIn && (
                       <div className="ml-3">
                         <div className="text-base font-medium text-white">
                           {user!.name}
@@ -180,8 +176,6 @@ export default function Layout({
                           {user!.email}
                         </div>
                       </div>
-                    ) : (
-                      <>test</>
                     )}
                   </div>
                   <div className="mt-3 px-2 space-y-1">
@@ -202,7 +196,7 @@ export default function Layout({
         </Disclosure>
 
         <main>
-          <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto sm:py-6 sm:px-6 lg:px-8">
             {children}
           </div>
         </main>

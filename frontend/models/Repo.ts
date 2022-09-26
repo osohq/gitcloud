@@ -1,3 +1,7 @@
+export type RepoParams = {
+  name: string;
+}
+
 export class Repo {
   id: number;
   name: string;

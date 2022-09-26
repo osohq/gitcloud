@@ -1,7 +1,7 @@
 import { User, RoleAssignment } from "../models";
 import type { RoleAssignmentParams as Params } from "../models";
 import { create, del, index, noData, update } from "./common";
-import useSWR from "swr";
+import useSWR, { KeyedMutator } from "swr";
 
 export type RoleAssignmentsApi = {
   create: (body: Params) => Promise<RoleAssignment>;
@@ -10,6 +10,7 @@ export type RoleAssignmentsApi = {
     data: RoleAssignment[] | undefined;
     isLoading: boolean;
     error: Error | undefined;
+    mutate: KeyedMutator<RoleAssignment[]>;
   };
   update: (body: Params) => Promise<RoleAssignment>;
   unassignedUsers: () => {

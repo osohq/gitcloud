@@ -8,17 +8,18 @@ export default function Home() {
     currentUser: { isLoggedIn },
   } = useUser();
   return (
-    <div className="pt-10">
+    <div className="sm:pt-10">
       <div className="mx-auto max-w-md px-4 sm:max-w-3xl sm:px-6 lg:px-8 lg:max-w-7xl lg:grid lg:grid-cols-2 lg:gap-24">
         <div>
-          <div className="mt-20">
+          <div className="sm:mt-20">
             <div className="mt-6 sm:max-w-xl">
               <h1 className="text-4xl font-bold text-gray-900 tracking-tight sm:text-5xl sm:tracking-tight">
                 Welcome to GitCloud
               </h1>
               <p className="mt-6 text-xl text-gray-500">
-                Anim aute id magna aliqua ad ad non deserunt sunt. Qui irure
-                qui lorem cupidatat commodo.
+                This is an sample application built using <a className="text-indigo-600" href="https://osohq.com">Oso Cloud</a>.
+
+                You can find the source code <a className="text-indigo-600" href="https://github.com/osohq/gitcloud">here</a>.
               </p>
             </div>
             <Link href={isLoggedIn ? "/orgs" : "/login"}>
@@ -34,7 +35,7 @@ export default function Home() {
 
       <div className="sm:mx-auto sm:max-w-3xl sm:px-6">
         <div className="sm:relative sm:mt-12  sm:py-4 lg:absolute lg:inset-y-4 lg:right-4 lg:w-1/2">
-          <div className="pl-4 -mr-40 sm:mx-auto sm:max-w-3xl sm:px-0 lg:max-w-none lg:h-full lg:pl-12">
+          <div className="mx-2 max-w-3xl p-4 lg:max-w-none lg:h-full lg:pl-12">
             <Image
               src={BearCabinet}
               alt="Bear putting code in a file cabinet"

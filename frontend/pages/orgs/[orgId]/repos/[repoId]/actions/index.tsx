@@ -13,6 +13,7 @@ import useUser from "../../../../../../lib/useUser";
 import ErrorMessage from "../../../../../../components/ErrorMessage";
 import LoadingPage from "../../../../../../components/LoadingPage";
 import { index, noData } from "../../../../../../api/common";
+import Breadcrumbs from "../../../../../../components/Breadcrumbs";
 
 function runningTime(a: Action): number {
   const updatedAt =
@@ -56,10 +57,10 @@ export default function Index() {
     error: actionError,
     mutate,
   } = orgId && repoId && user
-    ? index(`/orgs/${orgId}/repos/${repoId}/actions`, Action, user.username, {
+      ? index(`/orgs/${orgId}/repos/${repoId}/actions`, Action, user.username, {
         refreshInterval: 2_000,
       })
-    : noData();
+      : noData();
   const [name, setName] = useState("");
 
   if (orgLoading || repoLoading || (!actions && !actionError))
@@ -90,13 +91,16 @@ export default function Index() {
 
   return (
     <>
-      <h1>
-        <Link href={`/orgs/${org.id}`}>{org.name}</Link> /{" "}
-        <Link href={`/orgs/${org.id}/repos/${repo.id}`}>{repo.name}</Link> /
-        actions
-      </h1>
+      <Breadcrumbs
+        pages={
+          [
+            { name: org.name, href: { pathname: "/orgs/[orgId]", query: { orgId } } },
+            { name: repo.name, href: { pathname: "/orgs/[orgId]/repos/[repoId]", query: { orgId, repoId }, current: true } },
+          ]
+        }
+      />
 
-      <form onSubmit={handleSubmit}>
+      <form className="mt-8" onSubmit={handleSubmit}>
         <label>
           Schedule action:{" "}
           <input
@@ -111,7 +115,7 @@ export default function Index() {
 
       <br />
 
-      <table>
+      {/* <table>
         <thead>
           <tr>
             <th style={{ width: "150px", textAlign: "start" }}>Status</th>
@@ -143,6 +147,62 @@ export default function Index() {
                 >
                   cancel
                 </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table> */}
+      <table className="min-w-full divide-y divide-gray-300">
+        <thead className="bg-gray-50">
+          <tr>
+            <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
+              Name
+            </th>
+            <th
+              scope="col"
+              className="hidden sm:table-cell px-3 py-3.5 text-left text-sm font-semibold text-gray-900 "
+            >
+              Actor
+            </th>
+            <th scope="col" className="hidden lg:table-cell px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+              Started
+            </th>
+            <th scope="col" className="hidden sm:table-cell px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+              Duration
+            </th>
+            <th
+              scope="col"
+              className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+            >
+              Status
+            </th>
+            <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
+              <span className="sr-only">Edit</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-200 bg-white">
+          {actions.map((action) => (
+            <tr key={action.id}>
+              <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+                {action.name}
+              </td>
+              <td className="hidden sm:table-cell whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                {action.creatorId}
+              </td>
+              <td className="hidden lg:table-cell  whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                {formatDistance(new Date(), new Date(action.createdAt))} ago
+              </td>
+              <td className="hidden sm:table-cell  whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                <RunningTime a={action} />
+              </td>
+              <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{action.status}</td>
+              <td className="whitespace-nowrap py-4 px-2 text-right text-sm font-medium sm:pr-6 w-16">
+                {action.cancelable &&
+                  <a href="#" onClick={(e) => { e.preventDefault(); api.cancel(action.id) }} className="text-red-600 hover:text-red-900">
+                    Cancel<span className="sr-only">, {action.id}</span>
+                  </a>
+                }
               </td>
             </tr>
           ))}

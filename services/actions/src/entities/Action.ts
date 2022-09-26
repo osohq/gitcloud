@@ -6,7 +6,7 @@ import {
   UpdateDateColumn,
 } from "typeorm";
 
-export type Status = "scheduled" | "running" | "complete" | "canceled";
+export type Status = "scheduled" | "running" | "complete" | "canceled" | "failed";
 
 @Entity()
 export class Action {

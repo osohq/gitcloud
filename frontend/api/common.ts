@@ -30,7 +30,7 @@ async function req(path: string, expected: number, opts?: RequestInit) {
   const res = await fetch(root + path, merge({}, defaultOpts, opts));
   if (res.status === expected) {
     if (expected !== 204) return res.json();
-  } else throw new Error(res.statusText);
+  } else throw new Error(await res.text() || res.statusText);
 }
 
 export const noData = () => {
@@ -73,7 +73,7 @@ export function index<T extends {}>(
   userId?: string,
   params?: any
 ) {
-  const { data, error, mutate } = useSWR<obj[]>(
+  const { data, error, mutate } = useSWR<T[]>(
     path,
     (p) => get(p, userId),
     params
@@ -93,7 +93,7 @@ export function show<T extends {}>(
   userId?: string,
   params?: any
 ) {
-  const { data, error, mutate } = useSWR<obj>(
+  const { data, error, mutate } = useSWR<T>(
     path,
     (p) => get(p, userId),
     params

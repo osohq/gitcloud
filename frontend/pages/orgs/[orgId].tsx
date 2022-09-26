@@ -12,6 +12,7 @@ import { RepositoryList } from "../../components/RepositoryList";
 import LoadingPage from "../../components/LoadingPage";
 import ErrorMessage from "../../components/ErrorMessage";
 import Link from "next/link";
+import Breadcrumbs from "../../components/Breadcrumbs";
 
 export default function Show() {
   const {
@@ -45,8 +46,9 @@ export default function Show() {
   const api = roleAssignmentsApi.org(orgId);
   return (
     <>
-      <div className="-ml-4 -mt-2 flex items-center justify-between flex-wrap sm:flex-nowrap">
-        <div className="ml-4 mt-2">
+      <div className="-ml-4  flex items-center justify-between flex-wrap sm:flex-nowrap">
+        <div className="ml-4">
+          <Breadcrumbs pages={[]} />
           <div className="lg:flex lg:items-center lg:justify-between">
             <div className="flex-1 min-w-0">
               <h2 className="mt-2 text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:tracking-tight sm:truncate">
@@ -64,15 +66,18 @@ export default function Show() {
             </div>
           </div>
         </div>
-        <div className="ml-4 mt-2 flex-shrink-0">
-          <Link href={{ pathname: "/orgs/[orgId]/settings", query: { orgId } }}>
-            <button
-              type="button"
-              className="relative inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              Settings
-            </button>
-          </Link>
+        <div className="ml-4 mt-4 flex-shrink-0">
+          {
+            org.permissions?.includes("view_members") &&
+            <Link href={{ pathname: "/orgs/[orgId]/settings", query: { orgId } }}>
+              <button
+                type="button"
+                className="relative inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                Settings
+              </button>
+            </Link>
+          }
         </div>
       </div>
       <div className="mt-8 bg-white px-4 py-5 border-b border-gray-200 sm:px-6">
@@ -83,14 +88,17 @@ export default function Show() {
             </h3>
           </div>
           <div className="ml-4 mt-2 flex-shrink-0">
-            <Link href={{ pathname: "/orgs/[orgId]/repos/new", query: { orgId } }}>
-              <button
-                type="button"
-                className="relative inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-              >
-                Create new repository
-              </button>
-            </Link>
+            {
+              org.permissions?.includes("create_repositories") &&
+              <Link href={{ pathname: "/orgs/[orgId]/repos/new", query: { orgId } }}>
+                <button
+                  type="button"
+                  className="relative inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                >
+                  Create new repository
+                </button>
+              </Link>
+            }
           </div>
         </div>
       </div>

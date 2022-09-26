@@ -24,7 +24,7 @@ def index(org_id, repo_id):
         filters.append(Issue.closed == True)
     
     issue_ids = authorized_resources("read", "Issue", repo_id)
-    issues = g.session.query(Issue).filter(Issue.repo_id == repo_id, *filters, Issue.id.in_(issue_ids))
+    issues = g.session.query(Issue).filter(Issue.repo_id == repo_id, *filters, Issue.id.in_(issue_ids)).order_by(Issue.issue_number)
     return jsonify([issue.as_json() for issue in issues])
 
 
@@ -59,18 +59,21 @@ def show(org_id, repo_id, issue_id):
     return json
 
 
-@bp.route("/<int:issue_id>/close", methods=["PUT"])
-def close(org_id, repo_id, issue_id):
+@bp.route("/<int:issue_id>", methods=["PATCH"])
+def update(org_id, repo_id, issue_id):
+    payload = request.get_json(force=True)
     if not authorize("read", {"type": "Repository", "id": repo_id}):
         raise NotFound
-    issue = g.session.get_or_404(Issue, id=issue_id)
+    issue = g.session.get_or_404(Issue, id=issue_id, repo_id=repo_id)
     permissions = actions(issue)
     if not "read" in permissions:
         raise NotFound
-    if not "close" in permissions:
-        raise Forbidden
-    issue.closed = True
-    g.session.add(issue)
-    g.session.commit()
+
+    if "closed" in payload:
+        if not "close" in permissions:
+            raise Forbidden
+        issue.closed = payload["closed"]
+        g.session.add(issue)
+        g.session.commit()
     return issue.as_json()
 

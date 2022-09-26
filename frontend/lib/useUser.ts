@@ -11,7 +11,10 @@ export type CurrentUser =
   | { isLoggedIn: true; user: User };
 
 export default function useUser({ redirectTo, redirectIfFound }: {
+  // Set this to enable the redirect behaviour
   redirectTo?: string,
+  // Set to true to redirect if the user is found
+  // Defaults to false.
   redirectIfFound?: boolean,
 } = { redirectIfFound: false }) {
   const {

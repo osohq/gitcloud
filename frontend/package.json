@@ -11,6 +11,7 @@
   "dependencies": {
     "@headlessui/react": "^1.7",
     "@heroicons/react": "^2.0",
+    "@tailwindcss/forms": "^0.5.3",
     "date-fns": "^2.29.1",
     "lodash.merge": "^4.6.2",
     "next": "12.3.1",
