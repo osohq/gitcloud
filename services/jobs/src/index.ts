@@ -5,7 +5,8 @@ import { Oso } from "oso-cloud";
 
 import { jobsRouter, Repo } from "./routes/jobs";
 import { resetData } from "./test";
-import { pgDataSource } from "./db";
+import { pgDataSource } from "./prodDb";
+import { localDataSource } from "./localDb";
 
 class User {
   constructor(readonly username: string) { }
@@ -20,19 +21,13 @@ declare module "express" {
   }
 }
 
-const config =
-  process.env.PRODUCTION == "1"
-    ? {
-      db: pgDataSource,
-      frontend: "https://gitcloud.vercel.app",
-    }
-    : {
-      // db: localDataSource,
-      db: pgDataSource,
-      frontend: "http://localhost:8000",
-    };
 
-export const db = config.db;
+const PRODUCTION = process.env.PRODUCTION == "1";
+const PRODUCTION_DB = process.env.PRODUCTION_DB == "1";
+// const TRACING = process.env.TRACING == "1";
+const WEB_URL = PRODUCTION ? "https://gitcloud.vercel.app" : process.env.WEB_URL || "http://localhost:8000";
+
+export const db = PRODUCTION_DB ? pgDataSource : localDataSource;
 
 (async function () {
   try {
@@ -51,7 +46,7 @@ export const db = config.db;
     const app = express();
     app.use(
       cors({
-        origin: config.frontend,
+        origin: WEB_URL,
         methods: ["DELETE", "GET", "OPTIONS", "PATCH", "POST"],
         credentials: true,
         allowedHeaders: ["Accept", "Content-Type", "x-user-id"],

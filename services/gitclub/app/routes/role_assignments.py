@@ -12,7 +12,7 @@ bp = Blueprint("role_assignments", __name__, url_prefix="/orgs/<int:org_id>")
 def org_unassigned_users_index(org_id):
     permissions = actions({"type": "Organization", "id": org_id})
     if not "read" in permissions:
-        return NotFound
+        raise NotFound
     elif not "view_members" in permissions:
         raise Forbidden
     existing = get("has_role", {"type": "User"}, {}, {"type": "Organization", "id": org_id})
@@ -25,7 +25,7 @@ def org_unassigned_users_index(org_id):
 def org_index(org_id):
     permissions = actions({"type": "Organization", "id": org_id})
     if not "read" in permissions:
-        return NotFound
+        raise NotFound
     elif not "view_members" in permissions:
         raise Forbidden
 
@@ -49,7 +49,7 @@ def org_create(org_id):
     payload = request.get_json(force=True)
     permissions = actions({"type": "Organization", "id": org_id})
     if not "read" in permissions:
-        return NotFound
+        raise NotFound
     elif not "manage_members" in permissions:
         raise Forbidden
     cache.delete_memoized(user_count, org_id)
@@ -67,7 +67,7 @@ def org_update(org_id):
     payload = request.get_json(force=True)
     permissions = actions({"type": "Organization", "id": org_id})
     if not "read" in permissions:
-        return NotFound
+        raise NotFound
     elif not "manage_members" in permissions:
         raise Forbidden
     cache.delete_memoized(user_count, org_id)
@@ -90,7 +90,7 @@ def org_delete(org_id):
     payload = request.get_json(force=True)
     permissions = actions({"type": "Organization", "id": org_id})
     if not "read" in permissions:
-        return NotFound
+        raise NotFound
     elif not "manage_members" in permissions:
         raise Forbidden
     cache.delete_memoized(user_count, org_id)

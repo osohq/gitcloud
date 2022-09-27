@@ -20,7 +20,7 @@ def create():
     if user is None:
         flask_session.pop("current_username", None)
         raise Unauthorized
-    # flask_session["current_username"] = user.username
+    flask_session["current_username"] = user.username
     return jsonify(user.as_json()), 201
 
 

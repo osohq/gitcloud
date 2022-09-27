@@ -2596,10 +2596,10 @@ opencollective-postinstall@^2.0.3:
   resolved "https://registry.yarnpkg.com/opencollective-postinstall/-/opencollective-postinstall-2.0.3.tgz#7a0fff978f6dbfa4d006238fbac98ed4198c3259"
   integrity sha512-8AV/sCtuzUeTo8gQK5qDZzARrulB3egtLzFgteqB2tcT4Mw7B8Kt7JcDHmltjz6FOAHsvTevk70gZEbhM4ZS9Q==
 
-oso-cloud@^0.8.2:
-  version "0.8.2"
-  resolved "https://registry.yarnpkg.com/oso-cloud/-/oso-cloud-0.8.2.tgz#a814afcefc61ab476b462ee07b4d23b8f9be9302"
-  integrity sha512-FsPBIpeD/BAAhMdtznQF9zEIY7FN9NG5AsUQ6spiMRHyJdtT/iGRbOC8GuRUQsM6t1gOp7w4U9RUDU8B+EcGtw==
+oso-cloud@^0.9.0:
+  version "0.9.0"
+  resolved "https://registry.yarnpkg.com/oso-cloud/-/oso-cloud-0.9.0.tgz#b8e79ddf86cfa3d2c9a3e608d51aa6ab3a2fa13a"
+  integrity sha512-6Phk4UYnwruuPY+rwWSYHB97nhwyp/5fmxxN4fCQkl4a/ZYpWPV2nw1QhDhtD4Zutx7r3tyZ5JY4/Ay6fSPI0w==
   dependencies:
     node-fetch "^2.6.7"
 

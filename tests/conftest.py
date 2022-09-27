@@ -92,7 +92,8 @@ def test_gitclub_client(test_gitclub):
     with PrefixUrlSession("http://localhost:5000") as session:
 
         def log_in_as(id: str):
-            session.post("/session", json={"id": id})
+            session.post("/session", json={"username": id})
+            session.headers["x-user-id"] = id
 
         session.log_in_as = log_in_as  # type: ignore
         session.post("/_reset")
@@ -105,7 +106,7 @@ def test_actions_client(test_actions_service):
     with PrefixUrlSession("http://localhost:5001") as session:
 
         def log_in_as(id: str):
-            session.headers["USER"] = id
+            session.headers["x-user-id"] = id
 
         session.log_in_as = log_in_as  # type: ignore
         session.post("/_reset")
