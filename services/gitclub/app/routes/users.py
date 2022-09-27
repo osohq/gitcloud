@@ -39,7 +39,6 @@ def org_index(username):
     # get all the repositories that the user has a role for
     orgs = query("has_role", { "type": "User", "id": username }, {}, { "type": "Organization"})
     orgIds = list(map(lambda fact: fact[3].get("id", "_"), orgs))
-    print(orgs, orgIds)
     if "_" in orgIds:
         repos = g.session.query(Organization)
         return jsonify([r.as_json() for r in repos])

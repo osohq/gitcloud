@@ -38,7 +38,7 @@ def current_user():
 
 def tell(predicate: str, *args: Any):
     print(f'oso-cloud tell {predicate} {",".join([str(a) for a in args])}')
-    return oso.tell(predicate, *[object_to_typed_id(a, True) for a in args])
+    return oso.tell(predicate, *[object_to_typed_id(a) for a in args])
 
 def authorize(action: str, resource: Any) -> bool:
     if g.current_user is None:

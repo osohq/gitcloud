@@ -31,7 +31,6 @@ export default function Show() {
   const [roleChoices, setRoleChoices] = useState<string[]>([]);
   useEffect(() => {
     roleChoicesApi.org().then(setRoleChoices);
-    // .catch((e) => error(`Failed to fetch org role choices: ${e.message}`));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (orgLoading || repoLoading) return <LoadingPage />;

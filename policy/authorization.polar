@@ -122,34 +122,3 @@ has_role(actor: Actor, role: String, repo: Repository) if
     has_relation(repo, "organization", org) and
     has_default_role(org, role) and
     has_role(actor, "member", org);
-    
-
-
-# allow_with_parent(actor, action, resource: Issue, parent: Repository) if
-#     has_relation(resource, "repository", parent) and
-#     allow(actor, action, resource);
-
-# allow_with_parent(actor, action, resource: Repository, parent: Organization) if
-#     has_relation(resource, "organization", parent) and
-#     allow(actor, action, resource);
-
-
-# resource Folder { 
-#     roles = ["reader", "writer"];
-#     relations = { repository: Repository, folder: Folder };
-
-#     "reader" if "reader" on "repository";
-#     "reader" if "reader" on "folder";
-#     "writer" if "maintainer" on "repository";
-#     "writer" if "writer" on "folder";
-# }
-
-# resource File { 
-#     permissions = ["read", "write"];
-#     relations = { folder: Folder };
-
-#     "read"  if "reader" on "folder";
-#     "write" if "writer"  on "folder";
-#     "read"  if "write";
-# }
-

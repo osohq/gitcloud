@@ -16,13 +16,10 @@ export default function Login() {
   if (error) return <ErrorPage error={error} setError={setError} />
 
   // If a logged-in user navigates to this page, redirect to home.
-  // if (currentUser.isLoggedIn) router.push("/");
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     try {
       setUsername(login);
-      // const u = await api.login({ username: login });
-      // mutateUser(u);
       router.replace(`/users/${login}`);
     } catch (e: any) {
       setError(e);

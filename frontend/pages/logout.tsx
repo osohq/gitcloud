@@ -17,7 +17,6 @@ export default function Logout() {
         api.logout().then(() => {
             setUsername("");
             router.replace(`/`);
-            // mutateUser(undefined)
         }).catch(setError)
     }, [api, router, setUsername]);
 

@@ -27,7 +27,7 @@ def create():
     if not authorize("create", "Organization"):
         raise Forbidden
     g.session.add(org)
-    g.session.commit()  
+    g.session.commit()
     tell("has_role", g.current_user, "admin", org)
     return org.as_json(), 201
 
@@ -58,5 +58,4 @@ def user_count(org_id):
     if not authorize("read", {"type": "Organization", "id": str(org_id)}):
         raise NotFound
     org_users = get("has_role", { "type": "User",  }, {}, { "type": "Organization", "id": str(org_id) })
-    print("org users: ", org_users)
     return str(len(list(org_users)))

@@ -15,7 +15,6 @@ export function OrganizationList({ organizations }: { organizations: Org[] }) {
     const updateOrgs = async () => {
       for (const org of orgs) {
         const userCount = await api.userCount("" + org.id);
-        console.log(`Got user count ${userCount} for org ${org.id}`)
         setOrgs((orgs) => orgs.map(item => item.id === org.id ? ({ ...item, userCount }) : item))
       }
     }
@@ -36,11 +35,6 @@ export function OrganizationList({ organizations }: { organizations: Org[] }) {
                     <p className="text-sm font-medium text-indigo-600 truncate">
                       {org.name}
                     </p>
-                    {/* <div className="ml-2 flex-shrink-0 flex">
-                      <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                        Foo
-                      </p>
-                    </div> */}
                   </div>
                   <div className="mt-2 flex justify-between">
                     <div className="flex">
