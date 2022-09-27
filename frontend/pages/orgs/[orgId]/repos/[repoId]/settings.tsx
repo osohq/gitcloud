@@ -67,7 +67,6 @@ export default function Settings() {
         as?.map((a) => (a.user.username === username ? next : a))
       );
     }).catch(setError);
-    // .catch((e) => error(`Failed to update role assignment: ${e.message}`));
   }
 
   function remove({ user, role }: RoleAssignment) {
