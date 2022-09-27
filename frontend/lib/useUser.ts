@@ -48,7 +48,7 @@ export default function useUser({ redirectTo, redirectIfFound }: {
     ) {
       Router.replace(redirectTo || `/users/${username}`);
     }
-  }, [redirectIfFound, redirectTo, username]);
+  }, [redirectIfFound, redirectTo, username, usernameSet]);
 
   let currentUser: { isLoggedIn: true, user: User } | { isLoggedIn: false } = { isLoggedIn: false };
   if (usernameSet && user) {

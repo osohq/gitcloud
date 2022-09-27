@@ -19,7 +19,7 @@ export default function Logout() {
             router.replace(`/`);
             // mutateUser(undefined)
         }).catch(setError)
-    }, [router, setUsername]);
+    }, [api, router, setUsername]);
 
     if (error) return <ErrorPage error={error} setError={setError} />
 
