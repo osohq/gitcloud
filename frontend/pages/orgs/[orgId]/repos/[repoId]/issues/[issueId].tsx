@@ -16,9 +16,6 @@ function classNames(...classes: string[]) {
 }
 
 export default function Show() {
-  const {
-    currentUser: { user },
-  } = useUser();
   const router = useRouter();
   const [error, setError] = useState<Error | undefined>(undefined);
   const { orgId, repoId, issueId } = router.query as {

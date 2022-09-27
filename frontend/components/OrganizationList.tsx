@@ -59,15 +59,6 @@ export function OrganizationList({ organizations }: { organizations: Org[] }) {
                         {org.repositoryCount}
                       </p>
                     </div>
-                    {/* <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
-                      <CalendarIcon
-                        className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400"
-                        aria-hidden="true"
-                      />
-                      <p>
-                        Closing on <time dateTime={repo.closeDate}>{repo.closeDateFull}</time>
-                      </p>
-                    </div> */}
                   </div>
                 </div>
               </a>

@@ -9,9 +9,11 @@ import {
 import { useContext } from "react";
 
 import Link from "next/link";
+import MyLink from "../lib/link";
 import Image from "next/image";
 import logo from "../images/bear-8bit-transparent.png";
 import useUser from "../lib/useUser";
+import { user as userApi } from "../api/index";
 import { useRouter } from "next/router";
 
 function classNames(...classes: string[]) {
@@ -25,11 +27,10 @@ export default function Layout({
 }) {
   const router = useRouter();
   const { currentUser } = useUser();
-  const user = currentUser.user;
 
   const userNavigation = currentUser.isLoggedIn
     ? [
-      { name: "Your Profile", href: `/users/${user!.username}` },
+      { name: "Your Profile", href: `/users/${currentUser.user.username}` },
       { name: "Sign out", href: "/logout" },
     ]
     : [
@@ -147,21 +148,19 @@ export default function Layout({
               <Disclosure.Panel className="md:hidden">
                 <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
                   {navigation.map((item) => (
-                    <Link href={item.href} key={item.name} passHref>
-                      <a>
-                        <Disclosure.Button
-                          className={classNames(
-                            item.current
-                              ? "bg-gray-900 text-white"
-                              : "text-white hover:bg-gray-700 hover:text-white",
-                            "block px-3 py-2 rounded-md text-base font-medium"
-                          )}
-                          aria-current={item.current ? "page" : undefined}
-                        >
-                          {item.name}
-                        </Disclosure.Button>
-                      </a>
-                    </Link>
+                    <MyLink href={item.href} key={item.name} passHref>
+                      <Disclosure.Button
+                        className={classNames(
+                          item.current
+                            ? "bg-gray-900 text-white"
+                            : "text-white hover:bg-gray-700 hover:text-white",
+                          "block px-3 py-2 rounded-md text-base font-medium"
+                        )}
+                        aria-current={item.current ? "page" : undefined}
+                      >
+                        {item.name}
+                      </Disclosure.Button>
+                    </MyLink>
                   ))}
                 </div>
                 <div className="pt-4 pb-3 border-t border-gray-700">
@@ -169,23 +168,21 @@ export default function Layout({
                     {currentUser.isLoggedIn && (
                       <div className="ml-3">
                         <div className="text-base font-medium text-white">
-                          {user!.name}
+                          {currentUser.user.name}
                         </div>
                         <div className="text-sm font-medium text-gray-400">
-                          {user!.email}
+                          {currentUser.user.email}
                         </div>
                       </div>
                     )}
                   </div>
                   <div className="mt-3 px-2 space-y-1">
                     {userNavigation.map((item) => (
-                      <Link href={item.href} key={item.name}>
-                        <a>
-                          <Disclosure.Button className="block px-3 py-2 rounded-md text-base font-medium text-gray-400 hover:text-white hover:bg-gray-700">
-                            {item.name}
-                          </Disclosure.Button>
-                        </a>
-                      </Link>
+                      <MyLink href={item.href} key={item.name}>
+                        <Disclosure.Button className="block px-3 py-2 rounded-md text-base font-medium text-gray-400 hover:text-white hover:bg-gray-700">
+                          {item.name}
+                        </Disclosure.Button>
+                      </MyLink>
                     ))}
                   </div>
                 </div>

@@ -6,9 +6,7 @@ import { useRouter } from "next/router";
 import ErrorPage from "../../../../../../components/ErrorMessage";
 
 export default function New() {
-  const {
-    currentUser: { user },
-  } = useUser({ redirectTo: "/login" });
+  const { } = useUser({ redirectTo: "/login" });
   const router = useRouter();
   const { orgId, repoId } = router.query as { orgId?: string; repoId?: string };
 

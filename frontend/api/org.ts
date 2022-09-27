@@ -12,7 +12,7 @@ export function org() {
 
     create: (body: Params) => create(path, body, Org, userId),
 
-    index: (params?: any) => index(path, Org, params = params, userId),
+    index: (params?: any) => index(path, Org, userId, params),
 
     show: (id?: string) => (id ? show(`${path}/${id}`, Org, userId) : noData()),
     del: (id: string) => del(`${path}/${id}`, {}, userId),

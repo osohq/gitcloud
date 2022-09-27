@@ -15,9 +15,6 @@ import Link from "next/link";
 import Breadcrumbs from "../../components/Breadcrumbs";
 
 export default function Show() {
-  const {
-    currentUser: { user, isLoggedIn },
-  } = useUser();
   const router = useRouter();
   const { orgId } = router.query as { orgId?: string };
 
@@ -35,7 +32,7 @@ export default function Show() {
   useEffect(() => {
     roleChoicesApi.org().then(setRoleChoices);
     // .catch((e) => error(`Failed to fetch org role choices: ${e.message}`));
-  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (orgLoading || repoLoading) return <LoadingPage />;
   if (orgError) return <ErrorMessage error={orgError} />;

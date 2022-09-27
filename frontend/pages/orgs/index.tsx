@@ -7,7 +7,7 @@ import ErrorMessage from "../../components/ErrorMessage";
 
 export default function Index() {
   const {
-    currentUser: { user, isLoggedIn },
+    currentUser: { isLoggedIn },
   } = useUser();
   const { data: orgs, isLoading, error: orgError } = orgApi().index();
 

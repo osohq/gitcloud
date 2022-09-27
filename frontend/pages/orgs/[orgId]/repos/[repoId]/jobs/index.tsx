@@ -37,9 +37,7 @@ function RunningTime({ a }: { a: Job }) {
 }
 
 export default function Index() {
-  const {
-    currentUser: { user, isLoggedIn },
-  } = useUser();
+  const { } = useUser();
   const router = useRouter();
   const { orgId, repoId } = router.query as { orgId?: string; repoId?: string };
   const {
@@ -67,7 +65,7 @@ export default function Index() {
   if (repoError) return <ErrorMessage error={repoError} />;
   if (jobError) return <ErrorMessage error={jobError} />;
   if (error) return <ErrorMessage error={error} setError={setError} />;
-  if (!user || !jobs || !org || !repo) return null;
+  if (!jobs || !org || !repo) return null;
 
   const inputEmpty = !name.replaceAll(" ", "");
 

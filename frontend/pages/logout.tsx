@@ -6,7 +6,7 @@ import useUser from "../lib/useUser";
 import ErrorPage from "../components/ErrorMessage";
 
 export default function Logout() {
-    const { userId, mutateUser } = useUser();
+    const { userId, setUsername } = useUser();
     const router = useRouter();
     const [error, setError] = useState<Error | undefined>(undefined);
 
@@ -15,10 +15,11 @@ export default function Logout() {
     // If a logged-out user navigates to this page, redirect to home.
     useEffect(() => {
         api.logout().then(() => {
+            setUsername("");
             router.replace(`/`);
-            mutateUser(undefined)
+            // mutateUser(undefined)
         }).catch(setError)
-    }, [router, mutateUser]);
+    }, [router, setUsername]);
 
     if (error) return <ErrorPage error={error} setError={setError} />
 

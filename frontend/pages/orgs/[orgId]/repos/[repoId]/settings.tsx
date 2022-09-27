@@ -19,9 +19,7 @@ import Confirm from "../../../../../components/Confirm";
 
 
 export default function Settings() {
-  const {
-    currentUser: { user, isLoggedIn },
-  } = useUser();
+  const { } = useUser();
   const router = useRouter();
   const { orgId, repoId } = router.query as { orgId?: string, repoId?: string };
   const {
@@ -44,7 +42,7 @@ export default function Settings() {
   useEffect(() => {
     roleChoicesApi.repo().then(setRoleChoices);
     // .catch((e) => error(`Failed to fetch repo role choices: ${e.message}`));
-  }, [user]);
+  }, []);
   const [roleChoices, setRoleChoices] = useState<string[]>([]);
 
   const [open, setOpen] = useState(false)

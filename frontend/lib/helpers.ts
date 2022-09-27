@@ -1,3 +1,4 @@
+
 export type obj = { [key: string]: unknown };
 
 export function camelizeKeys(o: obj): unknown {
@@ -17,3 +18,4 @@ export function snakeifyKeys(o: obj): unknown {
     Object.entries(o).map(([k, v]) => [camelToSnake(k), v])
   );
 }
+

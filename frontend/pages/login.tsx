@@ -6,9 +6,9 @@ import useUser from "../lib/useUser";
 import ErrorPage from "../components/ErrorMessage";
 
 export default function Login() {
-  const { currentUser, mutateUser } = useUser({ redirectIfFound: true });
+  const { currentUser, setUsername } = useUser({ redirectIfFound: true });
   const router = useRouter();
-  const [username, setUsername] = useState<string>("");
+  const [login, setLogin] = useState<string>("");
 
   const api = sessionApi();
 
@@ -20,16 +20,17 @@ export default function Login() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     try {
-      const u = await api.login({ username: username });
-      mutateUser(u);
-      router.replace(`/users/${username}`);
+      setUsername(login);
+      // const u = await api.login({ username: login });
+      // mutateUser(u);
+      router.replace(`/users/${login}`);
     } catch (e: any) {
       setError(e);
     }
   }
 
   function handleChange({ target: { value } }: ChangeEvent<HTMLInputElement>) {
-    setUsername(value);
+    setLogin(value);
   }
 
   return (
@@ -53,7 +54,7 @@ export default function Login() {
                     autoComplete="username"
                     required
                     className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    value={username}
+                    value={login}
                     onChange={handleChange}
                   />
                 </div>
