@@ -41,7 +41,6 @@ export default function Settings() {
 
   useEffect(() => {
     roleChoicesApi.repo().then(setRoleChoices);
-    // .catch((e) => error(`Failed to fetch repo role choices: ${e.message}`));
   }, []);
   const [roleChoices, setRoleChoices] = useState<string[]>([]);
 
