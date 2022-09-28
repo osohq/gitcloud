@@ -27,7 +27,11 @@ def index(org_id, repo_id):
         filters.append(Issue.closed == True)
 
     issue_ids = list_resources("read", "Issue", repo_id)
-    issues = g.session.query(Issue).filter(Issue.repo_id == repo_id, *filters, Issue.id.in_(issue_ids)).order_by(Issue.issue_number)
+    issues = (
+        g.session.query(Issue)
+        .filter(Issue.repo_id == repo_id, *filters, Issue.id.in_(issue_ids))
+        .order_by(Issue.issue_number)
+    )
     return jsonify([issue.as_json() for issue in issues])
 
 
@@ -44,11 +48,22 @@ def create(org_id, repo_id):
     g.session.commit()
     oso.bulk_tell(
         [
-            {"name": "has_role", "args": [object_to_typed_id(arg) for arg in [g.current_user, "creator", issue]]},
-            {"name": "has_relation", "args": [object_to_typed_id(arg) for arg in [issue, "repository", repo]]},
+            {
+                "name": "has_role",
+                "args": [
+                    object_to_typed_id(arg)
+                    for arg in [g.current_user, "creator", issue]
+                ],
+            },
+            {
+                "name": "has_relation",
+                "args": [
+                    object_to_typed_id(arg) for arg in [issue, "repository", repo]
+                ],
+            },
         ]
     )
-    return issue.as_json(), 201 # type: ignore
+    return issue.as_json(), 201  # type: ignore
 
 
 @bp.route("/<int:issue_id>", methods=["GET"])
@@ -79,4 +94,3 @@ def update(org_id, repo_id, issue_id):
         g.session.add(issue)
         g.session.commit()
     return issue.as_json()
-

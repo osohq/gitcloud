@@ -16,6 +16,7 @@ provider.add_span_processor(processor)
 trace.set_tracer_provider(provider)
 tracer = trace.get_tracer(__name__)
 
+
 def instrument_app(app):
     # Initialize automatic instrumentation with Flask
     FlaskInstrumentor().instrument_app(app)

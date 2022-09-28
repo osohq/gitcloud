@@ -32,16 +32,26 @@ def create(org_id):
 
     payload = cast(dict, request.get_json(force=True))
 
-    if g.session.query(Repository).filter_by(org_id=org_id, name=payload["name"]).first() is not None:
+    if (
+        g.session.query(Repository)
+        .filter_by(org_id=org_id, name=payload["name"])
+        .first()
+        is not None
+    ):
         return "Repository with that name already exists", 400
 
     repo = Repository(name=payload["name"], org_id=org_id)
     g.session.add(repo)
     g.session.commit()
     repoValue = {"type": "Repository", "id": repo.id}
-    tell("has_relation", repoValue, "organization", {"type": "Organization", "id": org_id})
+    tell(
+        "has_relation",
+        repoValue,
+        "organization",
+        {"type": "Organization", "id": org_id},
+    )
     tell("has_role", g.current_user, "admin", repoValue)
-    return repo.as_json(), 201 # type: ignore
+    return repo.as_json(), 201  # type: ignore
 
 
 @bp.route("/<int:repo_id>", methods=["GET"])
@@ -52,6 +62,7 @@ def show(org_id, repo_id):
     json = repo.as_json()
     json["permissions"] = actions(repo)
     return json
+
 
 @bp.route("/<int:repo_id>", methods=["DELETE"])
 def delete(org_id, repo_id):

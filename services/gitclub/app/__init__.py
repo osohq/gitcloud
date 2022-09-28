@@ -1,7 +1,13 @@
 from datetime import timedelta
 import os
 from flask import g, Flask, request, session as flask_session
-from werkzeug.exceptions import BadRequest, Forbidden, NotFound, Unauthorized, InternalServerError
+from werkzeug.exceptions import (
+    BadRequest,
+    Forbidden,
+    NotFound,
+    Unauthorized,
+    InternalServerError,
+)
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
@@ -14,13 +20,18 @@ from .tracing import instrument_app
 PRODUCTION = os.environ.get("PRODUCTION", "0") == "1"
 PRODUCTION_DB = os.environ.get("PRODUCTION_DB", PRODUCTION)
 TRACING = os.environ.get("TRACING", PRODUCTION)
-WEB_URL = "https://gitcloud.vercel.app" if PRODUCTION else os.environ.get("WEB_URL", "http://localhost:8000")
+WEB_URL = (
+    "https://gitcloud.vercel.app"
+    if PRODUCTION
+    else os.environ.get("WEB_URL", "http://localhost:8000")
+)
+
 
 def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
     from . import routes
 
     if PRODUCTION_DB:
-        engine=create_engine(os.environ["DATABASE_URL"])
+        engine = create_engine(os.environ["DATABASE_URL"])
     else:
         # Init DB engine.
         engine = create_engine(
@@ -92,7 +103,6 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
         Base.metadata.drop_all(bind=engine)
         Base.metadata.create_all(bind=engine)
         load_fixture_data(Session())
-
 
     @app.before_request
     def set_current_user_and_session():

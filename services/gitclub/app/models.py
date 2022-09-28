@@ -8,6 +8,7 @@ from sqlalchemy.orm.relationships import RelationshipProperty
 
 Base = declarative_base()
 
+
 class User(Base):
     __tablename__ = "users"
 
@@ -15,17 +16,20 @@ class User(Base):
     email = Column(String)
     name = Column(String)
 
+
 class Group(Base):
     __tablename__ = "groups"
 
     id = Column(Integer, primary_key=True)
     name = Column(String)
 
+
 class CustomRole(Base):
     __tablename__ = "custom_roles"
 
     id = Column(Integer, primary_key=True)
     name = Column(String)
+
 
 class Organization(Base):
     __tablename__ = "organizations"
@@ -43,9 +47,11 @@ class Organization(Base):
 
     @repository_count.expression
     def repository_count_(cls):
-        return select(func.count(Repository.id)).\
-                where(Repository.org_id==cls.id).\
-                label('total_repo_count')
+        return (
+            select(func.count(Repository.id))
+            .where(Repository.org_id == cls.id)
+            .label("total_repo_count")
+        )
 
 
 class Repository(Base):
@@ -56,7 +62,9 @@ class Repository(Base):
     description = Column(String(256))
 
     org_id = Column(Integer, ForeignKey("organizations.id"), index=True)
-    org: Organization = relationship(Organization, backref=backref("repos", lazy='joined'), lazy='joined')
+    org: Organization = relationship(
+        Organization, backref=backref("repos", lazy="joined"), lazy="joined"
+    )
 
     public = Column(Boolean, default=False)
     protected = Column(Boolean, default=False)
@@ -71,9 +79,11 @@ class Repository(Base):
 
     @issue_count.expression
     def issue_count_(cls):
-        return select(func.count(Issue.id)).\
-                where(Issue.repo_id==cls.id).\
-                label('total_issue_count')
+        return (
+            select(func.count(Issue.id))
+            .where(Issue.repo_id == cls.id)
+            .label("total_issue_count")
+        )
 
 
 class Issue(Base):
@@ -93,6 +103,7 @@ class Issue(Base):
 
 ### Authorization Models
 
+
 class RepoRole(Base):
     __tablename__ = "repo_roles"
 
@@ -101,6 +112,7 @@ class RepoRole(Base):
     user_id = Column(String, ForeignKey("users.username"), index=True)
     role = Column(String(256))
 
+
 class OrgRole(Base):
     __tablename__ = "org_roles"
 
@@ -108,9 +120,6 @@ class OrgRole(Base):
     org_id = Column(Integer, ForeignKey("organizations.id"), index=True)
     user_id = Column(String, ForeignKey("users.username"), index=True)
     role = Column(String(256))
-
-
-
 
 
 # Creates Marshmallow schemas for all models which makes
@@ -123,7 +132,9 @@ def setup_schema(base):
             for d in mapper.all_orm_descriptors:
                 # print(d.__dict__)
                 # breakpoint()
-                if hasattr(d, "property") and isinstance(d.property, RelationshipProperty):
+                if hasattr(d, "property") and isinstance(
+                    d.property, RelationshipProperty
+                ):
                     continue
                 if hasattr(d, "key"):
                     columns.append(d.key)
@@ -132,10 +143,13 @@ def setup_schema(base):
                 else:
                     raise Exception("Unable to find column name for %s" % d)
 
-            print("Creating schema for %s" % class_.__name__
-                    + " with columns %s" % columns)
+            print(
+                "Creating schema for %s" % class_.__name__
+                + " with columns %s" % columns
+            )
             setattr(class_, "__columns", columns)
-            setattr(class_, "as_json", lambda self: {c: getattr(self, c) for c in self.__class__.__columns})
-
-
-
+            setattr(
+                class_,
+                "as_json",
+                lambda self: {c: getattr(self, c) for c in self.__class__.__columns},
+            )
