@@ -1827,6 +1827,11 @@ fastq@^1.6.1:
   dependencies:
     reusify "^1.0.4"
 
+fetch-retry-ts@^1.1.25:
+  version "1.1.25"
+  resolved "https://registry.yarnpkg.com/fetch-retry-ts/-/fetch-retry-ts-1.1.25.tgz#25849a87a5a016cc772f90986d95dd5049eeb5ac"
+  integrity sha512-kjJcfBYDbajnxMBfBa85hrS0Z+A0bDKuZWuzh5uHpaLSm2qZ3eAND5sDVfFUuIJg51sTd91cdB+Ayqo3magB/g==
+
 filelist@^1.0.1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/filelist/-/filelist-1.0.2.tgz#80202f21462d4d1c2e214119b1807c1bc0380e5b"
@@ -2596,11 +2601,12 @@ opencollective-postinstall@^2.0.3:
   resolved "https://registry.yarnpkg.com/opencollective-postinstall/-/opencollective-postinstall-2.0.3.tgz#7a0fff978f6dbfa4d006238fbac98ed4198c3259"
   integrity sha512-8AV/sCtuzUeTo8gQK5qDZzARrulB3egtLzFgteqB2tcT4Mw7B8Kt7JcDHmltjz6FOAHsvTevk70gZEbhM4ZS9Q==
 
-oso-cloud@^0.9.0:
-  version "0.9.0"
-  resolved "https://registry.yarnpkg.com/oso-cloud/-/oso-cloud-0.9.0.tgz#b8e79ddf86cfa3d2c9a3e608d51aa6ab3a2fa13a"
-  integrity sha512-6Phk4UYnwruuPY+rwWSYHB97nhwyp/5fmxxN4fCQkl4a/ZYpWPV2nw1QhDhtD4Zutx7r3tyZ5JY4/Ay6fSPI0w==
+oso-cloud@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/oso-cloud/-/oso-cloud-1.0.0.tgz#3ceb19801ddd568fc3317481acce2038761c2b17"
+  integrity sha512-Re6RdJBVxDA5Cl2dpdpvs9SzeP4cg6HvmQJ3QeDuFZ1jZy10oSijm846e5HES1GwHEVpdBUooAcT5XaWruU+wQ==
   dependencies:
+    fetch-retry-ts "^1.1.25"
     node-fetch "^2.6.7"
 
 p-map@^4.0.0:
