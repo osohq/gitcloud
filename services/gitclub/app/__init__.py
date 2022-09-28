@@ -1,29 +1,44 @@
-from pathlib import Path
-
-from flask import g, Flask, session as flask_session
-from werkzeug.exceptions import BadRequest, Forbidden, NotFound
+from datetime import timedelta
+import os
+from flask import g, Flask, request, session as flask_session
+from werkzeug.exceptions import BadRequest, Forbidden, NotFound, Unauthorized, InternalServerError
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from .models import Base, User
+from .models import Base, User, setup_schema
 from .fixtures import load_fixture_data
-from .routes.helpers import oso
+from .routes.helpers import oso, cache
+from .tracing import instrument_app
 
+PRODUCTION = os.environ.get("PRODUCTION", "0") == "1"
+PRODUCTION_DB = os.environ.get("PRODUCTION_DB", PRODUCTION)
+TRACING = os.environ.get("TRACING", PRODUCTION)
+WEB_URL = "https://gitcloud.vercel.app" if PRODUCTION else os.environ.get("WEB_URL", "http://localhost:8000")
 
 def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
     from . import routes
 
-    # Init DB engine.
-    engine = create_engine(
-        db_path,
-        # ignores errors from reusing connections across threads
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
+    if PRODUCTION_DB:
+        engine=create_engine(os.environ["DATABASE_URL"])
+    else:
+        # Init DB engine.
+        engine = create_engine(
+            db_path,
+            # ignores errors from reusing connections across threads
+            connect_args={"check_same_thread": False},
+            poolclass=StaticPool,
+        )
 
     # Init Flask app.
     app = Flask(__name__)
+    app.config["SESSION_COOKIE_SECURE"] = PRODUCTION
+    app.config["SESSION_COOKIE_SAMESITE"] = "None"
+    app.config["SESSION_COOKIE_HTTPONLY"] = True
+    app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(1)
+
+    cache.init_app(app)
+    instrument_app(app) if TRACING else None
     app.secret_key = b"ball outside of the school"
     app.register_blueprint(routes.issues.bp)
     app.register_blueprint(routes.orgs.bp)
@@ -46,26 +61,38 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
     def handle_not_found(*_):
         return {"message": "Not Found"}, 404
 
+    @app.errorhandler(Unauthorized)
+    def handle_unauthorized(*_):
+        return {"message": "Unauthorized"}, 401
+
+    @app.errorhandler(InternalServerError)
+    def handle_ise(error: InternalServerError):
+        return {"message": error.description}, 500
+
     @app.route("/_reset", methods=["POST"])
     def reset_data():
         # Called during tests to reset the database
         Base.metadata.drop_all(bind=engine)
         Base.metadata.create_all(bind=engine)
         oso.api.clear_data()
+        with open("../../policy/authorization.polar") as f:
+            policy = f.read()
+            oso.policy(policy)
         load_fixture_data(Session())
         return {}
 
     Base.metadata.create_all(bind=engine)
+    setup_schema(Base)
 
     # Init session factory
     Session = sessionmaker(bind=engine)
 
     if load_fixtures:
+        # Called during tests to reset the database
+        Base.metadata.drop_all(bind=engine)
+        Base.metadata.create_all(bind=engine)
         load_fixture_data(Session())
 
-    policy = (Path(__file__).resolve().parent / "authorization.polar").resolve()
-    with open(policy) as f:
-        oso.policy(f.read())
 
     @app.before_request
     def set_current_user_and_session():
@@ -73,21 +100,28 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
         g.session = Session()
 
         if "current_user" not in g:
-            if "current_user_id" in flask_session:
-                user_id = flask_session.get("current_user_id")
-                user = g.session.query(User).filter_by(id=user_id).one_or_none()
+            if "current_username" in flask_session:
+                username = flask_session.get("current_username")
+                user = g.session.query(User).filter_by(username=username).one_or_none()
                 if user is None:
-                    flask_session.pop("current_user_id")
+                    flask_session.pop("current_username")
+                g.current_user = user
+            elif "x-user-id" in request.headers:
+                username = request.headers["x-user-id"]
+                user = g.session.query(User).filter_by(username=username).one_or_none()
                 g.current_user = user
             else:
                 g.current_user = None
 
     @app.after_request
     def add_cors_headers(res):
-        res.headers.add("Access-Control-Allow-Origin", "http://localhost:3000")
-        res.headers.add("Access-Control-Allow-Headers", "Accept,Content-Type")
+        res.headers.add("Access-Control-Allow-Origin", WEB_URL)
+        res.headers.add("Vary", "Origin")
+        res.headers.add("Access-Control-Allow-Headers", "Accept,Content-Type,x-user-id")
         res.headers.add("Access-Control-Allow-Methods", "DELETE,GET,OPTIONS,PATCH,POST")
         res.headers.add("Access-Control-Allow-Credentials", "true")
+        res.headers.add("Access-Control-Max-Age", "60")
+
         return res
 
     @app.after_request
@@ -97,3 +131,7 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
         return res
 
     return app
+
+
+if __name__ == "__main__":
+    create_app().run()

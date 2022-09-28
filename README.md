@@ -5,7 +5,7 @@ permissions system. The app is implemented as multiple backend services (in the
 `services/` directory) that use Oso Cloud as a shared central authorization
 system and a React frontend (in the `frontend/` directory).
 
-This application is built as an example for [Oso Cloud](https://cloud-docs.osohq.com/).
+This application is built as an example for [Oso Cloud](https://osohq.com/docs/).
 If you are looking for an example of using the Oso library, check out
 [osohq/gitclub](https://github.com/osohq/gitclub).
 
@@ -22,10 +22,10 @@ library to model, manage, and enforce authorization.
 The [Oso Cloud documentation][docs] is a good reference for more information on
 Oso's [Python][docs-python] library.
 
-[docs]: https://cloud-docs.osohq.com/
-[docs-python]: https://cloud-docs.osohq.com/reference/client-apis/python
+[docs]: https://osohq.com/docs/
+[docs-python]: https://osohq.com/docs/reference/client-apis/python
 
-### Actions Service (Node.js - TypeORM - Express.js)
+### Jobs Service (Node.js - TypeORM - Express.js)
 
 This is an example application based on GitHub Actions that's meant to model
 GitHub Actions's permissions system. The app uses the
@@ -37,7 +37,7 @@ authorization.
 The [Oso Cloud documentation][docs] is a good reference for more information on
 Oso's [Node.js][docs-node] library.
 
-[docs-node]: https://cloud-docs.osohq.com/reference/client-apis/node
+[docs-node]: https://osohq.com/docs/reference/client-apis/node
 
 ### Running tests
 
@@ -46,7 +46,7 @@ data in that instance.*** This ensures each test starts from a clean slate.
 
 To run the test suite, which, again, *will reset data and perform many
 authorization requests against the target Oso Cloud instance*, grab your API
-key from https://cloud.osohq.com/dashboard and export it as the `OSO_AUTH`
+key from https://ui.osohq.com/dashboard and export it as the `OSO_AUTH`
 environment variable.
 
 ```console
@@ -90,7 +90,7 @@ else. In a real production scenario, these disparate backend APIs would
 probably be abstracted behind an API gateway or similar.
 
 The GitClub service uses cookies to manage sessions. The Actions service looks
-for a special `user` header that contains the logged-in user's super secret
+for a special `x-user-id` header that contains the logged-in user's super secret
 token... which is also their ID... which is also their email. In a production
 scenario, the authentication system should be a lot more secure. It doesn't
 really matter for our purposes, where we really only care about showing off
@@ -102,7 +102,7 @@ and logging in, you can use the following to save a session locally:
 ### Save the cookies
 
 ```bash
-curl -c gitclub.cookies -H "Content-Type: application/json" -X POST -d '{"id": "john@beatles.com"}' localhost:5000/session
+curl -c gitclub.cookies -H "Content-Type: application/json" -X POST -d '{"username": "john@beatles.com"}' localhost:5000/session
 ```
 
 ### Use the cookies

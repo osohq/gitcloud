@@ -1,29 +1,47 @@
 from flask import Blueprint, g, jsonify
-from werkzeug.exceptions import Forbidden
+from werkzeug.exceptions import Forbidden, Unauthorized, NotFound
 
-from ..models import User, Repo
-from .helpers import authorize, authorized_resources
+from ..models import Organization, User, Repository
+from .helpers import authorize, query
 
-bp = Blueprint("routes.users", __name__, url_prefix="/users")
-
-
-@bp.route("/<user_id>", methods=["GET"])
-def show(user_id):
-    user = g.session.get_or_404(User, id=user_id)
-    if not authorize("read_profile", user):
-        raise Forbidden
-    return user.repr()
+bp = Blueprint("users", __name__, url_prefix="/users")
 
 
-@bp.route("/<user_id>/repos", methods=["GET"])
-def index(user_id):
-    user = g.session.get_or_404(User, id=user_id)
-    if not authorize("read_profile", user):
-        raise Forbidden
-    authorized_ids = authorized_resources("read", "Repo")
-    if authorized_ids and authorized_ids[0] == "*":
-        repos = g.session.query(Repo)
-        return jsonify([r.repr() for r in repos])
+@bp.route("/<username>", methods=["GET"])
+def show(username):
+    if not authorize("read_profile", { "type": "User", "id": username }):
+        raise NotFound
+    user = g.session.get_or_404(User, username=username)
+    return user.as_json()
+
+@bp.route("/<username>/repos", methods=["GET"])
+def repo_index(username):
+    if not authorize("read_profile", { "type": "User", "id": username }):
+        raise NotFound
+
+    # get all the repositories that the user has a role for
+    repos = query("has_role", { "type": "User", "id": username }, {}, { "type": "Repository"})
+    repoIds = list(map(lambda fact: fact[3].get("id", "_"), repos))
+    print(repos, repoIds)
+    if "_" in repoIds:
+        repos = g.session.query(Repository)
+        return jsonify([r.as_json() for r in repos])
     else:
-        repos = g.session.query(Repo).filter(Repo.id.in_(authorized_ids))
-        return jsonify([r.repr() for r in repos])
+        repos = g.session.query(Repository).filter(Repository.id.in_(repoIds))
+        return jsonify([r.as_json() for r in repos])
+
+
+@bp.route("/<username>/orgs", methods=["GET"])
+def org_index(username):
+    if not authorize("read_profile", { "type": "User", "id": username }):
+        raise NotFound
+
+    # get all the repositories that the user has a role for
+    orgs = query("has_role", { "type": "User", "id": username }, {}, { "type": "Organization"})
+    orgIds = list(map(lambda fact: fact[3].get("id", "_"), orgs))
+    if "_" in orgIds:
+        repos = g.session.query(Organization)
+        return jsonify([r.as_json() for r in repos])
+    else:
+        repos = g.session.query(Organization).filter(Organization.id.in_(orgIds))
+        return jsonify([r.as_json() for r in repos])
