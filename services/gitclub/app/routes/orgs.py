@@ -1,4 +1,5 @@
 from flask import Blueprint, g, request, jsonify
+from typing import cast
 from werkzeug.exceptions import Forbidden, NotFound
 
 from ..models import Organization
@@ -20,7 +21,7 @@ def index():
 
 @bp.route("", methods=["POST"])
 def create():
-    payload = request.get_json(force=True)
+    payload = cast(dict, request.get_json(force=True))
     if g.session.query(Organization).filter(Organization.name==payload["name"]).first() is not None:
         return "Organization with that name already exists", 400
     org = Organization(**payload)
@@ -29,7 +30,7 @@ def create():
     g.session.add(org)
     g.session.commit()
     tell("has_role", g.current_user, "admin", org)
-    return org.as_json(), 201
+    return org.as_json(), 201 # type: ignore
 
 
 @bp.route("/<int:org_id>", methods=["GET"])

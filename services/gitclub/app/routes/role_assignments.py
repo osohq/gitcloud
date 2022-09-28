@@ -1,4 +1,5 @@
 from flask import Blueprint, g, request, current_app, jsonify
+from typing import cast
 from werkzeug.exceptions import Forbidden, NotFound
 
 from .orgs import user_count
@@ -6,7 +7,6 @@ from ..models import Organization, Repository, User
 from .helpers import actions, authorize, get, object_to_typed_id, oso, cache, tell
 
 bp = Blueprint("role_assignments", __name__, url_prefix="/orgs/<int:org_id>")
-
 
 @bp.route("/unassigned_users", methods=["GET"])
 def org_unassigned_users_index(org_id):
@@ -46,7 +46,7 @@ def org_index(org_id):
 
 @bp.route("/role_assignments", methods=["POST"])
 def org_create(org_id):
-    payload = request.get_json(force=True)
+    payload = cast(dict, request.get_json(force=True))
     permissions = actions({"type": "Organization", "id": org_id})
     if not "read" in permissions:
         raise NotFound
@@ -59,12 +59,14 @@ def org_create(org_id):
     if not authorize("read", user):
         raise NotFound
     tell("has_role", user, payload["role"], org)
-    return {"user": user.as_json(), "role": payload["role"]}, 201
+
+    user_obj: User = g.session.get_or_404(User, username=user["id"])
+    return {"user": user_obj.as_json(), "role": payload["role"]}, 201 # type: ignore
 
 
 @bp.route("/role_assignments", methods=["PATCH"])
 def org_update(org_id):
-    payload = request.get_json(force=True)
+    payload = cast(dict, request.get_json(force=True))
     permissions = actions({"type": "Organization", "id": org_id})
     if not "read" in permissions:
         raise NotFound
@@ -82,12 +84,14 @@ def org_update(org_id):
         ]
     )
     tell("has_role", user, payload["role"], org)
-    return {"user": user.as_json(), "role": payload["role"]}
+
+    user_obj: User = g.session.get_or_404(User, username=user["id"])
+    return {"user": user_obj.as_json(), "role": payload["role"]} # type: ignore
 
 
 @bp.route("/role_assignments", methods=["DELETE"])
 def org_delete(org_id):
-    payload = request.get_json(force=True)
+    payload = cast(dict, request.get_json(force=True))
     permissions = actions({"type": "Organization", "id": org_id})
     if not "read" in permissions:
         raise NotFound
@@ -142,23 +146,23 @@ def repo_index(org_id, repo_id):
 
 @bp.route("/repos/<int:repo_id>/role_assignments", methods=["POST"])
 def repo_create(org_id, repo_id):
-    payload = request.get_json(force=True)
+    payload = cast(dict, request.get_json(force=True))
     repo = g.session.get_or_404(Repository, id=repo_id, org_id=org_id)
     if not authorize("view_members", repo):
         raise NotFound
     if not authorize("manage_members", repo):
         raise Forbidden
     user = {"type": "User", "id": payload["username"]}
-    if not authorize("read", {"type": "User", "id": user.username}):
+    if not authorize("read", user):
         raise NotFound
     tell("has_role", user, payload["role"], repo)
-    user = g.session.get_or_404(User, username=user["id"])
-    return {"user": user.as_json(), "role": payload["role"]}, 201
+    user_obj: User = g.session.get_or_404(User, username=user["id"])
+    return {"user": user_obj.as_json(), "role": payload["role"]}, 201 # type: ignore
 
 
 @bp.route("/repos/<int:repo_id>/role_assignments", methods=["PATCH"])
 def repo_update(org_id, repo_id):
-    payload = request.get_json(force=True)
+    payload = cast(dict, request.get_json(force=True))
     repo = g.session.get_or_404(Repository, id=repo_id, org_id=org_id)
     if not authorize("view_members", repo):
         raise NotFound
@@ -172,14 +176,14 @@ def repo_update(org_id, repo_id):
         ]
     )
     tell("has_role", user, payload["role"], repo)
-    user = g.session.get_or_404(User, username=user["id"])
+    user_obj = g.session.get_or_404(User, username=user["id"])
 
-    return {"user": user.as_json(), "role": payload["role"]}
+    return {"user": user_obj.as_json(), "role": payload["role"]} # type: ignore
 
 
 @bp.route("/repos/<int:repo_id>/role_assignments", methods=["DELETE"])
 def repo_delete(org_id, repo_id):
-    payload = request.get_json(force=True)
+    payload = cast(dict, request.get_json(force=True))
     repo = g.session.get_or_404(Repository, id=repo_id, org_id=org_id)
     if not authorize("view_members", repo):
         raise NotFound

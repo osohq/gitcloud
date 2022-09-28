@@ -35,12 +35,14 @@ class Organization(Base):
     description = Column(String)
     billing_address = Column(String)
 
+    repos: list
+
     @hybrid_property
     def repository_count(self):
         return len(self.repos)
 
     @repository_count.expression
-    def repository_count(cls):
+    def repository_count_(cls):
         return select(func.count(Repository.id)).\
                 where(Repository.org_id==cls.id).\
                 label('total_repo_count')
@@ -54,20 +56,21 @@ class Repository(Base):
     description = Column(String(256))
 
     org_id = Column(Integer, ForeignKey("organizations.id"), index=True)
-    org = relationship(Organization, backref=backref("repos", lazy=False), lazy=False)
+    org: Organization = relationship(Organization, backref=backref("repos", lazy='joined'), lazy='joined')
 
     public = Column(Boolean, default=False)
     protected = Column(Boolean, default=False)
 
     unique_name_in_org = UniqueConstraint(name, org_id)
 
+    issues: list
 
     @hybrid_property
     def issue_count(self):
         return len(self.issues)
 
     @issue_count.expression
-    def issue_count(cls):
+    def issue_count_(cls):
         return select(func.count(Issue.id)).\
                 where(Issue.repo_id==cls.id).\
                 label('total_issue_count')
@@ -82,10 +85,10 @@ class Issue(Base):
     closed = Column(Boolean, default=False)
 
     repo_id = Column(Integer, ForeignKey("repositories.id"), index=True)
-    repo = relationship(Repository, backref=backref("issues"))
+    repo: Repository = relationship(Repository, backref=backref("issues"))
 
     creator_id = Column(String, ForeignKey("users.username"), index=True)
-    creator = relationship(User, backref=backref("issues"))
+    creator: User = relationship(User, backref=backref("issues"))
 
 
 ### Authorization Models

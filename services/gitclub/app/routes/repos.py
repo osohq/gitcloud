@@ -1,4 +1,5 @@
 from flask import Blueprint, g, request, jsonify
+from typing import cast
 from werkzeug.exceptions import NotFound, Forbidden
 
 from ..models import Repository
@@ -29,7 +30,7 @@ def create(org_id):
     if not authorize("create_repositories", {"type": "Organization", "id": org_id}):
         raise Forbidden("you do not have permission to create repositories")
 
-    payload = request.get_json(force=True)
+    payload = cast(dict, request.get_json(force=True))
 
     if g.session.query(Repository).filter_by(org_id=org_id, name=payload["name"]).first() is not None:
         return "Repository with that name already exists", 400
@@ -40,7 +41,7 @@ def create(org_id):
     repoValue = {"type": "Repository", "id": repo.id}
     tell("has_relation", repoValue, "organization", {"type": "Organization", "id": org_id})
     tell("has_role", g.current_user, "admin", repoValue)
-    return repo.as_json(), 201
+    return repo.as_json(), 201 # type: ignore
 
 
 @bp.route("/<int:repo_id>", methods=["GET"])

@@ -72,9 +72,10 @@ def actions(resource: Any) -> List[str]:
         return res
     except Exception as e:
         print(f"error from Oso Cloud: {e} for request: allow({actor}, _, {resource}) -c {context_facts}")
+        raise e
 
 
-def list_resources(action: str, resource_type: str, parent: Optional[str] = None) -> List[str]:
+def list_resources(action: str, resource_type: str, parent: Optional[int] = None) -> List[str]:
     facts = []
     if g.current_user is None:
         return []
@@ -128,7 +129,7 @@ def get_facts_for_issue(repo_id: Optional[int], issue_id: Optional[int]):
     for issue in issues:
         parent = { "type": "Repository", "id": str(issue.repo_id) }
         resource = { "type": "Issue", "id": str(issue.id) }
-        
+
         has_parent = ["has_relation", resource, "repository", parent]
         creator = ["has_role", {"type": "User", "id": str(issue.creator_id)}, "creator", resource]
         closed = [["is_closed", resource]] if issue.closed else []

@@ -6,6 +6,8 @@ from .routes.helpers import oso
 from faker import Faker
 import faker_microservice
 
+from typing import Any
+
 FAKE_USERS = 100
 FAKE_ORGANIZATIONS = 10
 FAKE_REPOSITORIES = 20
@@ -26,7 +28,7 @@ def load_fixture_data(session):
     session.query(Repository).delete()
     session.query(Issue).delete()
 
-    facts = []
+    facts: list[Any] = [] # temporary
 
     john = User(username="john", name="John Lennon", email="john@beatles.com")
     paul = User(username="paul", name="Paul McCartney", email="paul@beatles.com")
