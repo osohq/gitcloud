@@ -2,6 +2,7 @@ from flask import Blueprint, g, request, current_app, jsonify
 from typing import cast
 from werkzeug.exceptions import Forbidden, NotFound
 
+import oso_cloud
 from .orgs import user_count
 from ..models import Organization, Repository, User
 from .helpers import actions, authorize, get, object_to_typed_id, oso, cache, tell
@@ -15,8 +16,8 @@ def org_unassigned_users_index(org_id):
         raise NotFound
     elif not "view_members" in permissions:
         raise Forbidden
-    existing = get("has_role", {"type": "User"}, {}, {"type": "Organization", "id": org_id})
-    existing_ids = {e[1]["id"] for e in existing}
+    existing: list[oso_cloud.Fact] = get("has_role", {"type": "User"}, {}, {"type": "Organization", "id": org_id})
+    existing_ids = {cast(oso_cloud.Value, e["args"][0])["id"] for e in existing}
     unassigned = g.session.query(User).filter(User.username.notin_(existing_ids))
     return jsonify([u.as_json() for u in unassigned])
 
@@ -29,19 +30,19 @@ def org_index(org_id):
     elif not "view_members" in permissions:
         raise Forbidden
 
-    assignments = get("has_role", {"type": "User"}, None, {"type": "Organization", "id": org_id})
-    assignments = [(a[1]["id"],  a[2]["id"]) for a in assignments]
-    assignments = sorted(assignments, key=lambda assignment: assignment[0])
-    assignments = [(g.session.query(User).filter_by(username=user_id).first(), role) for (user_id, role) in assignments]
+    assignment_facts: list[oso_cloud.Fact] = get("has_role", {"type": "User"}, None, {"type": "Organization", "id": org_id})
+    assignment_ids = [(cast(oso_cloud.Value, a["args"][0])["id"],  cast(oso_cloud.Value, a["args"][1])["id"]) for a in assignment_facts]
+    assignments_ids = sorted(assignment_ids, key=lambda assignment: assignment[0])
+    assignments = [(g.session.query(User).filter_by(username=user_id).first(), role) for (user_id, role) in assignment_ids]
     # TODO(gj): fetch users in bulk
-    assignments = [
+    assignments_json = [
         {
             "user": user.as_json(),
             "role": role,
         }
         for (user, role) in assignments if user is not None
     ]
-    return jsonify(assignments)
+    return jsonify(assignments_json)
 
 
 @bp.route("/role_assignments", methods=["POST"])
@@ -77,10 +78,12 @@ def org_update(org_id):
     user = {"type": "User", "id": payload["username"]}
     if not authorize("read", user):
         raise NotFound
+    role_facts = get("has_role", user, None, org)
+    roles = [fact["args"][1] for fact in role_facts]
     oso.bulk_delete(
         [
-            ["has_role", object_to_typed_id(user), role, object_to_typed_id(org)]
-            for [_, _, role, _] in get("has_role", user, None, org)
+            {"name": "has_role", "args": [object_to_typed_id(user), role, object_to_typed_id(org)]}
+            for role in roles
         ]
     )
     tell("has_role", user, payload["role"], org)
@@ -102,10 +105,13 @@ def org_delete(org_id):
     user = {"type": "User", "id": payload["username"]}
     if not authorize("read", user):
         raise NotFound
+
+    role_facts = get("has_role", user, None, org)
+    roles = [fact["args"][1] for fact in role_facts]
     oso.bulk_delete(
         [
-            ["has_role", object_to_typed_id(user), role, object_to_typed_id(org)]
-            for [_, _, role, _] in get("has_role", user, None, org)
+            {"name": "has_role", "args": [object_to_typed_id(user), role, object_to_typed_id(org)]}
+            for role in roles
         ]
     )
     return {}, 204
@@ -119,7 +125,7 @@ def repo_unassigned_users_index(org_id, repo_id):
     if not authorize("manage_members", repo):
         raise Forbidden
     existing = get("has_role", {"type": User}, None, {"type": "Repository", "id": repo.id})
-    existing_ids = {arg["id"] for [_, arg, *_] in existing}
+    existing_ids = {cast(oso_cloud.Value, fact["args"][0])["id"] for fact in existing}
     unassigned = g.session.query(User).filter(User.username.notin_(existing_ids))
     return jsonify([u.as_json() for u in unassigned])
 
@@ -129,19 +135,19 @@ def repo_index(org_id, repo_id):
     repo = g.session.get_or_404(Repository, id=repo_id, org_id=org_id)
     if not authorize("view_members", repo):
         raise Forbidden
-    assignments = get("has_role", {"type": "User"}, None, {"type": "Repository", "id": repo_id})
-    assignments = [(a[1]["id"],  a[2]["id"]) for a in assignments]
-    assignments = sorted(assignments, key=lambda assignment: assignment[0])
-    assignments = [(g.session.query(User).filter_by(username=user_id).first(), role) for (user_id, role) in assignments]
+    assignment_facts = get("has_role", {"type": "User"}, None, {"type": "Repository", "id": repo_id})
+    assignment_ids = [(cast(oso_cloud.Value, a["args"][0])["id"],  cast(oso_cloud.Value, a["args"][1])["id"]) for a in assignment_facts]
+    assignment_ids = sorted(assignment_ids, key=lambda assignment: assignment[0])
+    assignments = [(g.session.query(User).filter_by(username=user_id).first(), role) for (user_id, role) in assignment_ids]
     # TODO(gj): fetch users in bulk
-    assignments = [
+    assignments_json = [
         {
             "user": user.as_json(),
             "role": role,
         }
         for (user, role) in assignments if user is not None
     ]
-    return jsonify(assignments)
+    return jsonify(assignments_json)
 
 
 @bp.route("/repos/<int:repo_id>/role_assignments", methods=["POST"])
@@ -168,11 +174,15 @@ def repo_update(org_id, repo_id):
         raise NotFound
     if not authorize("manage_members", repo):
         raise Forbidden
-    user = {"type": "User", "id": payload["username"]}
+    user: oso_cloud.Value = {"type": "User", "id": str(payload["username"])}
+    # TODO prefer oso.bulk
+    role_facts = get("has_role", user, None, repo)
+    roles = [cast(oso_cloud.Value, fact["args"][1]) for fact in role_facts]
+
     oso.bulk_delete(
         [
-            ["has_role", user, role["id"], object_to_typed_id(repo)]
-            for [_, _, role, _] in get("has_role", user, None, repo)
+            {"name": "has_role", "args": [user, role["id"], object_to_typed_id(repo)]}
+            for role in roles
         ]
     )
     tell("has_role", user, payload["role"], repo)
@@ -189,11 +199,15 @@ def repo_delete(org_id, repo_id):
         raise NotFound
     if not authorize("manage_members", repo):
         raise Forbidden
-    user = {"type": "User", "id": payload["username"]}
+    user: oso_cloud.Value = {"type": "User", "id": str(payload["username"])}
+
+    role_facts = get("has_role", user, None, repo)
+    roles = [cast(oso_cloud.Value, fact["args"][1]) for fact in role_facts]
+
     oso.bulk_delete(
         [
-            ["has_role", user, role["id"], object_to_typed_id(repo)]
-            for [_, _, role, _] in get("has_role", user, None, repo)
+            {"name": "has_role", "args": [user, role["id"], object_to_typed_id(repo)]}
+            for role in roles
         ]
     )
     return {}, 204

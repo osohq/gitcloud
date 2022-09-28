@@ -6,7 +6,7 @@ from .routes.helpers import oso
 from faker import Faker
 import faker_microservice
 
-from typing import Any
+from oso_cloud import Fact
 
 FAKE_USERS = 100
 FAKE_ORGANIZATIONS = 10
@@ -28,7 +28,7 @@ def load_fixture_data(session):
     session.query(Repository).delete()
     session.query(Issue).delete()
 
-    facts: list[Any] = [] # temporary
+    facts: list[Fact] = []
 
     john = User(username="john", name="John Lennon", email="john@beatles.com")
     paul = User(username="paul", name="Paul McCartney", email="paul@beatles.com")
@@ -160,10 +160,10 @@ def load_fixture_data(session):
     #################
 
     for repo in repos:
-        facts.append(["has_relation", { "type": "Repository", "id": str(repo.id)}, "organization", { "type": "Organization", "id": str(repo.org.id) }])
-        facts.append(["is_protected", { "type": "Repository", "id": str(repo.id)}, { "type": "Boolean", "id": str(repo.protected).lower()}])
+        facts.append({"name": "has_relation", "args": [{ "type": "Repository", "id": str(repo.id)}, "organization", { "type": "Organization", "id": str(repo.org.id) }]})
+        facts.append({"name": "is_protected", "args": [{ "type": "Repository", "id": str(repo.id)}, { "type": "Boolean", "id": str(repo.protected).lower()}]})
         if repo.public:
-            facts.append(["is_public", { "type": "Repository", "id": str(repo.id)}])
+            facts.append({"name": "is_public", "args": [{ "type": "Repository", "id": str(repo.id)}]})
 
     # for issue in issues:
     #     facts.append(["has_relation", { "type": "Issue", "id": str(issue.id)}, "repository", { "type": "Repository", "id": issue.str(repo.id)}])
@@ -197,8 +197,8 @@ def load_fixture_data(session):
     ]
 
     org_role_choices = OrderedDict([
-        ("admin", 0.1), 
-        ("member", 0.9), 
+        ("admin", 0.1),
+        ("member", 0.9),
     ])
 
     ### Faker Org Roles
@@ -215,13 +215,13 @@ def load_fixture_data(session):
 
     for org_role in org_roles:
         session.add(org_role)
-        facts.append(["has_role", { "type": "User", "id": org_role.user_id }, org_role.role, { "type": "Organization", "id": str(org_role.org_id) }])
+        facts.append({"name": "has_role", "args": [{ "type": "User", "id": str(org_role.user_id) }, org_role.role, { "type": "Organization", "id": str(org_role.org_id) }]})
 
     repo_roles = []
 
     repo_role_choices = OrderedDict([
-        ("editor", 0.5), 
-        ("maintainer", 0.5), 
+        ("editor", 0.5),
+        ("maintainer", 0.5),
     ])
     for repo in repos[2:]:
         repo_users = faker.random_elements(elements=users, length=randint(0, 4), unique=True)
@@ -232,7 +232,7 @@ def load_fixture_data(session):
 
     for repo_role in repo_roles:
         session.add(repo_role)
-        facts.append(["has_role", { "type": "User", "id": repo_role.user_id }, repo_role.role, { "type": "Repository", "id": str(repo_role.repo_id) }])
+        facts.append({"name": "has_role", "args": [{ "type": "User", "id": str(repo_role.user_id) }, repo_role.role, { "type": "Repository", "id": str(repo_role.repo_id) }]})
 
 
     print(oso.bulk_tell(facts=facts))
