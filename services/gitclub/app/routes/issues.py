@@ -1,8 +1,7 @@
 from flask import Blueprint, g, request, jsonify
-from werkzeug.exceptions import Forbidden, NotFound
 
-from ..models import Repository, Issue, User
-from .helpers import actions, authorize, list_resources, object_to_typed_id, oso
+from ..models import Issue
+from .helpers import actions, authorize, check, list_resources, object_to_typed_id, oso
 
 bp = Blueprint(
     "issues",
@@ -12,10 +11,8 @@ bp = Blueprint(
 
 
 @bp.route("", methods=["GET"])
+@check("read", "Repository", "repo_id")
 def index(org_id, repo_id):
-    repo = {"type": "Repository", "id": repo_id}
-    if not authorize("read", repo):
-        raise NotFound
     args = request.args
     filters = []
     # TODO: these aren't actually possible to set in
@@ -31,49 +28,36 @@ def index(org_id, repo_id):
 
 
 @bp.route("", methods=["POST"])
+@check("create_issues", "Repository", "repo_id")
 def create(org_id, repo_id):
-    if not authorize("read", {"type": "Repository", "id": repo_id}):
-        raise NotFound
     payload = request.get_json(force=True)
-    repo = g.session.get_or_404(Repository, id=repo_id)
-    if not authorize("create_issues", repo):
-        raise NotFound
-    issue = Issue(title=payload["title"], repo=repo, creator_id=g.current_user.username)
+    issue = Issue(title=payload["title"], repo_id=repo_id, creator_id=g.current_user.username)
     g.session.add(issue)
     g.session.commit()
     oso.bulk_tell(
         [
             ["has_role", *[object_to_typed_id(arg) for arg in [g.current_user, "creator", issue]]],
-            ["has_relation", *[object_to_typed_id(arg) for arg in [issue, "repository", repo]]],
+            ["has_relation", *[object_to_typed_id(arg) for arg in [issue, "repository", {"type": "Repository", "id": repo_id}]]],
         ]
     )
     return issue.as_json(), 201
 
 
 @bp.route("/<int:issue_id>", methods=["GET"])
-def show(org_id, repo_id, issue_id):
-    if not authorize("read", {"type": "Repository", "id": repo_id}):
-        raise NotFound
-
-    issue = g.session.get_or_404(Issue, id=issue_id)
+@check("read", "Repository", "repo_id")
+def show(org_id, repo_id, issue_id, permissions):
+    issue = g.session.get_or_404(Issue, id=issue_id, repo_id=repo_id)
     json = issue.as_json()
-    json["permissions"] = actions(issue)
+    json["permissions"] = permissions
     return json
 
 
 @bp.route("/<int:issue_id>", methods=["PATCH"])
+@check("close", "Issue", "issue_id")
 def update(org_id, repo_id, issue_id):
     payload = request.get_json(force=True)
-    if not authorize("read", {"type": "Repository", "id": repo_id}):
-        raise NotFound
     issue = g.session.get_or_404(Issue, id=issue_id, repo_id=repo_id)
-    permissions = actions(issue)
-    if not "read" in permissions:
-        raise NotFound
-
     if "closed" in payload:
-        if not "close" in permissions:
-            raise Forbidden
         issue.closed = payload["closed"]
         g.session.add(issue)
         g.session.commit()

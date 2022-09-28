@@ -1,3 +1,4 @@
+import functools
 from os import getenv
 from typing import Any, List, Optional, Type
 
@@ -135,3 +136,35 @@ def get_facts_for_issue(repo_id: Optional[int], issue_id: Optional[int]):
         facts.extend([has_parent, creator, *closed])
 
     return facts
+
+import inspect
+
+def check(permission: str, resource: str, param: Optional[str]=None, skip_read: bool = False):
+    def decorator_check(func):
+        @functools.wraps(func)
+        def wrapper_check(*args, **kwargs):
+            id = None
+            print(kwargs)
+            if param is None:
+                if len(kwargs) == 1:
+                    id = list(kwargs.values())[0]
+                elif "id" in kwargs:
+                    id = kwargs["id"]
+                else:
+                    raise Exception("must specify a parameter to use as the ID")
+            else:
+                id = kwargs[param]
+            obj = { "type": resource, "id": id}
+            permissions = actions(obj)
+            if not "*" in permissions:
+                if not skip_read or permission == "read":
+                    if not "read" in permissions:
+                        raise NotFound
+                else:
+                    if permission not in permissions:
+                        raise Forbidden
+            if "permissions" in inspect.signature(func).parameters:
+                kwargs["permissions"] = permissions
+            return func(*args, **kwargs)
+        return wrapper_check
+    return decorator_check

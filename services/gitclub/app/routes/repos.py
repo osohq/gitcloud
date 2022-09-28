@@ -2,15 +2,13 @@ from flask import Blueprint, g, request, jsonify
 from werkzeug.exceptions import NotFound, Forbidden
 
 from ..models import Repository
-from .helpers import actions, authorize, list_resources, tell
+from .helpers import actions, authorize, list_resources, tell, check
 
 bp = Blueprint("repos", __name__, url_prefix="/orgs/<int:org_id>/repos")
 
-
 @bp.route("", methods=["GET"])
+@check("read", "Organization")
 def index(org_id):
-    if not authorize("read", {"type": "Organization", "id": org_id}):
-        raise NotFound
     authorized_ids = list_resources("read", "Repository")
     if authorized_ids and authorized_ids[0] == "*":
         repos = g.session.query(Repository).filter_by(org_id=org_id)
@@ -23,12 +21,8 @@ def index(org_id):
 
 
 @bp.route("", methods=["POST"])
+@check("create_repositories", "Organization")
 def create(org_id):
-    if not authorize("read", {"type": "Organization", "id": org_id}):
-        raise NotFound
-    if not authorize("create_repositories", {"type": "Organization", "id": org_id}):
-        raise Forbidden("you do not have permission to create repositories")
-
     payload = request.get_json(force=True)
 
     if g.session.query(Repository).filter_by(org_id=org_id, name=payload["name"]).first() is not None:
@@ -44,20 +38,16 @@ def create(org_id):
 
 
 @bp.route("/<int:repo_id>", methods=["GET"])
-def show(org_id, repo_id):
-    if not authorize("read", {"type": "Repository", "id": repo_id}):
-        raise NotFound
+@check("read", "Repository", "repo_id")
+def show(org_id, repo_id, permissions):
     repo = g.session.get_or_404(Repository, id=repo_id, org_id=org_id)
     json = repo.as_json()
-    json["permissions"] = actions(repo)
+    json["permissions"] = permissions
     return json
 
 @bp.route("/<int:repo_id>", methods=["DELETE"])
+@check("read", "Repository", "repo_id")
 def delete(org_id, repo_id):
-    if not authorize("read", {"type": "Repository", "id": repo_id}):
-        raise NotFound
-    if not authorize("delete", {"type": "Repository", "id": repo_id}):
-        raise Forbidden
     repo = g.session.get_or_404(Repository, id=repo_id, org_id=org_id)
     g.session.delete(repo)
     g.session.commit()

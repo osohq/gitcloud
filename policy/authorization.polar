@@ -70,7 +70,7 @@ resource Issue {
     
 }
 
-has_permission(_: Actor, "read", repo: Repository) if
+has_role(_: Actor, "reader", repo: Repository) if
     is_public(repo);
 
 

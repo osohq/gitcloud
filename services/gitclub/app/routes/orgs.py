@@ -2,7 +2,7 @@ from flask import Blueprint, g, request, jsonify
 from werkzeug.exceptions import Forbidden, NotFound
 
 from ..models import Organization
-from .helpers import actions, authorize, list_resources, oso, get, cache, tell
+from .helpers import actions, authorize, check, list_resources, oso, get, cache, tell
 
 bp = Blueprint("orgs", __name__, url_prefix="/orgs")
 
@@ -33,29 +33,26 @@ def create():
 
 
 @bp.route("/<int:org_id>", methods=["GET"])
-def show(org_id):
+@check("read", "Organization")
+def show(org_id, permissions):
     if not authorize("read", {"type": "Organization", "id": org_id}):
         raise NotFound
     org = g.session.get_or_404(Organization, id=org_id)
     json = org.as_json()
-    json["permissions"] = actions(org)
+    json["permissions"] = permissions
     return json
 
 @bp.route("/<int:org_id>", methods=["DELETE"])
+@check("delete", "Organization")
 def delete(org_id):
-    if not authorize("read", {"type": "Organization", "id": org_id}):
-        raise NotFound
-    if not authorize("delete", {"type": "Organization", "id": org_id}):
-        raise Forbidden
     org = g.session.get_or_404(Organization, id=org_id)
     g.session.delete(org)
     g.session.commit()
     return "deleted", 204
 
 @bp.route("/<int:org_id>/user_count", methods=["GET"])
+@check("read", "Organization")
 @cache.memoize()
 def user_count(org_id):
-    if not authorize("read", {"type": "Organization", "id": str(org_id)}):
-        raise NotFound
     org_users = get("has_role", { "type": "User",  }, {}, { "type": "Organization", "id": str(org_id) })
     return str(len(list(org_users)))
