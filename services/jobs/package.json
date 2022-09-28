@@ -1,7 +1,7 @@
 {
-  "name": "actions-service",
+  "name": "jobs-service",
   "version": "0.0.0",
-  "description": "A service of actions.",
+  "description": "A service of jobs.",
   "devDependencies": {
     "@types/cookie-session": "^2.0.44",
     "@types/cors": "^2.8.12",
