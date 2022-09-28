@@ -2,12 +2,12 @@ from flask import Blueprint, g, request, jsonify
 from werkzeug.exceptions import NotFound, Forbidden
 
 from ..models import Repository
-from .helpers import actions, authorize, list_resources, tell, check
+from .helpers import actions, authorize, list_resources, tell, check_org, check_repo
 
 bp = Blueprint("repos", __name__, url_prefix="/orgs/<int:org_id>/repos")
 
 @bp.route("", methods=["GET"])
-@check("read", "Organization")
+@check_org()
 def index(org_id):
     authorized_ids = list_resources("read", "Repository")
     if authorized_ids and authorized_ids[0] == "*":
@@ -21,7 +21,7 @@ def index(org_id):
 
 
 @bp.route("", methods=["POST"])
-@check("create_repositories", "Organization")
+@check_org("create_repositories")
 def create(org_id):
     payload = request.get_json(force=True)
 
@@ -38,7 +38,7 @@ def create(org_id):
 
 
 @bp.route("/<int:repo_id>", methods=["GET"])
-@check("read", "Repository", "repo_id")
+@check_repo()
 def show(org_id, repo_id, permissions):
     repo = g.session.get_or_404(Repository, id=repo_id, org_id=org_id)
     json = repo.as_json()
@@ -46,7 +46,7 @@ def show(org_id, repo_id, permissions):
     return json
 
 @bp.route("/<int:repo_id>", methods=["DELETE"])
-@check("read", "Repository", "repo_id")
+@check_repo("delete")
 def delete(org_id, repo_id):
     repo = g.session.get_or_404(Repository, id=repo_id, org_id=org_id)
     g.session.delete(repo)

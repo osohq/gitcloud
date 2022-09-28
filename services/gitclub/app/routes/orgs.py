@@ -2,7 +2,7 @@ from flask import Blueprint, g, request, jsonify
 from werkzeug.exceptions import Forbidden, NotFound
 
 from ..models import Organization
-from .helpers import actions, authorize, check, list_resources, oso, get, cache, tell
+from .helpers import authorize, check_org, list_resources, get, cache, tell
 
 bp = Blueprint("orgs", __name__, url_prefix="/orgs")
 
@@ -33,7 +33,7 @@ def create():
 
 
 @bp.route("/<int:org_id>", methods=["GET"])
-@check("read", "Organization")
+@check_org()
 def show(org_id, permissions):
     if not authorize("read", {"type": "Organization", "id": org_id}):
         raise NotFound
@@ -43,7 +43,7 @@ def show(org_id, permissions):
     return json
 
 @bp.route("/<int:org_id>", methods=["DELETE"])
-@check("delete", "Organization")
+@check_org("delete")
 def delete(org_id):
     org = g.session.get_or_404(Organization, id=org_id)
     g.session.delete(org)
@@ -51,7 +51,7 @@ def delete(org_id):
     return "deleted", 204
 
 @bp.route("/<int:org_id>/user_count", methods=["GET"])
-@check("read", "Organization")
+@check_org()
 @cache.memoize()
 def user_count(org_id):
     org_users = get("has_role", { "type": "User",  }, {}, { "type": "Organization", "id": str(org_id) })

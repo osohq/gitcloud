@@ -1,7 +1,7 @@
 from flask import Blueprint, g, request, jsonify
 
 from ..models import Issue
-from .helpers import actions, authorize, check, list_resources, object_to_typed_id, oso
+from .helpers import check_repo, check_issue, list_resources, object_to_typed_id, oso
 
 bp = Blueprint(
     "issues",
@@ -11,7 +11,7 @@ bp = Blueprint(
 
 
 @bp.route("", methods=["GET"])
-@check("read", "Repository", "repo_id")
+@check_repo()
 def index(org_id, repo_id):
     args = request.args
     filters = []
@@ -28,7 +28,7 @@ def index(org_id, repo_id):
 
 
 @bp.route("", methods=["POST"])
-@check("create_issues", "Repository", "repo_id")
+@check_repo("create_issues")
 def create(org_id, repo_id):
     payload = request.get_json(force=True)
     issue = Issue(title=payload["title"], repo_id=repo_id, creator_id=g.current_user.username)
@@ -44,7 +44,7 @@ def create(org_id, repo_id):
 
 
 @bp.route("/<int:issue_id>", methods=["GET"])
-@check("read", "Repository", "repo_id")
+@check_issue()
 def show(org_id, repo_id, issue_id, permissions):
     issue = g.session.get_or_404(Issue, id=issue_id, repo_id=repo_id)
     json = issue.as_json()
@@ -53,7 +53,7 @@ def show(org_id, repo_id, issue_id, permissions):
 
 
 @bp.route("/<int:issue_id>", methods=["PATCH"])
-@check("close", "Issue", "issue_id")
+@check_issue("close")
 def update(org_id, repo_id, issue_id):
     payload = request.get_json(force=True)
     issue = g.session.get_or_404(Issue, id=issue_id, repo_id=repo_id)

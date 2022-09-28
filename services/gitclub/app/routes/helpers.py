@@ -168,3 +168,12 @@ def check(permission: str, resource: str, param: Optional[str]=None, skip_read: 
             return func(*args, **kwargs)
         return wrapper_check
     return decorator_check
+
+def check_org(permission: str = "read"):
+    return check(permission, "Organization", "org_id")
+
+def check_repo(permission: str = "read"):
+    return check(permission, "Repository", "repo_id")
+
+def check_issue(permission: str = "read"):
+    return check(permission, "Issue", "issue_id")
