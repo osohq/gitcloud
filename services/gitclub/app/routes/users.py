@@ -3,7 +3,7 @@ from typing import cast
 from werkzeug.exceptions import Forbidden, Unauthorized, NotFound
 
 from ..models import Organization, User, Repository
-from .helpers import authorize, query
+from .authorization import authorize, query
 
 bp = Blueprint("users", __name__, url_prefix="/users")
 

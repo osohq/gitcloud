@@ -3,7 +3,7 @@ from typing import cast
 from werkzeug.exceptions import NotFound, Forbidden
 
 from ..models import Repository
-from .helpers import actions, authorize, list_resources, tell
+from .authorization import actions, authorize, list_resources, tell
 
 bp = Blueprint("repos", __name__, url_prefix="/orgs/<int:org_id>/repos")
 

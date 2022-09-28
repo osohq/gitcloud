@@ -5,7 +5,7 @@ from werkzeug.exceptions import Forbidden, NotFound
 import oso_cloud
 from .orgs import user_count
 from ..models import Organization, Repository, User
-from .helpers import actions, authorize, get, object_to_typed_id, oso, cache, tell
+from .authorization import actions, authorize, get, object_to_typed_id, oso, cache, tell
 
 bp = Blueprint("role_assignments", __name__, url_prefix="/orgs/<int:org_id>")
 

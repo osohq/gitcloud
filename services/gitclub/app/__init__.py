@@ -8,7 +8,7 @@ from sqlalchemy.pool import StaticPool
 
 from .models import Base, User, setup_schema
 from .fixtures import load_fixture_data
-from .routes.helpers import oso, cache
+from .routes.authorization import oso, cache
 from .tracing import instrument_app
 
 PRODUCTION = os.environ.get("PRODUCTION", "0") == "1"
