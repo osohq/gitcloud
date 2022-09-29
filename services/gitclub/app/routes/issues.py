@@ -3,7 +3,7 @@ from typing import cast
 from werkzeug.exceptions import Forbidden, NotFound
 
 from ..models import Repository, Issue, User
-from .authorization import actions, authorize, list_resources, object_to_typed_id, oso
+from .authorization import actions, authorize, list_resources, object_to_oso_value, oso
 
 bp = Blueprint(
     "issues",
@@ -51,14 +51,14 @@ def create(org_id, repo_id):
             {
                 "name": "has_role",
                 "args": [
-                    object_to_typed_id(arg)
+                    object_to_oso_value(arg)
                     for arg in [g.current_user, "creator", issue]
                 ],
             },
             {
                 "name": "has_relation",
                 "args": [
-                    object_to_typed_id(arg) for arg in [issue, "repository", repo]
+                    object_to_oso_value(arg) for arg in [issue, "repository", repo]
                 ],
             },
         ]
