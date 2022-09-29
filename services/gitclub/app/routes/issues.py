@@ -3,7 +3,7 @@ from typing import cast
 from werkzeug.exceptions import Forbidden, NotFound
 
 from ..models import Repository, Issue, User
-from .authorization import actions, authorize, list_resources, object_to_typed_id, oso
+from ..authorization import actions, authorize, list_resources, object_to_typed_id, oso
 
 bp = Blueprint(
     "issues",

@@ -1,7 +1,7 @@
 from collections import OrderedDict
 from random import choice, randint
 from .models import Issue, OrgRole, RepoRole, Organization, Repository, User
-from .routes.authorization import oso
+from .authorization import oso
 
 from faker import Faker
 import faker_microservice

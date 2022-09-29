@@ -13,9 +13,12 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from .models import Base, User, setup_schema
+from .schema import schema
 from .fixtures import load_fixture_data
-from .routes.authorization import oso, cache
+from .authorization import oso, cache
 from .tracing import instrument_app
+
+from strawberry.flask.views import GraphQLView
 
 PRODUCTION = os.environ.get("PRODUCTION", "0") == "1"
 PRODUCTION_DB = os.environ.get("PRODUCTION_DB", PRODUCTION)
@@ -43,6 +46,7 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
 
     # Init Flask app.
     app = Flask(__name__)
+
     app.config["SESSION_COOKIE_SECURE"] = PRODUCTION
     app.config["SESSION_COOKIE_SAMESITE"] = "None"
     app.config["SESSION_COOKIE_HTTPONLY"] = True
@@ -122,6 +126,12 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
                 g.current_user = user
             else:
                 g.current_user = None
+
+    # Add GraphQL view
+    app.add_url_rule(
+        "/graphql",
+        view_func=GraphQLView.as_view("graphql_view", schema=schema),
+    )
 
     @app.after_request
     def add_cors_headers(res):
