@@ -9,8 +9,6 @@ from .authorization import (
     actions,
     authorize,
     get,
-    object_to_typed_id,
-    oso,
     cache,
     tell,
     bulk_update,

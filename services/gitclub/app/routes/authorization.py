@@ -15,7 +15,7 @@ oso = Oso(url=getenv("OSO_URL", "https://cloud.osohq.com"), api_key=getenv("OSO_
 cache = Cache(config={"CACHE_TYPE": "SimpleCache"})
 
 
-def object_to_typed_id(obj: Any, allow_unbound=False) -> oso_cloud.Value:
+def object_to_oso_value(obj: Any, allow_unbound=False) -> oso_cloud.Value:
     if isinstance(obj, str):
         return {"type": "String", "id": obj}
     elif isinstance(obj, dict):
@@ -37,12 +37,12 @@ def object_to_typed_id(obj: Any, allow_unbound=False) -> oso_cloud.Value:
 def current_user():
     if g.current_user is None:
         raise Unauthorized
-    return object_to_typed_id(g.current_user)
+    return object_to_oso_value(g.current_user)
 
 
 def tell(predicate: str, *args: Any):
     print(f'oso-cloud tell {predicate} {",".join([str(a) for a in args])}')
-    return oso.tell({"name": predicate, "args": [object_to_typed_id(a) for a in args]})
+    return oso.tell({"name": predicate, "args": [object_to_oso_value(a) for a in args]})
 
 
 BulkFact = TypedDict("BulkFact", {"name": str, "args": list[Any]})
@@ -52,12 +52,12 @@ def bulk_update(delete: list[BulkFact] = [], insert: list[BulkFact] = []):
     delete_facts: list[oso_cloud.Fact] = [
         {
             "name": fact["name"],
-            "args": [object_to_typed_id(a, allow_unbound=True) for a in fact["args"]],
+            "args": [object_to_oso_value(a, allow_unbound=True) for a in fact["args"]],
         }
         for fact in delete
     ]
     insert_facts: list[oso_cloud.Fact] = [
-        {"name": fact["name"], "args": [object_to_typed_id(a) for a in fact["args"]]}
+        {"name": fact["name"], "args": [object_to_oso_value(a) for a in fact["args"]]}
         for fact in insert
     ]
     return oso.bulk(delete=delete_facts, tell=insert_facts)
@@ -67,7 +67,7 @@ def authorize(action: str, resource: Any) -> bool:
     if g.current_user is None:
         raise Unauthorized
     actor = current_user()
-    resource = object_to_typed_id(resource)
+    resource = object_to_oso_value(resource)
     try:
         context_facts = []
         if resource["type"] == "Issue":
@@ -87,7 +87,7 @@ def actions(resource: Any) -> List[str]:
     if g.current_user is None:
         return []
     actor = current_user()
-    resource = object_to_typed_id(resource)
+    resource = object_to_oso_value(resource)
     context_facts = []
     try:
         if resource["type"] == "Issue":
@@ -128,14 +128,14 @@ def list_resources(
 def query(predicate: str, *args: Any) -> list[oso_cloud.Fact]:
     print(f'oso-cloud query {predicate} {",".join([str(a) for a in args])}')
     return oso.query(
-        {"name": predicate, "args": [object_to_typed_id(a, True) for a in args]}
+        {"name": predicate, "args": [object_to_oso_value(a, True) for a in args]}
     )
 
 
 def get(predicate: str, *args: Any) -> list[oso_cloud.Fact]:
     print(f'oso-cloud get {predicate} {",".join([str(a) for a in args])}')
     return oso.get(
-        {"name": predicate, "args": [object_to_typed_id(a, True) for a in args]}
+        {"name": predicate, "args": [object_to_oso_value(a, True) for a in args]}
     )
 
 
