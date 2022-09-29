@@ -56,16 +56,22 @@ $ make test
 
 ### Running the services
 
+The first time you run these services, you'll need to upload your policy:
+```console
+make update-policy
+```
+You only need to do this once. (If you make changes to the policy, you'll need to run it again.)
+
 Run GitClub in one terminal:
 
 ```console
 make -C services/gitclub
 ```
 
-Run the Actions Service in another terminal:
+Run the Jobs Service in another terminal:
 
 ```console
-make -C services/actions
+make -C services/jobs
 ```
 
 ## Frontend
@@ -84,12 +90,12 @@ $ yarn start
 
 ## Development
 
-The GitClub service runs on port 5000; the Actions service runs on port 5001.
-The frontend knows to make requests to 5001 for Actions and 5000 for everything
+The GitClub service runs on port 5000; the Jobs service runs on port 5001.
+The frontend knows to make requests to 5001 for Jobs and 5000 for everything
 else. In a real production scenario, these disparate backend APIs would
 probably be abstracted behind an API gateway or similar.
 
-The GitClub service uses cookies to manage sessions. The Actions service looks
+The GitClub service uses cookies to manage sessions. The Jobs service looks
 for a special `x-user-id` header that contains the logged-in user's super secret
 token... which is also their ID... which is also their email. In a production
 scenario, the authentication system should be a lot more secure. It doesn't

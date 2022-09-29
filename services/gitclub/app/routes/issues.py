@@ -1,8 +1,9 @@
 from flask import Blueprint, g, request, jsonify
+from typing import cast
 from werkzeug.exceptions import Forbidden, NotFound
 
 from ..models import Repository, Issue, User
-from .helpers import actions, authorize, list_resources, object_to_typed_id, oso
+from .authorization import actions, authorize, list_resources, object_to_typed_id, oso
 
 bp = Blueprint(
     "issues",
@@ -24,9 +25,13 @@ def index(org_id, repo_id):
         filters.append(Issue.closed == False)
     if "is:closed" in args:
         filters.append(Issue.closed == True)
-    
+
     issue_ids = list_resources("read", "Issue", repo_id)
-    issues = g.session.query(Issue).filter(Issue.repo_id == repo_id, *filters, Issue.id.in_(issue_ids)).order_by(Issue.issue_number)
+    issues = (
+        g.session.query(Issue)
+        .filter(Issue.repo_id == repo_id, *filters, Issue.id.in_(issue_ids))
+        .order_by(Issue.issue_number)
+    )
     return jsonify([issue.as_json() for issue in issues])
 
 
@@ -34,7 +39,7 @@ def index(org_id, repo_id):
 def create(org_id, repo_id):
     if not authorize("read", {"type": "Repository", "id": repo_id}):
         raise NotFound
-    payload = request.get_json(force=True)
+    payload = cast(dict, request.get_json(force=True))
     repo = g.session.get_or_404(Repository, id=repo_id)
     if not authorize("create_issues", repo):
         raise NotFound
@@ -43,11 +48,22 @@ def create(org_id, repo_id):
     g.session.commit()
     oso.bulk_tell(
         [
-            ["has_role", *[object_to_typed_id(arg) for arg in [g.current_user, "creator", issue]]],
-            ["has_relation", *[object_to_typed_id(arg) for arg in [issue, "repository", repo]]],
+            {
+                "name": "has_role",
+                "args": [
+                    object_to_typed_id(arg)
+                    for arg in [g.current_user, "creator", issue]
+                ],
+            },
+            {
+                "name": "has_relation",
+                "args": [
+                    object_to_typed_id(arg) for arg in [issue, "repository", repo]
+                ],
+            },
         ]
     )
-    return issue.as_json(), 201
+    return issue.as_json(), 201  # type: ignore
 
 
 @bp.route("/<int:issue_id>", methods=["GET"])
@@ -63,7 +79,7 @@ def show(org_id, repo_id, issue_id):
 
 @bp.route("/<int:issue_id>", methods=["PATCH"])
 def update(org_id, repo_id, issue_id):
-    payload = request.get_json(force=True)
+    payload = cast(dict, request.get_json(force=True))
     if not authorize("read", {"type": "Repository", "id": repo_id}):
         raise NotFound
     issue = g.session.get_or_404(Issue, id=issue_id, repo_id=repo_id)
@@ -78,4 +94,3 @@ def update(org_id, repo_id, issue_id):
         g.session.add(issue)
         g.session.commit()
     return issue.as_json()
-

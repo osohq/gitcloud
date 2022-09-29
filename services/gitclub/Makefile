@@ -9,6 +9,9 @@ run: venv
 fmt: venv
 	. venv/bin/activate; black .
 
+mypy: venv
+	. venv/bin/activate; mypy app
+
 venv: venv/touchfile
 
 venv/touchfile: requirements.txt

@@ -1,7 +1,7 @@
 {
-  "name": "actions-service",
+  "name": "jobs-service",
   "version": "0.0.0",
-  "description": "A service of actions.",
+  "description": "A service of jobs.",
   "devDependencies": {
     "@types/cookie-session": "^2.0.44",
     "@types/cors": "^2.8.12",
@@ -27,7 +27,7 @@
     "cookie-session": "^2.0.0",
     "cors": "^2.8.5",
     "express": "^4.15.4",
-    "oso-cloud": "^0.9.0",
+    "oso-cloud": "^1.0.0",
     "pg": "^8.7.3",
     "reflect-metadata": "^0.1.10",
     "sqlite3": "^5.0",

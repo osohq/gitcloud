@@ -1,4 +1,5 @@
 from flask import Blueprint, g, request, current_app, jsonify, session as flask_session
+from typing import cast
 from werkzeug.exceptions import BadRequest, Unauthorized
 
 from ..models import User
@@ -13,7 +14,7 @@ def show():
 
 @bp.route("/login", methods=["POST"])
 def create():
-    payload = request.get_json(force=True)
+    payload = cast(dict, request.get_json(force=True))
     if "username" not in payload:
         raise BadRequest
     user = g.session.query(User).filter_by(username=payload["username"]).one_or_none()
