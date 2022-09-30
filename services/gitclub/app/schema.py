@@ -207,6 +207,23 @@ class User:
 
 
 @strawberry.type
+class Event:
+    id: ID
+    type: str
+    data: str
+    created_at: datetime
+
+    @classmethod
+    def from_model(cls, event: models.Event) -> "Event":
+        return cls(
+            id=cast(ID, event.id),
+            type=cast(str, event.type),
+            data=str(event.data),
+            created_at=cast(datetime, event.created_at),
+        )
+
+
+@strawberry.type
 class Query:
     @strawberry.field
     def orgs(self) -> List[Organization]:
@@ -243,22 +260,19 @@ class Query:
         else:
             return None
 
-
-@strawberry.type
-class Event:
-    id: ID
-    type: str
-    data: str
-    created_at: datetime
-
-    @classmethod
-    def from_model(cls, event: models.Event) -> "Event":
-        return cls(
-            id=cast(ID, event.id),
-            type=cast(str, event.type),
-            data=str(event.data),
-            created_at=cast(datetime, event.created_at),
-        )
+    @strawberry.field
+    def events(self, since: Optional[datetime]) -> List[Event]:
+        if since:
+            return list(
+                map(
+                    Event.from_model,
+                    g.session.query(models.Event)
+                    .filter(models.Event.created_at > since)
+                    .all(),
+                )
+            )
+        else:
+            return list(map(Event.from_model, g.session.query(models.Event).all()))
 
 
 @strawberry.type
