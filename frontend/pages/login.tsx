@@ -29,7 +29,7 @@ export default function Login() {
       // router.replace(`/users/${login}`);
       api.login(login == "" ? {} : { username: login }).then(u => {
         setUsername(u.username);
-        router.replace(`/users/${u.username}`);
+        router.replace(`/orgs`);
       })
     } catch (e: any) {
       setError(e);
