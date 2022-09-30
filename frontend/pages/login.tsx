@@ -25,9 +25,12 @@ export default function Login() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     try {
-      setUsername(login);
-      router.replace(`/users/${login}`);
-      api.login({ username: login })
+      // setUsername(login);
+      // router.replace(`/users/${login}`);
+      api.login(login == "" ? {} : { username: login }).then(u => {
+        setUsername(u.username);
+        router.replace(`/users/${u.username}`);
+      })
     } catch (e: any) {
       setError(e);
     }
@@ -48,7 +51,7 @@ export default function Login() {
                   htmlFor="username"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Username
+                  Username (leave empty to log in as a random user)
                 </label>
                 <div className="mt-1">
                   <input
@@ -56,7 +59,7 @@ export default function Login() {
                     name="username"
                     type="username"
                     autoComplete="username"
-                    required
+                    required={false}
                     className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     value={login}
                     onChange={handleChange}
