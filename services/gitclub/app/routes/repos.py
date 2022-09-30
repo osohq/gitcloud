@@ -2,8 +2,10 @@ from flask import Blueprint, g, request, jsonify
 from typing import cast
 from werkzeug.exceptions import NotFound, Forbidden
 
+from ..events import event
+
 from ..models import Repository
-from ..authorization import actions, authorize, list_resources, tell
+from ..authorization import actions, authorize, list_resources, tell, oso
 
 bp = Blueprint("repos", __name__, url_prefix="/orgs/<int:org_id>/repos")
 
@@ -72,5 +74,23 @@ def delete(org_id, repo_id):
         raise Forbidden
     repo = g.session.get_or_404(Repository, id=repo_id, org_id=org_id)
     g.session.delete(repo)
+    oso.bulk(
+        delete=[
+            {
+                "name": "has_role",
+                "args": [{}, {}, {"type": "Repository", "id": str(repo_id)}],
+            },
+            {
+                "name": "has_relation",
+                "args": [{}, {}, {"type": "Repository", "id": str(repo_id)}],
+            },
+            {
+                "name": "has_relation",
+                "args": [{"type": "Repository", "id": str(repo_id)}, {}, {}],
+            },
+        ],
+    )
+    event("delete_repo", {"username": g.current_user.username, "repo_name": repo.name})
+
     g.session.commit()
     return "deleted", 204

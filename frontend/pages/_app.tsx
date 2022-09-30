@@ -62,7 +62,7 @@ const splitLink = split(
     );
   },
   authLink.concat(httpLink),
-  typeof window !== "undefined" ? wsLink() : undefined,
+  // typeof window !== "undefined" ? wsLink() : undefined,
 );
 
 

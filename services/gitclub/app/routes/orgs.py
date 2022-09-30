@@ -2,7 +2,9 @@ from flask import Blueprint, g, request, jsonify
 from typing import cast
 from werkzeug.exceptions import Forbidden, NotFound
 
-from ..models import Organization
+from ..events import event
+
+from ..models import Organization, Event
 from ..authorization import actions, authorize, list_resources, oso, get, cache, tell
 
 bp = Blueprint("orgs", __name__, url_prefix="/orgs")
@@ -35,8 +37,10 @@ def create():
         return "Organization with that name already exists", 400
     org = Organization(**payload)
     if not authorize("create", "Organization"):
+        event("create_org_failed", {"name": org.name})
         raise Forbidden
     g.session.add(org)
+    event("create_org", {"name": org.name})
     g.session.commit()
     tell("has_role", g.current_user, "admin", org)
     return org.as_json(), 201  # type: ignore
@@ -57,9 +61,23 @@ def delete(org_id):
     if not authorize("read", {"type": "Organization", "id": org_id}):
         raise NotFound
     if not authorize("delete", {"type": "Organization", "id": org_id}):
+        event("create_org_failed", {"id": org_id})
         raise Forbidden
     org = g.session.get_or_404(Organization, id=org_id)
     g.session.delete(org)
+    oso.bulk(
+        delete=[
+            {
+                "name": "has_role",
+                "args": [None, None, {"type": "Organization", "id": str(org_id)}],
+            },
+            {
+                "name": "has_relation",
+                "args": [None, None, {"type": "Organization", "id": str(org_id)}],
+            },
+        ],
+    )
+    event("delete_org", {"name": org.name})
     g.session.commit()
     return "deleted", 204
 

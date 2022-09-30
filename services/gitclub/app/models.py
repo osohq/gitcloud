@@ -105,6 +105,7 @@ class Event(Base):
     __tablename__ = "events"
 
     id = Column(Integer, primary_key=True)
+    username = Column(String, ForeignKey("users.username"), index=True)
     type = Column(String(256))
     data = Column(JSON)
 

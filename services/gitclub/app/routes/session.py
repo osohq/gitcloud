@@ -2,7 +2,9 @@ from flask import Blueprint, g, request, current_app, jsonify, session as flask_
 from typing import cast
 from werkzeug.exceptions import BadRequest, Unauthorized
 
-from ..models import User, Event
+from ..events import event
+
+from ..models import User
 
 bp = Blueprint("session", __name__, url_prefix="/session")
 
@@ -22,9 +24,8 @@ def create():
         flask_session.pop("current_username", None)
         raise Unauthorized
 
-    event = Event(type="login", data={"username": user.username})
-    g.session.add(event)
     flask_session["current_username"] = user.username
+    event("login", {"username": user.username})
     return jsonify(user.as_json()), 201
 
 

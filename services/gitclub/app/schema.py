@@ -210,6 +210,7 @@ class User:
 class Event:
     id: ID
     type: str
+    username: Optional[str]
     data: str
     created_at: datetime
 
@@ -217,6 +218,7 @@ class Event:
     def from_model(cls, event: models.Event) -> "Event":
         return cls(
             id=cast(ID, event.id),
+            username=cast(str, event.username) if event.username else None,
             type=cast(str, event.type),
             data=str(event.data),
             created_at=cast(datetime, event.created_at),
