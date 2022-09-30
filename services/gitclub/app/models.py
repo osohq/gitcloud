@@ -1,4 +1,4 @@
-from sqlalchemy.types import Integer, String, Boolean
+from sqlalchemy.types import Integer, String, Boolean, DateTime, JSON
 from sqlalchemy.schema import Column, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.declarative import declarative_base
@@ -62,7 +62,7 @@ class Repository(Base):
     description = Column(String(256))
 
     org_id = Column(Integer, ForeignKey("organizations.id"), index=True)
-    org: Organization = relationship(
+    org = relationship(
         Organization, backref=backref("repos", lazy="joined"), lazy="joined"
     )
 
@@ -99,6 +99,17 @@ class Issue(Base):
 
     creator_id = Column(String, ForeignKey("users.username"), index=True)
     creator: User = relationship(User, backref=backref("issues"))
+
+
+class Event(Base):
+    __tablename__ = "events"
+
+    id = Column(Integer, primary_key=True)
+    type = Column(String(256))
+    data = Column(JSON)
+
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, onupdate=func.now())
 
 
 ### Authorization Models

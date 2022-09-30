@@ -11,17 +11,17 @@ export function OrganizationList({ organizations }: { organizations: Org[] }) {
   const [orgs, setOrgs] = useState<Org[]>(organizations)
   const api = orgApi();
 
-  useEffect(() => {
-    const updateOrgs = async () => {
-      for (const org of orgs) {
-        const userCount = await api.userCount("" + org.id);
-        setOrgs((orgs) => orgs.map(item => item.id === org.id ? ({ ...item, userCount }) : item))
-      }
-    }
-    if (orgs) {
-      updateOrgs()
-    }
-  }, [organizations]); // eslint-disable-line react-hooks/exhaustive-deps
+  // useEffect(() => {
+  //   const updateOrgs = async () => {
+  //     for (const org of orgs) {
+  //       const userCount = await api.userCount("" + org.id);
+  //       setOrgs((orgs) => orgs.map(item => item.id === org.id ? ({ ...item, userCount }) : item))
+  //     }
+  //   }
+  //   if (orgs) {
+  //     updateOrgs()
+  //   }
+  // }, [organizations]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="bg-white shadow overflow-hidden sm:rounded-md">

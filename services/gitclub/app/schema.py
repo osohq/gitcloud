@@ -1,11 +1,13 @@
+import asyncio
 from unittest.util import strclass
 from flask import g
-from typing import Optional, List, cast
+from typing import Any, AsyncGenerator, Dict, Optional, List, cast
 import strawberry
 from strawberry import ID
 import oso_cloud
+from datetime import datetime
 
-from .authorization import query, tell, get
+from .authorization import actions, query, tell, get, cache
 from . import models
 
 # This is the GraphQL Schema object
@@ -13,22 +15,78 @@ schema = None
 
 
 @strawberry.type
+class Issue:
+    id: ID
+    issue_number: int
+    title: str
+    creator: "User"
+    closed: bool
+
+    @classmethod
+    def from_model(cls, issue: models.Issue) -> "Issue":
+        return cls(
+            id=cast(ID, issue.id),
+            issue_number=cast(int, issue.issue_number),
+            title=cast(str, issue.title),
+            creator=cast("User", issue.creator),
+            closed=cast(bool, issue.closed),
+        )
+
+    @strawberry.field
+    def permissions(self) -> List[str]:
+        return actions({"type": "Issue", "id": self.id})
+
+
+@strawberry.type
 class Repository:
     id: ID
     name: str
-    org_id: ID
     issue_count: int
-    permissions: List[str]
 
     @classmethod
     def from_model(cls, repo: models.Repository) -> "Repository":
         return cls(
             id=cast(ID, repo.id),
             name=cast(str, repo.name),
-            org_id=cast(ID, repo.org_id),
             issue_count=repo.issue_count,
-            permissions=[],
         )
+
+    @strawberry.field
+    def issues(self) -> List["Issue"]:
+        return list(
+            map(
+                Issue.from_model,
+                g.session.query(models.Issue).filter_by(org_id=self.id).all(),
+            )
+        )
+
+    @strawberry.field
+    def issue(self, issue_id: ID) -> Optional["Issue"]:
+        if (
+            repo := g.session.query(models.Repository)
+            .filter_by(id=issue_id, repo_id=self.id)
+            .first()
+        ):
+            return Issue.from_model(repo)
+        else:
+            return None
+
+    @strawberry.field
+    def permissions(self) -> List[str]:
+        return actions({"type": "Repository", "id": self.id})
+
+
+@cache.memoize()
+def user_count(org_id):
+    org_users = get(
+        "has_role",
+        {
+            "type": "User",
+        },
+        {},
+        {"type": "Organization", "id": str(org_id)},
+    )
+    return len(list(org_users))
 
 
 @strawberry.type
@@ -38,7 +96,6 @@ class Organization:
     billing_address: str
     repository_count: int
     user_count: Optional[int]
-    permissions: List[str]
 
     @classmethod
     def from_model(cls, org: models.Organization) -> "Organization":
@@ -47,8 +104,7 @@ class Organization:
             name=cast(str, org.name),
             billing_address=cast(str, org.billing_address),
             repository_count=org.repository_count,
-            user_count=None,
-            permissions=[],
+            user_count=user_count(org.id),
         )
 
     @strawberry.field
@@ -59,6 +115,21 @@ class Organization:
                 g.session.query(models.Repository).filter_by(org_id=self.id).all(),
             )
         )
+
+    @strawberry.field
+    def repo(self, repo_id: ID) -> Optional[Repository]:
+        if (
+            repo := g.session.query(models.Repository)
+            .filter_by(id=repo_id, org_id=self.id)
+            .first()
+        ):
+            return Repository.from_model(repo)
+        else:
+            return None
+
+    @strawberry.field
+    def permissions(self) -> List[str]:
+        return actions({"type": "Organization", "id": self.id})
 
 
 @strawberry.input
@@ -136,11 +207,6 @@ class User:
 
 
 @strawberry.type
-class Issue:
-    pass
-
-
-@strawberry.type
 class Query:
     @strawberry.field
     def orgs(self) -> List[Organization]:
@@ -179,6 +245,23 @@ class Query:
 
 
 @strawberry.type
+class Event:
+    id: ID
+    type: str
+    data: str
+    created_at: datetime
+
+    @classmethod
+    def from_model(cls, event: models.Event) -> "Event":
+        return cls(
+            id=cast(ID, event.id),
+            type=cast(str, event.type),
+            data=str(event.data),
+            created_at=cast(datetime, event.created_at),
+        )
+
+
+@strawberry.type
 class Mutation:
     @strawberry.mutation
     def create_organization(self, org: OrganizationInput) -> Organization:
@@ -191,6 +274,14 @@ class Mutation:
             raise Exception("Organization with that name already exists")
         org = models.Organization(name=org.name, billing_address=org.billing_address)
         g.session.add(org)
+        event = models.Event(
+            type="create_org",
+            data={
+                "username": g.current_user.username,
+                "org_name": org.name,
+            },
+        )
+        g.session.add(event)
         g.session.commit()
         tell("has_role", g.current_user, "admin", org)
         return Organization.from_model(org)
@@ -214,13 +305,22 @@ class Mutation:
 
         repo_model = models.Repository(name=repo.name, org_id=repo.org_id)
         g.session.add(repo)
+        event = models.Event(
+            type="create_repo",
+            data={
+                "username": g.current_user.username,
+                "repo_id": repo_model.id,
+            },
+        )
+        g.session.add(event)
         g.session.commit()
+
         repoValue = {"type": "Repository", "id": repo_model.id}
         tell(
             "has_relation",
             repoValue,
             "organization",
-            {"type": "Organization", "id": repo.org_id},
+            {"type": "Organization", "id": repo.name},
         )
         tell("has_role", g.current_user, "admin", repoValue)
         return Repository.from_model(repo_model)
@@ -233,4 +333,26 @@ class Mutation:
         return "deleted"
 
 
-schema = strawberry.Schema(Query, mutation=Mutation)
+@strawberry.type
+class Subscription:
+    @strawberry.subscription
+    async def events(self) -> AsyncGenerator[Event, None]:
+        events = g.session.query(models.Event).order_by(models.Event.created_at)
+        last_time = None
+        for event in events:
+            last_time = event.created_at
+            yield Event.from_model(event)
+
+        while True:
+            events = (
+                g.session.query(models.Event)
+                .filter(models.Event.created_at > last_time)
+                .order_by(models.Event.created_at)
+            )
+            for event in events:
+                last_time = event.created_at
+                yield Event.from_model(event)
+            await asyncio.sleep(1)
+
+
+schema = strawberry.Schema(Query, mutation=Mutation, subscription=Subscription)

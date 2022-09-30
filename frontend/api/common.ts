@@ -4,7 +4,7 @@ import { obj, snakeifyKeys, camelizeKeys } from "../lib/helpers";
 
 type Class<T extends {} = {}> = new (...args: any[]) => T;
 
-const GITCLUB_ROOT =
+export const GITCLUB_ROOT =
   process.env.NEXT_PUBLIC_PRODUCTION == "1"
     ? "https://gitcloud-gitclub.fly.dev"
     : "http://localhost:5000";
@@ -19,6 +19,7 @@ const defaultOpts: RequestInit = {
   },
   credentials: "include",
 };
+
 
 const jsonify = (x: obj) => JSON.stringify(snakeifyKeys(x));
 

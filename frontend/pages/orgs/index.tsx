@@ -1,19 +1,18 @@
-import { org as orgApi } from "../../api";
+import { org as orgApi, useOrgs } from "../../api/org";
 import useUser from "../../lib/useUser";
 import Link from "next/link";
 import { OrganizationList } from "../../components/OrganizationList";
 import LoadingPage from "../../components/LoadingPage";
 import ErrorMessage from "../../components/ErrorMessage";
 
+
 export default function Index() {
   const {
     currentUser: { isLoggedIn },
   } = useUser();
-  const { data: orgs, isLoading, error: orgError } = orgApi().index();
+  // const { data: orgs, isLoading, error: orgError } = orgApi().index();
+  const { orgs, isLoading, error: orgError } = useOrgs();
 
-  if (isLoading) {
-    return <LoadingPage />;
-  }
   if (isLoading) return <LoadingPage />;
   if (orgError) return <ErrorMessage error={orgError} />;
 

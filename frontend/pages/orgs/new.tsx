@@ -4,7 +4,7 @@ import {
   useState,
 } from "react";
 
-import { org as orgApi } from "../../api";
+import { org as orgApi } from "../../api/org";
 import { OrgParams } from "../../models";
 import useUser from "../../lib/useUser";
 import Router from "next/router";

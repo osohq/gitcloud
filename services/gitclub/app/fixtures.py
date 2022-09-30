@@ -365,6 +365,8 @@ def load_fixture_data(session):
             }
         )
 
-    print(oso.bulk_tell(facts=facts))
     session.flush()
     session.commit()
+
+    for idx in range(0, len(facts), 20):
+        print(oso.bulk_tell(facts=facts[idx:idx + 20]))
