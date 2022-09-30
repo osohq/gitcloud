@@ -4,17 +4,27 @@ from flask import g
 from typing import Any, AsyncGenerator, Dict, Optional, List, cast
 import strawberry
 from strawberry import ID
+from strawberry.schema_directive import Location
+
 import oso_cloud
 from datetime import datetime
 
 from .authorization import actions, query, tell, get, cache
 from . import models
 
+
+@strawberry.schema_directive(locations=[Location.OBJECT])
+class Authz:
+    permission: str = "read"
+    resource_type: str
+    resource_field: str = "id"
+
+
 # This is the GraphQL Schema object
 schema = None
 
 
-@strawberry.type
+@strawberry.type(directives=[Authz(resource_type="Issue")])
 class Issue:
     id: ID
     issue_number: int
@@ -37,7 +47,7 @@ class Issue:
         return actions({"type": "Issue", "id": self.id})
 
 
-@strawberry.type
+@strawberry.type(directives=[Authz(resource_type="Repository")])
 class Repository:
     id: ID
     name: str
@@ -89,7 +99,7 @@ def user_count(org_id):
     return len(list(org_users))
 
 
-@strawberry.type
+@strawberry.type(directives=[Authz(resource_type="Organization")])
 class Organization:
     id: ID
     name: str
@@ -144,7 +154,7 @@ class RepositoryInput:
     org_id: ID
 
 
-@strawberry.type
+@strawberry.type(directives=[Authz(resource_type="User")])
 class User:
     username: ID
     email: str
@@ -371,4 +381,4 @@ class Subscription:
             await asyncio.sleep(1)
 
 
-schema = strawberry.Schema(Query, mutation=Mutation, subscription=Subscription)
+schema = strawberry.federation.Schema(Query, mutation=Mutation, subscription=Subscription)
