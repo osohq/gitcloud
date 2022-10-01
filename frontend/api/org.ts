@@ -66,29 +66,6 @@ export function useOrg(id: string) {
   };
 }
 
-export const CREATE_ORG = gql`
-  mutation CreateOrg($name: String!, $billingAddress: String!) {
-    createOrg(name: $name, billingAddress: $billingAddress) {
-      id
-      name
-      billingAddress
-      repositoryCount
-      userCount
-      permissions
-    }
-  }
-`;
-
-export function useCreateOrg() {
-  const [createOrg, { data, loading, error }] = useMutation(CREATE_ORG);
-  return {
-    createOrg: (name: string, billingAddress: string) =>
-      createOrg({ variables: { name, billingAddress } }),
-    org: data?.createOrg,
-    isLoading: loading,
-    error,
-  };
-}
 
 const DELETE_ORG = gql`
   mutation DeleteOrg($id: ID!) {

@@ -2,24 +2,15 @@ from flask import g
 from typing import ClassVar, Optional, List, cast
 import strawberry
 from strawberry import ID
-from strawberry.schema_directive import Location
-from strawberry.federation.schema_directives import FederationDirective, ImportedFrom
 
 import oso_cloud
 from datetime import datetime
 
-from .authorization import actions, query, tell, get, cache
+from .authorization import actions, authorize, list_resources, query, tell, get, cache
 from . import models
 
 
-@strawberry.schema_directive(locations=[Location.OBJECT])
-class Authz:
-    permission: str = "read"
-    resource_type: str
-    resource_field: str = "id"
-
-
-@strawberry.type(directives=[Authz(resource_type="Issue")])
+@strawberry.type
 class Issue:
     id: ID
     issue_number: int
@@ -42,7 +33,7 @@ class Issue:
         return actions({"type": "Issue", "id": self.id})
 
 
-@strawberry.federation.type(directives=[Authz(resource_type="Repository")], keys=["id"])
+@strawberry.federation.type(keys=["id"])
 class Repository:
     id: ID
     name: str
@@ -58,15 +49,18 @@ class Repository:
 
     @strawberry.field
     def issues(self) -> List["Issue"]:
-        return list(
-            map(
-                Issue.from_model,
-                g.session.query(models.Issue).filter_by(repo_id=self.id).all(),
-            )
-        )
+        authorized_issues = list_resources("read", "Issue", parent=int(self.id))
+        issues = g.session.query(models.Issue).filter_by(repo_id=self.id)
+        if not "*" in authorized_issues:
+            issues = issues.filter(models.Issue.id.in_(authorized_issues))
+        return list(map(Issue.from_model, issues.all()))
 
     @strawberry.field
     def issue(self, issue_id: ID) -> Optional["Issue"]:
+        if not authorize(
+            "read", {"type": "Issue", "id": issue_id}, parent=int(self.id)
+        ):
+            return None
         if (
             repo := g.session.query(models.Repository)
             .filter_by(id=issue_id, repo_id=self.id)
@@ -83,18 +77,19 @@ class Repository:
 
 @cache.memoize()
 def user_count(org_id):
-    org_users = get(
-        "has_role",
-        {
-            "type": "User",
-        },
-        {},
-        {"type": "Organization", "id": str(org_id)},
-    )
-    return len(list(org_users))
+    return 0
+    # org_users = get(
+    #     "has_role",
+    #     {
+    #         "type": "User",
+    #     },
+    #     {},
+    #     {"type": "Organization", "id": str(org_id)},
+    # )
+    # return len(list(org_users))
 
 
-@strawberry.type(directives=[Authz(resource_type="Organization")])
+@strawberry.type
 class Organization:
     id: ID
     name: str
@@ -114,15 +109,21 @@ class Organization:
 
     @strawberry.field
     def repos(self) -> List["Repository"]:
+        authorized_repos = list_resources("read", "Repository")
+        repos = g.session.query(models.Repository).filter_by(org_id=self.id)
+        if not "*" in authorized_repos:
+            repos = repos.filter(models.Repository.id.in_(authorized_repos))
         return list(
             map(
                 Repository.from_model,
-                g.session.query(models.Repository).filter_by(org_id=self.id).all(),
+                repos.all(),
             )
         )
 
     @strawberry.field
     def repo(self, repo_id: ID) -> Optional[Repository]:
+        if not authorize("read", {"type": "Repository", "id": repo_id}):
+            return None
         if (
             repo := g.session.query(models.Repository)
             .filter_by(id=repo_id, org_id=self.id)
@@ -149,7 +150,7 @@ class RepositoryInput:
     org_id: ID
 
 
-@strawberry.type(directives=[Authz(resource_type="User")])
+@strawberry.type
 class User:
     username: ID
     email: str
@@ -234,15 +235,21 @@ class Event:
 class Query:
     @strawberry.field
     def orgs(self) -> List[Organization]:
+        authorized_orgs = list_resources("read", "Organization")
+        orgs = g.session.query(models.Organization)
+        if not "*" in authorized_orgs:
+            orgs = orgs.filter(models.Organization.id.in_(authorized_orgs))
         return list(
             map(
                 Organization.from_model,
-                g.session.query(models.Organization).all(),
+                orgs.all(),
             )
         )
 
     @strawberry.field
     def org(self, id: ID) -> Optional[Organization]:
+        if not authorize("read", {"type": "Organization", "id": id}):
+            return None
         if org := g.session.query(models.Organization).filter_by(id=id).first():
             return Organization.from_model(org)
         else:
@@ -250,6 +257,8 @@ class Query:
 
     @strawberry.field
     def repo(self, org_id: ID, repo_id: ID) -> Optional[Repository]:
+        if not authorize("read", {"type": "Repository", "id": repo_id}):
+            return None
         if (
             org := g.session.query(models.Repository)
             .filter_by(id=repo_id, org_id=org_id)
@@ -261,6 +270,8 @@ class Query:
 
     @strawberry.field
     def user(self, username: ID) -> Optional[User]:
+        if not authorize("read", {"type": "User", "id": username}):
+            return None
         user = g.session.query(models.User).filter_by(username=username).first()
         if user:
             return User.from_model(user)
@@ -282,10 +293,25 @@ class Query:
             return list(map(Event.from_model, g.session.query(models.Event).all()))
 
 
+@strawberry.input
+class IssueInput:
+    title: str
+    body: str
+    closed: bool
+    repo_id: ID
+
+
+@strawberry.input
+class UpdateIssueInput:
+    closed: bool
+
+
 @strawberry.type
 class Mutation:
     @strawberry.mutation
     def create_organization(self, org: OrganizationInput) -> Organization:
+        if not authorize("create", "Organization"):
+            raise Exception("Not authorized to create organizations")
         if (
             g.session.query(models.Organization)
             .filter(models.Organization.name == org.name)
@@ -308,14 +334,22 @@ class Mutation:
         return Organization.from_model(org)
 
     @strawberry.mutation
-    def delete_organization(self, id: ID) -> str:
+    def delete_organization(self, id: ID) -> Optional[str]:
+        if not authorize("read", {"type": "Organization", "id": id}):
+            return None
+        if not authorize("delete", {"type": "Organization", "id": id}):
+            raise Exception("Not authorized to delete organizations")
         org = g.session.get_or_404(Organization, id=id)
         g.session.delete(org)
         g.session.commit()
         return "deleted"
 
     @strawberry.mutation
-    def create_repository(self, repo: RepositoryInput) -> Repository:
+    def create_repository(self, repo: RepositoryInput) -> Optional[Repository]:
+        if not authorize("read", {"type": "Organization", "id": id}):
+            return None
+        if not authorize("create_repositories", {"type": "Organization", "id": id}):
+            raise Exception("Not authorized to create repositories")
         if (
             g.session.query(Repository)
             .filter_by(org_id=repo.org_id, name=repo.name)
@@ -347,11 +381,60 @@ class Mutation:
         return Repository.from_model(repo_model)
 
     @strawberry.mutation
-    def delete_repository(self, org_id: ID, id: ID) -> str:
+    def delete_repository(self, org_id: ID, id: ID) -> Optional[str]:
+        if not authorize("read", {"type": "Repository", "id": id}):
+            return None
+        if not authorize("delete", {"type": "Repository", "id": id}):
+            raise Exception("Not authorized to delete repository")
         org = g.session.get_or_404(Repository, repo_id=id, org_id=org_id)
         g.session.delete(org)
         g.session.commit()
         return "deleted"
+
+    @strawberry.mutation
+    def create_issue(self, issue: IssueInput) -> Optional[Issue]:
+        if not authorize("read", {"type": "Repository", "id": issue.repo_id}):
+            return None
+        if not authorize("create_issues", {"type": "Repository", "id": issue.repo_id}):
+            raise Exception("Not authorized to create issues")
+        issue_model = models.Issue(
+            title=issue.title, body=issue.body, repo_id=issue.repo_id
+        )
+        g.session.add(issue_model)
+        event = models.Event(
+            type="create_issue",
+            data={
+                "username": g.current_user.username,
+                "issue_id": issue_model.id,
+            },
+        )
+        g.session.add(event)
+        g.session.commit()
+        return Issue.from_model(issue_model)
+
+    @strawberry.mutation
+    def delete_issue(self, repo_id: ID, id: ID) -> Optional[str]:
+        if not authorize("read", {"type": "Repository", "id": repo_id}):
+            return None
+        if not authorize("delete", {"type": "Issue", "id": id}):
+            raise Exception("Not authorized to delete issue")
+        issue = g.session.get_or_404(Issue, repo_id=repo_id, id=id)
+        g.session.delete(issue)
+        g.session.commit()
+        return "deleted"
+
+    @strawberry.mutation
+    def update_issue(
+        self, repo_id: ID, id: ID, issue: UpdateIssueInput
+    ) -> Optional[Issue]:
+        if not authorize("read", {"type": "Repository", "id": repo_id}):
+            return None
+        if not authorize("manage_issues", {"type": "Issue", "id": id}):
+            raise Exception("Not authorized to manges issues")
+        issue_model = g.session.get_or_404(models.Issue, repo_id=repo_id, id=id)
+        issue_model.closed = issue.closed
+        g.session.commit()
+        return Issue.from_model(issue_model)
 
 
 schema = strawberry.federation.Schema(

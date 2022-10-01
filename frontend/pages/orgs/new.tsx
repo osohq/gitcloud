@@ -4,20 +4,39 @@ import {
   useState,
 } from "react";
 
-import { org as orgApi } from "../../api/org";
 import { OrgParams } from "../../models";
 import useUser from "../../lib/useUser";
 import Router from "next/router";
 import { XCircleIcon } from "@heroicons/react/20/solid";
+import { useMutation, gql } from "@apollo/client";
+import LoadingPage from "../../components/LoadingPage";
+import ErrorMessage from "../../components/ErrorMessage";
+
+export const CREATE_ORG = gql`
+  mutation CreateOrg($org: OrganizationInput!) {
+    createOrganization(org: $org) {
+      id
+    }
+  }
+`;
+
 
 export default function New() {
   const [error, setError] = useState<string[]>([]);
   useUser({ redirectTo: "/login" });
-  const api = orgApi();
+  // const api = orgApi();
+  const [createOrg, { data, loading, error: createError }] = useMutation(CREATE_ORG);
   const [details, setDetails] = useState<OrgParams>({
     name: "",
     billingAddress: "San Diego",
   });
+
+  if (createError) return <ErrorMessage error={createError} />;
+  if (data) {
+    Router.push(`/orgs/${data.createOrganization.id}`);
+  }
+  if (loading) return <LoadingPage />;
+
 
   function validInputs() {
     const { name, billingAddress } = details;
@@ -30,8 +49,9 @@ export default function New() {
     setError([])
     if (!validInputs()) return;
     try {
-      const org = await api.create(details);
-      await Router.push(`/orgs/${org.id}`);
+      await createOrg({
+        variables: { org: details }
+      });
     } catch (e: any) {
       setError([e.message]);
     }

@@ -63,7 +63,7 @@ def bulk_update(delete: list[BulkFact] = [], insert: list[BulkFact] = []):
     return oso.bulk(delete=delete_facts, tell=insert_facts)
 
 
-def authorize(action: str, resource: Any) -> bool:
+def authorize(action: str, resource: Any, parent: Optional[int] = None) -> bool:
     if g.current_user is None:
         raise Unauthorized
     actor = current_user()
@@ -71,7 +71,7 @@ def authorize(action: str, resource: Any) -> bool:
     try:
         context_facts = []
         if resource["type"] == "Issue":
-            context_facts = get_facts_for_issue(None, resource["id"])
+            context_facts = get_facts_for_issue(parent, resource["id"])
         print(f'oso-cloud authorize {actor} {action} {resource} -c "{context_facts}"')
         res = oso.authorize(actor, action, resource, context_facts)
         print("Allowed" if res else "Denied")
