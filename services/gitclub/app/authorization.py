@@ -9,7 +9,7 @@ from sqlalchemy.orm.session import Session
 from sqlalchemy.future import select
 from werkzeug.exceptions import Forbidden, NotFound, Unauthorized
 
-from app.models import Repository, Organization, Issue, OrgRole, RepoRole, User
+from app.models import Issue, User
 
 oso = Oso(url=getenv("OSO_URL", "https://cloud.osohq.com"), api_key=getenv("OSO_AUTH"))
 cache = Cache(config={"CACHE_TYPE": "SimpleCache"})
@@ -173,25 +173,37 @@ def get_facts_for_issue(
     issues = query.all()
     facts: list[oso_cloud.Fact] = []
 
-    for issue in issues:
-        parent: oso_cloud.Value = {"type": "Repository", "id": str(issue.repo_id)}
-        resource: oso_cloud.Value = {"type": "Issue", "id": str(issue.id)}
-
-        has_parent: oso_cloud.Fact = {
-            "name": "has_relation",
-            "args": [resource, "repository", parent],
-        }
-        creator: oso_cloud.Fact = {
-            "name": "has_role",
-            "args": [
-                {"type": "User", "id": str(issue.creator_id)},
-                "creator",
-                resource,
-            ],
-        }
-        closed: list[oso_cloud.Fact] = (
-            [{"name": "is_closed", "args": [resource]}] if issue.closed else []
+    if repo_id is not None:
+        facts.append(
+            {
+                "name": "in_repo_context",
+                "args": [
+                    {"type": "Repository", "id": str(repo_id)},
+                ],
+            }
         )
-        facts.extend([has_parent, creator, *closed])
+    else:
+        for issue in issues:
+            parent: oso_cloud.Value = {"type": "Repository", "id": str(issue.repo_id)}
+            resource: oso_cloud.Value = {"type": "Issue", "id": str(issue.id)}
+
+            has_parent: oso_cloud.Fact = {
+                "name": "has_relation",
+                "args": [resource, "repository", parent],
+            }
+
+            creator: oso_cloud.Fact = {
+                "name": "has_role",
+                "args": [
+                    {"type": "User", "id": str(issue.creator_id)},
+                    "creator",
+                    resource,
+                ],
+            }
+
+            closed: list[oso_cloud.Fact] = (
+                [{"name": "is_closed", "args": [resource]}] if issue.closed else []
+            )
+            facts.extend([has_parent, creator, *closed])
 
     return facts

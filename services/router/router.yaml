@@ -1,0 +1,39 @@
+telemetry:
+  tracing:
+    trace_config:
+      service_name: "router"
+      service_namespace: "apollo"
+      # Optional. Either a float between 0 and 1 or 'always_on' or 'always_off'
+      sampler: 1
+
+      # Optional. Use a parent based sampler. This enables remote spans help make a decision on if a span is sampeld or not.
+      # https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#parentbased
+      parent_based_sampler: false
+    otlp:
+      # Either 'default' or a URL
+      endpoint: https://api.honeycomb.io:443
+      protocol: http
+      http:
+        headers:
+          x-honeycomb-team: "${env.HONEYCOMB_API_KEY}"
+      timeout: 1s
+cors:
+  # Set to true to allow any origin (not that browsers will accept that)
+  # (Defaults to false)
+  allow_any_origin: false
+  # List of accepted origins
+  origins:
+    - http://localhost:8000
+    - https://studio.apollographql.com
+    - https://gitcloud.vercel.app
+  allow_credentials: true
+supergraph:
+  listen: 0.0.0.0:4000
+  introspection: true
+include_subgraph_errors:
+  all: true # Propagate errors from all subgraphs
+headers:
+  all: # Header rules for all subgraphs
+    request:
+      - propagate:
+          matching: .*

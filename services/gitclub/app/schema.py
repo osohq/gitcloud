@@ -1,10 +1,13 @@
 import asyncio
+from cgitb import enable
 from unittest.util import strclass
 from flask import g
-from typing import Any, AsyncGenerator, Dict, Optional, List, cast
+from typing import Any, AsyncGenerator, ClassVar, Dict, Optional, List, cast
 import strawberry
 from strawberry import ID
-from strawberry.schema_directive import Location
+from strawberry.schema_directive import Location, schema_directive
+from strawberry.federation.schema_directives import FederationDirective, ImportedFrom
+from strawberry.federation.types import FieldSet
 
 import oso_cloud
 from datetime import datetime
@@ -13,15 +16,25 @@ from .authorization import actions, query, tell, get, cache
 from . import models
 
 
+@strawberry.schema_directive(
+    locations=[Location.SCHEMA],
+    name="composeDirective",
+    print_definition=False,
+)
+class ComposeDirective(FederationDirective):
+    name: str
+    # fields: FieldSet
+    # resolvable: Optional[bool] = True
+    imported_from: ClassVar[ImportedFrom] = ImportedFrom(
+        name="composeDirective", url="https://specs.apollo.dev/federation/v2.1"
+    )
+
+
 @strawberry.schema_directive(locations=[Location.OBJECT])
 class Authz:
     permission: str = "read"
     resource_type: str
     resource_field: str = "id"
-
-
-# This is the GraphQL Schema object
-schema = None
 
 
 @strawberry.type(directives=[Authz(resource_type="Issue")])
@@ -207,7 +220,7 @@ class User:
             )
         )
         repo_models = []
-        if "_" in repoIds:
+        if "*" in repoIds:
             repo_models = g.session.query(models.Repository)
         else:
             repo_models = g.session.query(models.Repository).filter(
@@ -359,26 +372,6 @@ class Mutation:
         return "deleted"
 
 
-@strawberry.type
-class Subscription:
-    @strawberry.subscription
-    async def events(self) -> AsyncGenerator[Event, None]:
-        events = g.session.query(models.Event).order_by(models.Event.created_at)
-        last_time = None
-        for event in events:
-            last_time = event.created_at
-            yield Event.from_model(event)
-
-        while True:
-            events = (
-                g.session.query(models.Event)
-                .filter(models.Event.created_at > last_time)
-                .order_by(models.Event.created_at)
-            )
-            for event in events:
-                last_time = event.created_at
-                yield Event.from_model(event)
-            await asyncio.sleep(1)
-
-
-schema = strawberry.federation.Schema(Query, mutation=Mutation, subscription=Subscription)
+schema = strawberry.federation.Schema(
+    Query, mutation=Mutation, enable_federation_2=True
+)
