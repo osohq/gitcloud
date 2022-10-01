@@ -20,7 +20,7 @@ import { DeepPartial } from "typeorm/common/DeepPartial";
 const path = require("path");
 
 class User {
-  constructor(readonly username: string) {}
+  constructor(readonly username: string) { }
 }
 
 // Type screwery to get TS to stop complaining.
@@ -69,13 +69,10 @@ export const db = PRODUCTION_DB ? pgDataSource : localDataSource;
 
     // Make current user available on request object.
     app.use((req: Request, res, next) => {
-      if (req.path == "/graphql") {
-        return next();
+      if (req.headers["x-user-id"]) {
+        req.user = new User(req.header("x-user-id"));
       }
 
-      if (!req.headers["x-user-id"]) return res.status(404).send("Not Found");
-
-      req.user = new User(req.header("x-user-id"));
       next();
     });
 
