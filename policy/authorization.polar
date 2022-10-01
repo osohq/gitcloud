@@ -1,6 +1,6 @@
 actor User { }
 
-resource Organization { 
+resource Organization {
     permissions = [
         "read",
         "read_details",
@@ -22,7 +22,7 @@ resource Organization {
     "delete" if "admin";
 }
 
-resource Repository { 
+resource Repository {
     permissions = [
         "read", "create", "update", "delete",
         "invite", "write",
@@ -55,7 +55,7 @@ resource Repository {
     "invite" if "admin" ;
 }
 
-resource Issue { 
+resource Issue {
     permissions = ["read", "comment", "close"];
     roles = ["reader", "admin", "creator"];
     relations = { repository: Repository };
@@ -67,7 +67,7 @@ resource Issue {
     "comment" if "admin";
     "close" if "creator";
     "close" if "admin";
-    
+
 }
 
 has_permission(_: Actor, "read", repo: Repository) if

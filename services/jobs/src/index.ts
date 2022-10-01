@@ -125,10 +125,17 @@ export const db = PRODUCTION_DB ? pgDataSource : localDataSource;
 
         type Query {
           listJobs(repoId: ID!): [Job]!
+        }
+        type Mutation {
           createJob(name: String!, repoId: ID!): Job!
           cancelJob(id: ID!): Job!
         }
       `,
+      context: ({ req }) => {
+        return {
+          username: req.user.username,
+        };
+      },
       resolvers: {
         Query: {
           createJob: async (parent, args, context, info) => {
@@ -138,7 +145,7 @@ export const db = PRODUCTION_DB ? pgDataSource : localDataSource;
               status: "scheduled",
               repoId,
               name,
-              creatorId: context.userId || "unknown",
+              creatorId: context.username || "unknown",
             } as DeepPartial<Job>);
             job = await jobsRepo.save(job);
             return job;
