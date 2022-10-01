@@ -5,6 +5,7 @@ import Layout from "../components/Layout";
 
 import { ApolloClient, InMemoryCache, ApolloProvider, createHttpLink } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
+import { ROUTER_ROOT } from "../api/common";
 
 
 export type NextPageWithTitle = NextPage & {
@@ -16,8 +17,7 @@ type AppPropsWithTitle = AppProps & {
 };
 
 const httpLink = createHttpLink({
-  // uri: GITCLUB_ROOT + "/graphql",
-  uri: 'http://localhost:4000/',
+  uri: ROUTER_ROOT,
   credentials: 'include'
 });
 
