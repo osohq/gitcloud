@@ -7,7 +7,7 @@ type Job {
   id: ID!
   name: String!
   status: String!
-  repoId: String!
+  repoId: ID!
   creatorId: String!
   createdAt: String!
   updatedAt: String!

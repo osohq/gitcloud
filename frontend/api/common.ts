@@ -4,7 +4,11 @@ import { obj, snakeifyKeys, camelizeKeys } from "../lib/helpers";
 
 type Class<T extends {} = {}> = new (...args: any[]) => T;
 
-export const GITCLUB_ROOT =
+export const ROUTER_ROOT =
+  process.env.NEXT_PUBLIC_PRODUCTION == "1"
+    ? "https://gitcloud-router.fly.dev"
+    : "http://localhost:4000";
+const GITCLUB_ROOT =
   process.env.NEXT_PUBLIC_PRODUCTION == "1"
     ? "https://gitcloud-gitclub.fly.dev"
     : "http://localhost:5000";
