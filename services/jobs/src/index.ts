@@ -14,6 +14,8 @@ import { resetData } from "./test";
 import { pgDataSource } from "./prodDb";
 import { localDataSource } from "./localDb";
 import { RdbmsSchemaBuilder } from "typeorm/schema-builder/RdbmsSchemaBuilder";
+import { Job } from "./entities/Job";
+import { DeepPartial } from "typeorm/common/DeepPartial";
 
 class User {
   constructor(readonly username: string) {}
@@ -111,13 +113,68 @@ export const db = PRODUCTION_DB ? pgDataSource : localDataSource;
     // start express server
     const graphQLServer = new ApolloServer({
       typeDefs: gql`
+        type Job {
+          id: ID!
+          name: String!
+          status: String!
+          repoId: String!
+          creatorId: String!
+          createdAt: String!
+          updatedAt: String!
+        }
+
         type Query {
-          hello: String!
+          listJobs(repoId: ID!): [Job]!
+          createJob(name: String!, repoId: ID!): Job!
+          cancelJob(id: ID!): Job!
         }
       `,
       resolvers: {
         Query: {
-          hello: () => "hello world",
+          createJob: async (parent, args, context, info) => {
+            const jobsRepo = db.getRepository(Job);
+            let { name, repoId } = args;
+            let job = jobsRepo.create({
+              status: "scheduled",
+              repoId,
+              name,
+              creatorId: context.userId || "unknown",
+            } as DeepPartial<Job>);
+            job = await jobsRepo.save(job);
+            return job;
+          },
+          cancelJob: async (parent, args, context, info) => {
+            const jobsRepo = db.getRepository(Job);
+            const job = await jobsRepo.findOneOrFail({
+              where: { id: parseInt(args.id) },
+            });
+            await jobsRepo.update(job.id, { status: "canceled" });
+
+            const cancelled = await jobsRepo.findOneBy({ id: job.id });
+            return cancelled;
+          },
+          listJobs: async (parent, args, context, info) => {
+            const jobs = await db
+              .createQueryBuilder()
+              .select("job")
+              .from(Job, "job")
+              .where({
+                repoId: args.repoId,
+              })
+              .orderBy("job.createdAt", "DESC")
+              .getMany();
+
+            // const cancelableIds: string[] = await oso.list({ type: "User", id: user.username }, "cancel", "Job");
+            const cancelableIds = ["*"];
+
+            return jobs.map((a) => ({
+              ...a,
+              cancelable:
+                (a.status === "scheduled" || a.status === "running") &&
+                (cancelableIds.includes(a.id.toString()) ||
+                  cancelableIds.includes("*")),
+            }));
+          },
         },
       },
       introspection: true,
