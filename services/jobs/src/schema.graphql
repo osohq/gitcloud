@@ -1,7 +1,18 @@
+extend schema
+  @link(url: "https://specs.apollo.dev/federation/v2.0",
+        import: ["@key"])
+
+
 directive @authorize(
   permission: String!
   resource: String!
 ) on OBJECT | FIELD_DEFINITION
+
+type Repository @key(fields: "id") {
+  id: ID!
+
+  jobs: [Job]!
+}
 
 type Job {
   id: ID!

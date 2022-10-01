@@ -3,9 +3,9 @@ import http, { Server } from "http";
 import * as bodyParser from "body-parser";
 import cors from "cors";
 import { Oso } from "oso-cloud";
-import { ApolloServer, gql } from "apollo-server-express";
+import { ApolloServer } from "apollo-server-express";
+import { buildSubgraphSchema } from '@apollo/subgraph';
 import {
-  ApolloServerPluginLandingPageLocalDefault,
   ApolloServerPluginLandingPageGraphQLPlayground,
 } from "apollo-server-core";
 import { loadFiles } from "@graphql-tools/load-files";
@@ -14,10 +14,8 @@ import { jobsRouter, Repo } from "./routes/jobs";
 import { resetData } from "./test";
 import { pgDataSource } from "./prodDb";
 import { localDataSource } from "./localDb";
-import { RdbmsSchemaBuilder } from "typeorm/schema-builder/RdbmsSchemaBuilder";
 import { Job } from "./entities/Job";
 import { DeepPartial } from "typeorm/common/DeepPartial";
-const { makeExecutableSchema } = require("@graphql-tools/schema");
 import AuthorizeDirective from "./directive";
 
 const path = require("path");
@@ -112,71 +110,83 @@ export const db = PRODUCTION_DB ? pgDataSource : localDataSource;
 
     app.use("/orgs/:orgId/repos/:repoId/jobs", jobsRouter);
 
-    const schema = new makeExecutableSchema({
-      typeDefs: await loadFiles(path.join(__dirname, "*.graphql")),
-      resolvers: {
-        Mutation: {
-          createJob: async (parent, args, context, info) => {
-            const jobsRepo = db.getRepository(Job);
-            let { name, repoId } = args;
-            let job = jobsRepo.create({
-              status: "scheduled",
-              repoId,
-              name,
-              creatorId: context.username || "unknown",
-            } as DeepPartial<Job>);
-            job = await jobsRepo.save(job);
-            return job;
-          },
-          cancelJob: async (parent, args, context, info) => {
-            const jobsRepo = db.getRepository(Job);
-            const job = await jobsRepo.findOneOrFail({
-              where: { id: parseInt(args.id) },
-            });
-            await jobsRepo.update(job.id, { status: "canceled" });
+    const typeDefs = await loadFiles(path.join(__dirname, "*.graphql"));
 
-            const cancelled = await jobsRepo.findOneBy({ id: job.id });
-            return cancelled;
-          },
+    const getJobs = async (repoId: string) => {
+      const jobs = await db
+        .createQueryBuilder()
+        .select("job")
+        .from(Job, "job")
+        .where({
+          repoId,
+        })
+        .orderBy("job.createdAt", "DESC")
+        .getMany();
+
+      // const cancelableIds: string[] = await oso.list({ type: "User", id: user.username }, "cancel", "Job");
+      const cancelableIds = ["*"];
+
+      return jobs.map((a) => ({
+        ...a,
+        cancelable:
+          (a.status === "scheduled" || a.status === "running") &&
+          (cancelableIds.includes(a.id.toString()) ||
+            cancelableIds.includes("*")),
+      }));
+    }
+
+    const resolvers = {
+      Mutation: {
+        createJob: async (parent, args, context, info) => {
+          const jobsRepo = db.getRepository(Job);
+          let { name, repoId } = args;
+          let job = jobsRepo.create({
+            status: "scheduled",
+            repoId,
+            name,
+            creatorId: context['username'] || "unknown",
+          } as DeepPartial<Job>);
+          job = await jobsRepo.save(job);
+          return job;
         },
-        Query: {
-          listJobs: async (parent, args, context, info) => {
-            const jobs = await db
-              .createQueryBuilder()
-              .select("job")
-              .from(Job, "job")
-              .where({
-                repoId: args.repoId,
-              })
-              .orderBy("job.createdAt", "DESC")
-              .getMany();
+        cancelJob: async (parent, args, context, info) => {
+          const jobsRepo = db.getRepository(Job);
+          const job = await jobsRepo.findOneOrFail({
+            where: { id: parseInt(args.id) },
+          });
+          await jobsRepo.update(job.id, { status: "canceled" });
 
-            // const cancelableIds: string[] = await oso.list({ type: "User", id: user.username }, "cancel", "Job");
-            const cancelableIds = ["*"];
-
-            return jobs.map((a) => ({
-              ...a,
-              cancelable:
-                (a.status === "scheduled" || a.status === "running") &&
-                (cancelableIds.includes(a.id.toString()) ||
-                  cancelableIds.includes("*")),
-            }));
-          },
+          const cancelled = await jobsRepo.findOneBy({ id: job.id });
+          return cancelled;
         },
       },
-    });
-    const authorizedSchema = AuthorizeDirective(schema);
-    const graphQLServer = new ApolloServer({
-      schema: authorizedSchema,
-      context: ({ req }) => {
-        return {
-          username: req?.user?.username,
-        };
+      Repository: {
+        async __resolveReference(repo) {
+          return {
+            id: repo.id,
+            jobs: await getJobs(repo.id),
+          }
+        },
       },
-      introspection: true,
-      plugins: [ApolloServerPluginLandingPageGraphQLPlayground()],
-    });
+      Query: {
+        listJobs: async (parent, args, context, info) => {
+          return await getJobs(args.repoId)
+        },
+      },
+    };
 
+    const schema = AuthorizeDirective(buildSubgraphSchema({ typeDefs, resolvers, }));
+    const graphQLServer = new ApolloServer(
+      {
+        schema,
+        context: ({ req }) => {
+          return {
+            username: req?.user?.username,
+          };
+        },
+        introspection: true,
+        plugins: [ApolloServerPluginLandingPageGraphQLPlayground()],
+      });
     await graphQLServer.start();
     graphQLServer.applyMiddleware({ app, path: "/graphql" });
     await app.listen(5001, "0.0.0.0");

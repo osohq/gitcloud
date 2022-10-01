@@ -1,33 +1,15 @@
-import asyncio
-from cgitb import enable
-from unittest.util import strclass
 from flask import g
-from typing import Any, AsyncGenerator, ClassVar, Dict, Optional, List, cast
+from typing import ClassVar, Optional, List, cast
 import strawberry
 from strawberry import ID
-from strawberry.schema_directive import Location, schema_directive
+from strawberry.schema_directive import Location
 from strawberry.federation.schema_directives import FederationDirective, ImportedFrom
-from strawberry.federation.types import FieldSet
 
 import oso_cloud
 from datetime import datetime
 
 from .authorization import actions, query, tell, get, cache
 from . import models
-
-
-@strawberry.schema_directive(
-    locations=[Location.SCHEMA],
-    name="composeDirective",
-    print_definition=False,
-)
-class ComposeDirective(FederationDirective):
-    name: str
-    # fields: FieldSet
-    # resolvable: Optional[bool] = True
-    imported_from: ClassVar[ImportedFrom] = ImportedFrom(
-        name="composeDirective", url="https://specs.apollo.dev/federation/v2.1"
-    )
 
 
 @strawberry.schema_directive(locations=[Location.OBJECT])
@@ -60,7 +42,7 @@ class Issue:
         return actions({"type": "Issue", "id": self.id})
 
 
-@strawberry.type(directives=[Authz(resource_type="Repository")])
+@strawberry.federation.type(directives=[Authz(resource_type="Repository")], keys=["id"])
 class Repository:
     id: ID
     name: str
@@ -79,7 +61,7 @@ class Repository:
         return list(
             map(
                 Issue.from_model,
-                g.session.query(models.Issue).filter_by(org_id=self.id).all(),
+                g.session.query(models.Issue).filter_by(repo_id=self.id).all(),
             )
         )
 
@@ -220,7 +202,7 @@ class User:
             )
         )
         repo_models = []
-        if "*" in repoIds:
+        if "_" in repoIds:
             repo_models = g.session.query(models.Repository)
         else:
             repo_models = g.session.query(models.Repository).filter(
