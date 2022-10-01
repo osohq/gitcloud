@@ -8,6 +8,7 @@ import {
   ApolloServerPluginLandingPageLocalDefault,
   ApolloServerPluginLandingPageGraphQLPlayground,
 } from "apollo-server-core";
+import { loadFiles } from "@graphql-tools/load-files";
 
 import { jobsRouter, Repo } from "./routes/jobs";
 import { resetData } from "./test";
@@ -16,6 +17,7 @@ import { localDataSource } from "./localDb";
 import { RdbmsSchemaBuilder } from "typeorm/schema-builder/RdbmsSchemaBuilder";
 import { Job } from "./entities/Job";
 import { DeepPartial } from "typeorm/common/DeepPartial";
+const path = require("path");
 
 class User {
   constructor(readonly username: string) {}
@@ -112,32 +114,14 @@ export const db = PRODUCTION_DB ? pgDataSource : localDataSource;
 
     // start express server
     const graphQLServer = new ApolloServer({
-      typeDefs: gql`
-        type Job {
-          id: ID!
-          name: String!
-          status: String!
-          repoId: String!
-          creatorId: String!
-          createdAt: String!
-          updatedAt: String!
-        }
-
-        type Query {
-          listJobs(repoId: ID!): [Job]!
-        }
-        type Mutation {
-          createJob(name: String!, repoId: ID!): Job!
-          cancelJob(id: ID!): Job!
-        }
-      `,
+      typeDefs: await loadFiles(path.join(__dirname, "*.graphql")),
       context: ({ req }) => {
         return {
-          username: req.user.username,
+          username: req?.user?.username,
         };
       },
       resolvers: {
-        Query: {
+        Mutation: {
           createJob: async (parent, args, context, info) => {
             const jobsRepo = db.getRepository(Job);
             let { name, repoId } = args;
@@ -160,6 +144,8 @@ export const db = PRODUCTION_DB ? pgDataSource : localDataSource;
             const cancelled = await jobsRepo.findOneBy({ id: job.id });
             return cancelled;
           },
+        },
+        Query: {
           listJobs: async (parent, args, context, info) => {
             const jobs = await db
               .createQueryBuilder()
