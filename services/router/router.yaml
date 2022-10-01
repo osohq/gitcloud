@@ -11,11 +11,12 @@ telemetry:
       parent_based_sampler: false
     otlp:
       # Either 'default' or a URL
-      endpoint: https://api.honeycomb.io
+      endpoint: https://api.honeycomb.io:443
       protocol: http
       http:
         headers:
           x-honeycomb-team: "${env.HONEYCOMB_API_KEY}"
+      timeout: 1s
 cors:
   # Set to true to allow any origin (not that browsers will accept that)
   # (Defaults to false)

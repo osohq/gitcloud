@@ -20,4 +20,4 @@ venv/touchfile: requirements.txt
 	touch $@
 
 publish-subgraph: venv
-	. venv/bin/activate; strawberry export-schema app.schema > gitclub.graphql
+	. venv/bin/activate; OSO_AUTH="123" strawberry export-schema app.schema > gitclub.graphql
