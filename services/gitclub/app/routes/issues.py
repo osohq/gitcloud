@@ -27,11 +27,12 @@ def index(org_id, repo_id):
         filters.append(Issue.closed == True)
 
     issue_ids = list_resources("read", "Issue", repo_id)
-    issues = (
-        g.session.query(Issue)
-        .filter(Issue.repo_id == repo_id, *filters, Issue.id.in_(issue_ids))
-        .order_by(Issue.issue_number)
-    )
+    query = g.session.query(Issue).filter_by(repo_id=repo_id)
+
+    if not "*" in issue_ids:
+        query = query.filter(Issue.id.in_(issue_ids))
+
+    issues = query.order_by(Issue.issue_number).all()
     return jsonify([issue.as_json() for issue in issues])
 
 

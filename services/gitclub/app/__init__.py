@@ -1,4 +1,3 @@
-import asyncio
 from datetime import timedelta
 import os
 from typing import Any
@@ -19,10 +18,7 @@ from .schema import schema as graphql_schema
 from .fixtures import load_fixture_data
 from .authorization import oso, cache
 from .tracing import instrument_app
-from asgiref.wsgi import WsgiToAsgi
-from strawberry.asgi import GraphQL
-from strawberry.flask.views import AsyncGraphQLView
-from strawberry.subscriptions import GRAPHQL_TRANSPORT_WS_PROTOCOL, GRAPHQL_WS_PROTOCOL
+from strawberry.flask.views import GraphQLView
 
 PRODUCTION = os.environ.get("PRODUCTION", "0") == "1"
 PRODUCTION_DB = os.environ.get("PRODUCTION_DB", PRODUCTION)
@@ -151,7 +147,7 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
     # Add GraphQL view
     app.add_url_rule(
         "/graphql",
-        view_func=AsyncGraphQLView.as_view(
+        view_func=GraphQLView.as_view(
             "graphql_view",
             schema=graphql_schema,
         ),
@@ -163,53 +159,3 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
 if __name__ == "__main__":
     app = create_app()
     app.run()
-
-
-def asgi_app():
-    return GraphQL(graphql_schema)
-
-
-# from strawberry.http import GraphQLHTTPResponse
-# from strawberry.types import ExecutionResult
-
-# from graphql.error.graphql_error import format_error as format_graphql_error
-
-
-# class MyGraphQL(GraphQL):
-#     async def process_result(
-#         self, request: Any, result: ExecutionResult
-#     ) -> GraphQLHTTPResponse:
-#         data: GraphQLHTTPResponse = {"data": result.data}
-
-#         if result.errors:
-#             data["errors"] = [format_graphql_error(err) for err in result.errors]
-
-#         return data
-
-
-# from starlette.applications import Starlette
-# from starlette.websockets import WebSocket
-
-# graphql_app = GraphQL(graphql_schema)
-
-
-# # def asgi_app():
-
-
-# def asgi_app():
-#     graphql_app = MyGraphQL(
-#         schema=graphql_schema,
-#         debug=True,
-#         keep_alive=True,
-#         subscription_protocols=[GRAPHQL_TRANSPORT_WS_PROTOCOL, GRAPHQL_WS_PROTOCOL],
-#     )
-#     app = Starlette()
-#     # async def app(scope, receive, send):
-#     #     websocket = WebSocket(scope=scope, receive=receive, send=send)
-#     #     await websocket.accept()
-#     #     await websocket.send_text("Hello, world!")
-#     #     await websocket.close()
-
-#     app.add_route("/graphql", graphql_app)
-#     app.add_websocket_route("/graphql", graphql_app)
-#     return app
