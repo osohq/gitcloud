@@ -122,3 +122,5 @@ has_role(actor: Actor, role: String, repo: Repository) if
     has_relation(repo, "organization", org) and
     has_default_role(org, role) and
     has_role(actor, "member", org);
+
+declare has_relation(Repository, String, Organization);

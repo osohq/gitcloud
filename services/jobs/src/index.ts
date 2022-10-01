@@ -1,15 +1,22 @@
 import express, { ErrorRequestHandler, Request } from "express";
+import http, { Server } from "http";
 import * as bodyParser from "body-parser";
 import cors from "cors";
 import { Oso } from "oso-cloud";
+import { ApolloServer, gql } from "apollo-server-express";
+import {
+  ApolloServerPluginLandingPageLocalDefault,
+  ApolloServerPluginLandingPageGraphQLPlayground,
+} from "apollo-server-core";
 
 import { jobsRouter, Repo } from "./routes/jobs";
 import { resetData } from "./test";
 import { pgDataSource } from "./prodDb";
 import { localDataSource } from "./localDb";
+import { RdbmsSchemaBuilder } from "typeorm/schema-builder/RdbmsSchemaBuilder";
 
 class User {
-  constructor(readonly username: string) { }
+  constructor(readonly username: string) {}
 }
 
 // Type screwery to get TS to stop complaining.
@@ -21,11 +28,12 @@ declare module "express" {
   }
 }
 
-
 const PRODUCTION = process.env.PRODUCTION == "1";
 const PRODUCTION_DB = process.env.PRODUCTION_DB == "1";
 // const TRACING = process.env.TRACING == "1";
-const WEB_URL = PRODUCTION ? "https://gitcloud.vercel.app" : process.env.WEB_URL || "http://localhost:8000";
+const WEB_URL = PRODUCTION
+  ? "https://gitcloud.vercel.app"
+  : process.env.WEB_URL || "http://localhost:8000";
 
 export const db = PRODUCTION_DB ? pgDataSource : localDataSource;
 
@@ -44,6 +52,7 @@ export const db = PRODUCTION_DB ? pgDataSource : localDataSource;
 
     // create express app
     const app = express();
+
     app.use(
       cors({
         origin: WEB_URL,
@@ -56,6 +65,10 @@ export const db = PRODUCTION_DB ? pgDataSource : localDataSource;
 
     // Make current user available on request object.
     app.use((req: Request, res, next) => {
+      if (req.path == "/graphql") {
+        return next();
+      }
+
       if (!req.headers["x-user-id"]) return res.status(404).send("Not Found");
 
       req.user = new User(req.header("x-user-id"));
@@ -96,8 +109,27 @@ export const db = PRODUCTION_DB ? pgDataSource : localDataSource;
     app.use("/orgs/:orgId/repos/:repoId/jobs", jobsRouter);
 
     // start express server
-    app.listen(5001, "0.0.0.0");
-    console.log("Express server has started on port 5001.");
+    const graphQLServer = new ApolloServer({
+      typeDefs: gql`
+        type Query {
+          hello: String!
+        }
+      `,
+      resolvers: {
+        Query: {
+          hello: () => "hello world",
+        },
+      },
+      introspection: true,
+      plugins: [ApolloServerPluginLandingPageGraphQLPlayground()],
+    });
+    await graphQLServer.start();
+    graphQLServer.applyMiddleware({ app, path: "/graphql" });
+    await app.listen(5001, "0.0.0.0");
+
+    console.log(
+      `🚀 Server ready at http://localhost:5001${graphQLServer.graphqlPath}`
+    );
   } catch (e) {
     console.error(e);
   }
