@@ -17,6 +17,9 @@ import { localDataSource } from "./localDb";
 import { RdbmsSchemaBuilder } from "typeorm/schema-builder/RdbmsSchemaBuilder";
 import { Job } from "./entities/Job";
 import { DeepPartial } from "typeorm/common/DeepPartial";
+const { makeExecutableSchema } = require("@graphql-tools/schema");
+import AuthorizeDirective from "./directive";
+
 const path = require("path");
 
 class User {
@@ -112,14 +115,8 @@ export const db = PRODUCTION_DB ? pgDataSource : localDataSource;
 
     app.use("/orgs/:orgId/repos/:repoId/jobs", jobsRouter);
 
-    // start express server
-    const graphQLServer = new ApolloServer({
+    const schema = new makeExecutableSchema({
       typeDefs: await loadFiles(path.join(__dirname, "*.graphql")),
-      context: ({ req }) => {
-        return {
-          username: req?.user?.username,
-        };
-      },
       resolvers: {
         Mutation: {
           createJob: async (parent, args, context, info) => {
@@ -170,9 +167,19 @@ export const db = PRODUCTION_DB ? pgDataSource : localDataSource;
           },
         },
       },
+    });
+    const authorizedSchema = AuthorizeDirective(schema);
+    const graphQLServer = new ApolloServer({
+      schema: authorizedSchema,
+      context: ({ req }) => {
+        return {
+          username: req?.user?.username,
+        };
+      },
       introspection: true,
       plugins: [ApolloServerPluginLandingPageGraphQLPlayground()],
     });
+
     await graphQLServer.start();
     graphQLServer.applyMiddleware({ app, path: "/graphql" });
     await app.listen(5001, "0.0.0.0");

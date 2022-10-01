@@ -1,3 +1,8 @@
+directive @authorize(
+  permission: String!
+  resource: String!
+) on OBJECT | FIELD_DEFINITION
+
 type Job {
   id: ID!
   name: String!
@@ -13,5 +18,6 @@ type Query {
 }
 type Mutation {
   createJob(name: String!, repoId: ID!): Job!
-  cancelJob(id: ID!): Job!
+    @authorize(permission: "create_job", resource: "Repository")
+  cancelJob(id: ID!): Job! @authorize(permission: "cancel", resource: "Job")
 }
