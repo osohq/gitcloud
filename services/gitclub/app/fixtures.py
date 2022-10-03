@@ -34,7 +34,6 @@ def load_fixture_data(session):
     john = User(username="john", name="John Lennon", email="john@beatles.com")
     paul = User(username="paul", name="Paul McCartney", email="paul@beatles.com")
     george = User(username="george", name="George Harrison", email="george@beatles.com")
-    admin = User(username="admin", name="admin", email="admin@admin.com")
     mike = User(username="mike", name="Mike Wazowski", email="mike@monsters.com")
     sully = User(username="sully", name="James P Sullivan", email="sully@monsters.com")
     ringo = User(username="ringo", name="Ringo Starr", email="ringo@beatles.com")
@@ -45,7 +44,6 @@ def load_fixture_data(session):
         john,
         paul,
         george,
-        admin,
         mike,
         sully,
         ringo,
@@ -304,6 +302,7 @@ def load_fixture_data(session):
 
     ### Faker Org Roles
     for org in orgs[2:]:
+        # make sure every org has an admin
         admin = faker.random_element(elements=users)
         org_roles.append(OrgRole(user_id=admin.username, org_id=org.id, role="admin"))
         org_users = faker.random_elements(
@@ -318,6 +317,12 @@ def load_fixture_data(session):
                 )
             )
 
+    # make sure every user has at least one org
+    for user in users:
+        org = faker.random_element(orgs)
+        role = faker.random_element(org_role_choices)
+        org_roles.append(OrgRole(user_id=user.username, org_id=org.id, role=role))
+
     for org_role in org_roles:
         session.add(org_role)
         facts.append(
@@ -325,7 +330,7 @@ def load_fixture_data(session):
                 "name": "has_role",
                 "args": [
                     {"type": "User", "id": str(org_role.user_id)},
-                    org_role.role,
+                    str(org_role.role),
                     {"type": "Organization", "id": str(org_role.org_id)},
                 ],
             }

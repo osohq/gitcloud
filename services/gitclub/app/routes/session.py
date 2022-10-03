@@ -28,7 +28,7 @@ def create():
 
     if user is None:
         flask_session.pop("current_username", None)
-        raise Unauthorized
+        raise Unauthorized("user does not exist, leave the form blank to log in as a random user")
 
     flask_session["current_username"] = user.username
     event("login", {"username": user.username})

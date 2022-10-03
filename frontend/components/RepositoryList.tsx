@@ -17,6 +17,19 @@ export function RepositoryList({ repositories }: { repositories: Repo[] }) {
                     <p className="text-sm font-medium text-indigo-600 truncate">
                       {repo.name}
                     </p>
+                    <div className="ml-2 flex-shrink-0 flex">
+                      {repo.role &&
+                        <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
+                          {repo.role.toUpperCase()}
+                        </p>
+                      }
+                      {repo.public &&
+                        <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
+                          Public
+                        </p>
+                      }
+
+                    </div>
                   </div>
                   <div className="mt-2 sm:flex sm:justify-between">
                     <div className="sm:flex">

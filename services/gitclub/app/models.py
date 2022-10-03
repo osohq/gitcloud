@@ -1,12 +1,13 @@
+from typing import Type, cast
 from sqlalchemy.types import Integer, String, Boolean, DateTime, JSON
 from sqlalchemy.schema import Column, ForeignKey, UniqueConstraint
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship, backref, DeclarativeMeta
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy import select, func
 from sqlalchemy.orm.relationships import RelationshipProperty
 
-Base = declarative_base()
+Base: Type = declarative_base()
 
 
 class User(Base):
@@ -95,10 +96,10 @@ class Issue(Base):
     closed = Column(Boolean, default=False)
 
     repo_id = Column(Integer, ForeignKey("repositories.id"), index=True)
-    repo: Repository = relationship(Repository, backref=backref("issues"))
+    repo = relationship(Repository, backref=backref("issues"))
 
     creator_id = Column(String, ForeignKey("users.username"), index=True)
-    creator: User = relationship(User, backref=backref("issues"))
+    creator = relationship(User, backref=backref("issues"))
 
 
 class Event(Base):

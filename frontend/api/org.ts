@@ -28,6 +28,8 @@ export const GET_ORGS = gql`
       billingAddress
       repositoryCount
       userCount
+      permissions
+      role
     }
   }
 `;
@@ -50,12 +52,13 @@ export const GET_ORG = gql`
       repositoryCount
       userCount
       permissions
+      role
     }
   }
 `;
 
 
-export function useOrg(id: string) {
+export function useOrg(id?: string) {
   const { data, loading, error } = useQuery(GET_ORG, {
     variables: { id },
   });

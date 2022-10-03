@@ -95,7 +95,7 @@ def actions(resource: Any) -> List[str]:
         print(f'oso-cloud actions {actor} {resource} -c "{context_facts}"')
         res = oso.actions(actor, resource, context_facts=context_facts)
         print(res)
-        return res
+        return sorted(res)
     except Exception as e:
         print(
             f"error from Oso Cloud: {e} for request: allow({actor}, _, {resource}) -c {context_facts}"

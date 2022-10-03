@@ -13,31 +13,52 @@ import LoadingPage from "../../components/LoadingPage";
 import ErrorMessage from "../../components/ErrorMessage";
 import Link from "next/link";
 import Breadcrumbs from "../../components/Breadcrumbs";
+import { gql, useQuery } from '@apollo/client';
+import { useOrg } from "../../api/org";
+
+
+const GET_REPOS = gql`
+  query GetRepos($orgId: ID!) {
+    org(id: $orgId) {
+      id
+      name
+      billingAddress
+      role
+      permissions
+      repos {
+        id
+        name
+        issueCount
+        permissions
+        role
+        public
+        orgId
+      }
+    }
+  }
+`;
 
 export default function Show() {
   const router = useRouter();
   const { orgId } = router.query as { orgId?: string };
 
   const {
-    data: org,
-    isLoading: orgLoading,
+    data: orgData,
+    loading: orgLoading,
     error: orgError,
-  } = orgApi().show(orgId);
-  const {
-    data: repos,
-    isLoading: repoLoading,
-    error: repoError,
-  } = repoApi(orgId).index();
+  } = useQuery(GET_REPOS, { variables: { orgId: orgId } })
   const [roleChoices, setRoleChoices] = useState<string[]>([]);
   useEffect(() => {
     roleChoicesApi.org().then(setRoleChoices);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (orgLoading || repoLoading) return <LoadingPage />;
+  if (orgLoading) return <LoadingPage />;
   if (orgError) return <ErrorMessage error={orgError} />;
-  if (repoError) return <ErrorMessage error={repoError} />;
 
-  if (!orgId || !org) return null;
+  if (!orgId || !orgData) return null;
+
+  const org = orgData.org;
+  const repos = orgData.org.repos;
 
   return (
     <>

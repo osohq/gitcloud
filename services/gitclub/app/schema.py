@@ -38,6 +38,8 @@ class Repository:
     id: ID
     name: str
     issue_count: int
+    public: bool
+    orgId: ID
 
     @classmethod
     def from_model(cls, repo: models.Repository) -> "Repository":
@@ -45,6 +47,8 @@ class Repository:
             id=cast(ID, repo.id),
             name=cast(str, repo.name),
             issue_count=repo.issue_count,
+            public=cast(bool, repo.public),
+            orgId=cast(ID, repo.org_id),
         )
 
     @strawberry.field
@@ -73,6 +77,27 @@ class Repository:
     @strawberry.field
     def permissions(self) -> List[str]:
         return actions({"type": "Repository", "id": self.id})
+
+    @strawberry.field
+    def role(self) -> Optional[str]:
+        def max_role(roles):
+            roles_val = {
+                "reader": 0,
+                "editor": 1,
+                "maintainer": 2,
+                "admin": 3,
+            }
+            return max(roles, key=lambda role: roles_val[role])
+
+        roles = query(
+            "has_role",
+            {"type": "User", "id": g.current_user.username},
+            None,
+            {"type": "Repository", "id": self.id},
+        )
+        roles = list(map(lambda fact: cast(str, fact["args"][1]), roles))
+        if len(roles) > 0:
+            return max_role(roles)
 
 
 @cache.memoize()
@@ -136,6 +161,20 @@ class Organization:
     @strawberry.field
     def permissions(self) -> List[str]:
         return actions({"type": "Organization", "id": self.id})
+
+    @strawberry.field
+    def role(self) -> Optional[str]:
+        roles = query(
+            "has_role",
+            {"type": "User", "id": g.current_user.username},
+            None,
+            {"type": "Organization", "id": self.id},
+        )
+        roles = map(lambda fact: cast(str, fact["args"][1]), roles)
+        if "admin" in roles:
+            return "admin"
+        elif "member" in roles:
+            return "member"
 
 
 @strawberry.input

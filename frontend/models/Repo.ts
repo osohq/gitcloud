@@ -8,6 +8,8 @@ export class Repo {
   orgId: number;
   issueCount: number
   permissions?: string[];
+  public?: boolean;
+  role?: string;
 
   constructor({ id, orgId, name, issueCount, permissions }: Repo) {
     this.id = id;
