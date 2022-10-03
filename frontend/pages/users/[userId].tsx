@@ -39,12 +39,11 @@ const GET_USER = gql`
 export default function Show() {
   const router = useRouter();
   const { userId } = router.query as { userId: string | undefined };
-  if (!userId) return null;
   const { data, loading, error } = useQuery(GET_USER, { variables: { userId: userId } });
 
   if (loading) return <LoadingPage />;
   if (error) return <ErrorMessage error={error} />;
-  if (!data) return null;
+  if (!userId || !data) return null;
 
   const user = data.user;
   const orgs = data.user.orgs;
