@@ -10,12 +10,6 @@ export default function Login() {
   const router = useRouter();
   const [login, setLogin] = useState<string>("");
 
-  // const {
-  //   data: user,
-  //   mutate: mutateUser,
-  //   error,
-  // } = useSWR<User>(usernameSet ? ["/session", username] : null, get);
-
   const api = sessionApi();
 
   const [error, setError] = useState<Error | undefined>(undefined);

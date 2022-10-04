@@ -13,13 +13,14 @@ import ErrorMessage from "../../../../../../components/ErrorMessage";
 import LoadingPage from "../../../../../../components/LoadingPage";
 import { index, noData } from "../../../../../../api/common";
 import Breadcrumbs from "../../../../../../components/Breadcrumbs";
+import { gql, useQuery } from '@apollo/client';
 
 function runningTime(a: Job): number {
   const now = new Date();
   const updatedAt =
     a.status === "complete" || a.status === "canceled"
       ? new Date(a.updatedAt).getTime()
-      : now.getTime() + now.getTimezoneOffset() * 60000;
+      : now.getTime(); // + now.getTimezoneOffset() * 60000;
   const createdAt = new Date(a.createdAt).getTime();
   return Math.round((updatedAt - createdAt) / 1000);
 }
@@ -35,6 +36,18 @@ function RunningTime({ a }: { a: Job }) {
 
   return <span>{time}s</span>;
 }
+
+const LIST_JOBS = gql`
+  query ListJobs($repoId: ID!) {
+    listJobs(repoId: $repoId) {
+      id
+      name
+      status
+      createdAt
+      updatedAt
+    }
+  }
+`;
 
 export default function Index() {
   const { } = useUser();

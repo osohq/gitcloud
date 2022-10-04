@@ -10,7 +10,7 @@ directive @authorize(
 type Repository @key(fields: "id") {
   id: ID!
 
-  jobs: [Job]!
+  jobs: [Job]! @authorize(permission: "read_jobs", resource: "Repository")
 }
 
 type Job {

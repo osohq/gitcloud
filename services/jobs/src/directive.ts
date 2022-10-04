@@ -1,8 +1,10 @@
 const { mapSchema, getDirective, MapperKind } = require("@graphql-tools/utils");
 const { defaultFieldResolver } = require("graphql");
+import {
+  ForbiddenError,
+} from "apollo-server-core";
 
-import { ftruncateSync } from "fs";
-import { argsToArgsConfig } from "graphql/type/definition";
+
 import { Oso, Instance } from "oso-cloud";
 const oso = new Oso("https://cloud.osohq.com/", process.env["OSO_AUTH"]);
 
@@ -44,21 +46,27 @@ export default function AuthorizeDirective(schema) {
 
         fieldConfig.resolve = async function (source, args, context, info) {
           const resolved = await originalResolver(source, args, context, info);
-
+          if (!context.username) {
+            throw new ForbiddenError("Not logged in");
+          }
+          const id = args?.[idParam] || source?.[idParam];
+          console.log(
+            `${context.username} ${permission} ${resource}:${id}`
+          );
           let authorized = await oso.authorize(
             { type: "User", id: context.username },
             permission,
-            { type: resource, id: args?.[idParam] },
+            { type: resource, id },
             gatherContextFacts(resource, resolved, args)
           );
 
           console.log(
-            `${context.username} ${permission} ${resource}:${args?.[idParam]} => ${authorized}`
+            `${context.username} ${permission} ${resource}:${id} => ${authorized}`
           );
           if (authorized) {
             return resolved;
           } else {
-            throw new Error("unauthorized");
+            throw new ForbiddenError("unauthorized");
           }
         };
       }
