@@ -7,6 +7,8 @@ from strawberry.types import Info
 import oso_cloud
 from datetime import datetime
 
+from .events import event
+
 from .authorization import actions, authorize, list_resources, query, tell, get
 from . import models
 
@@ -207,7 +209,7 @@ class Organization:
             None,
             {"type": "Organization", "id": id},
         )
-        roles = map(lambda fact: cast(str, fact["args"][1]), roles)
+        roles = list(map(lambda fact: cast(str, fact["args"][1]), roles))
         if "admin" in roles:
             return "admin"
         elif "member" in roles:
@@ -387,6 +389,7 @@ class Mutation:
     @strawberry.mutation
     def create_organization(self, org: OrganizationInput) -> Organization:
         if not authorize("create", "Organization"):
+            event("create_org_failed", {"id": org.name})
             raise Exception("Not authorized to create organizations")
         if (
             g.session.query(models.Organization)
@@ -397,15 +400,8 @@ class Mutation:
             raise Exception("Organization with that name already exists")
         org = models.Organization(name=org.name, billing_address=org.billing_address)
         g.session.add(org)
-        event = models.Event(
-            type="create_org",
-            data={
-                "username": g.current_user.username,
-                "org_name": org.name,
-            },
-        )
-        g.session.add(event)
         g.session.commit()
+        event("create_org", {"name": org.name})
         tell("has_role", g.current_user, "admin", org)
         return Organization.from_model(org)
 
@@ -523,14 +519,11 @@ from typing import List, Union, Any, Optional
 import strawberry
 from strawberry.flask.views import AsyncGraphQLView
 from strawberry.dataloader import DataLoader
-
-from starlette.requests import Request
-from starlette.websockets import WebSocket
-from starlette.responses import Response
+from flask.wrappers import Response
 
 
 class MyView(AsyncGraphQLView):
-    def get_context(self, response: Optional[Response]) -> Any:
+    def get_context(self, response: Response) -> Any:
         return {
             "org_actions": make_loader(
                 lambda username, id: actions(

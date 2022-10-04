@@ -24,7 +24,6 @@ export function OrganizationList({ organizations: orgs }: { organizations: Org[]
                           {org.role.toUpperCase()}
                         </p>
                       }
-
                     </div>
                   </div>
                   <div className="mt-2 flex justify-between">

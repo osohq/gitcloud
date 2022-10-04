@@ -61,7 +61,7 @@ def delete(org_id):
     if not authorize("read", {"type": "Organization", "id": org_id}):
         raise NotFound
     if not authorize("delete", {"type": "Organization", "id": org_id}):
-        event("create_org_failed", {"id": org_id})
+        event("delete_org_failed", {"id": org_id})
         raise Forbidden
     org = g.session.get_or_404(Organization, id=org_id)
     g.session.delete(org)

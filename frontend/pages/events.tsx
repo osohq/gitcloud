@@ -86,14 +86,17 @@ export default function Events() {
         {
             name: 'Logins',
             value: eventCounts.logins,
+            fill: '#bc5090'
         },
         {
             name: 'Create Failed',
             value: eventCounts.createFailed,
+            fill: '#003f5c'
         },
         {
             name: 'Create Success',
             value: eventCounts.createSuccess,
+            fill: '#ffa600'
         },
     ];
 
@@ -122,9 +125,7 @@ export default function Events() {
                         <YAxis />
                         <Tooltip />
                         <Legend />
-                        <Bar dataKey="value" fill="#003f5c" />
-                        {/* <Bar dataKey="createFailed" fill="#bc5090" />
-                        <Bar dataKey="createSuccess" fill="#ffa600" /> */}
+                        <Bar dataKey="value" />
                     </BarChart>
                     <div className="mt-10">
                         <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
