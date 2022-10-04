@@ -2,12 +2,15 @@ from flask import g
 from typing import ClassVar, Optional, List, cast
 import strawberry
 from strawberry import ID
+from strawberry.types import Info
 
 import oso_cloud
 from datetime import datetime
 
-from .authorization import actions, authorize, list_resources, query, tell, get, cache
+from .authorization import actions, authorize, list_resources, query, tell, get
 from . import models
+
+import asyncio
 
 
 @strawberry.type
@@ -75,11 +78,16 @@ class Repository:
             return None
 
     @strawberry.field
-    def permissions(self) -> List[str]:
-        return actions({"type": "Repository", "id": self.id})
+    async def permissions(self, info: Info) -> List[str]:
+        loader = info.context["repo_actions"]
+        return await loader.load(self.id)
 
     @strawberry.field
-    def role(self) -> Optional[str]:
+    async def role(self, info: Info) -> Optional[str]:
+        return await info.context["repo_roles"].load(self.id)
+
+    @staticmethod
+    def load_role(username: str, id: str) -> Optional[str]:
         def max_role(roles):
             roles_val = {
                 "reader": 0,
@@ -91,27 +99,48 @@ class Repository:
 
         roles = query(
             "has_role",
-            {"type": "User", "id": g.current_user.username},
+            {"type": "User", "id": username},
             None,
-            {"type": "Repository", "id": self.id},
+            {"type": "Repository", "id": id},
         )
         roles = list(map(lambda fact: cast(str, fact["args"][1]), roles))
         if len(roles) > 0:
             return max_role(roles)
 
 
-@cache.memoize()
-def user_count(org_id):
-    return 0
-    # org_users = get(
-    #     "has_role",
-    #     {
-    #         "type": "User",
-    #     },
-    #     {},
-    #     {"type": "Organization", "id": str(org_id)},
-    # )
-    # return len(list(org_users))
+def user_count(username, org_id):
+    org_users = get(
+        "has_role",
+        {
+            "type": "User",
+        },
+        {},
+        {"type": "Organization", "id": str(org_id)},
+    )
+    return len(list(org_users))
+
+
+from strawberry.dataloader import DataLoader
+
+
+def make_loader(fn):
+    username = g.current_user.username
+
+    async def bulk_load(keys: List[str]) -> List[List[str]]:
+        event_loop = asyncio.get_running_loop()
+
+        futures = [
+            event_loop.run_in_executor(
+                None,
+                lambda key: fn(username, key),
+                key,
+            )
+            for key in keys
+        ]
+        results = await asyncio.gather(*futures)
+        return list(results)
+
+    return DataLoader(load_fn=bulk_load)
 
 
 @strawberry.type
@@ -120,7 +149,6 @@ class Organization:
     name: str
     billing_address: str
     repository_count: int
-    user_count: Optional[int]
 
     @classmethod
     def from_model(cls, org: models.Organization) -> "Organization":
@@ -129,7 +157,6 @@ class Organization:
             name=cast(str, org.name),
             billing_address=cast(str, org.billing_address),
             repository_count=org.repository_count,
-            user_count=user_count(org.id),
         )
 
     @strawberry.field
@@ -159,16 +186,26 @@ class Organization:
             return None
 
     @strawberry.field
-    def permissions(self) -> List[str]:
-        return actions({"type": "Organization", "id": self.id})
+    async def user_count(self, info: Info) -> Optional[int]:
+        loader = info.context["org_user_count"]
+        return await loader.load(self.id)
 
     @strawberry.field
-    def role(self) -> Optional[str]:
+    async def permissions(self, info: Info) -> List[str]:
+        loader = info.context["org_actions"]
+        return await loader.load(self.id)
+
+    @strawberry.field
+    async def role(self, info: Info) -> Optional[str]:
+        return await info.context["org_roles"].load(self.id)
+
+    @staticmethod
+    def load_role(username: str, id: str) -> Optional[str]:
         roles = query(
             "has_role",
-            {"type": "User", "id": g.current_user.username},
+            {"type": "User", "id": username},
             None,
-            {"type": "Organization", "id": self.id},
+            {"type": "Organization", "id": id},
         )
         roles = map(lambda fact: cast(str, fact["args"][1]), roles)
         if "admin" in roles:
@@ -479,3 +516,35 @@ class Mutation:
 schema = strawberry.federation.Schema(
     Query, mutation=Mutation, enable_federation_2=True
 )
+
+
+from typing import List, Union, Any, Optional
+
+import strawberry
+from strawberry.flask.views import AsyncGraphQLView
+from strawberry.dataloader import DataLoader
+
+from starlette.requests import Request
+from starlette.websockets import WebSocket
+from starlette.responses import Response
+
+
+class MyView(AsyncGraphQLView):
+    def get_context(self, response: Optional[Response]) -> Any:
+        return {
+            "org_actions": make_loader(
+                lambda username, id: actions(
+                    {"type": "Organization", "id": id},
+                    {"type": "User", "id": username},
+                )
+            ),
+            "org_roles": make_loader(Organization.load_role),
+            "org_user_count": make_loader(user_count),
+            "repo_actions": make_loader(
+                lambda username, id: actions(
+                    {"type": "Repository", "id": id},
+                    {"type": "User", "id": username},
+                )
+            ),
+            "repo_roles": make_loader(Repository.load_role),
+        }

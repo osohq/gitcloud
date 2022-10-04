@@ -83,10 +83,10 @@ def authorize(action: str, resource: Any, parent: Optional[int] = None) -> bool:
         return False
 
 
-def actions(resource: Any) -> List[str]:
-    if g.current_user is None:
+def actions(resource: Any, user: Optional[oso_cloud.Value] = None) -> List[str]:
+    if not user and g.current_user is None:
         return []
-    actor = current_user()
+    actor = user or current_user()
     resource = object_to_typed_id(resource)
     context_facts = []
     try:

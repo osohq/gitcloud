@@ -14,11 +14,11 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from .models import Base, User, setup_schema
-from .schema import schema as graphql_schema
+from .schema import MyView, schema as graphql_schema
 from .fixtures import load_fixture_data
 from .authorization import oso, cache
 from .tracing import instrument_app
-from strawberry.flask.views import GraphQLView
+from strawberry.flask.views import AsyncGraphQLView
 
 PRODUCTION = os.environ.get("PRODUCTION", "0") == "1"
 PRODUCTION_DB = os.environ.get("PRODUCTION_DB", PRODUCTION)
@@ -147,10 +147,7 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
     # Add GraphQL view
     app.add_url_rule(
         "/graphql",
-        view_func=GraphQLView.as_view(
-            "graphql_view",
-            schema=graphql_schema,
-        ),
+        view_func=MyView.as_view("graphql_view", schema=graphql_schema),
     )
 
     return app
