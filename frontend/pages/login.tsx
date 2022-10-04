@@ -24,17 +24,12 @@ export default function Login() {
   // If a logged-in user navigates to this page, redirect to home.
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    try {
-      // setUsername(login);
-      // router.replace(`/users/${login}`);
-      api.login(login == "" ? {} : { username: login }).then(u => {
-        setUsername(u.username);
-        router.replace(`/orgs`);
-      })
-    } catch (e: any) {
-      setError(e);
-    }
+    api.login(login == "" ? {} : { username: login }).then(u => {
+      setUsername(u.username);
+      router.replace(`/orgs`);
+    }).catch(e => setError(e));
   }
+
 
   function handleChange({ target: { value } }: ChangeEvent<HTMLInputElement>) {
     setLogin(value);

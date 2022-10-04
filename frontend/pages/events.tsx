@@ -126,7 +126,7 @@ export default function Events() {
                         </h3>
                     </div>
                     <BarChart
-                        width={500}
+                        width={800}
                         height={300}
                         data={chartData}
                         margin={{
