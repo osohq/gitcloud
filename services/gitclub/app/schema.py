@@ -401,7 +401,7 @@ class Mutation:
         org = models.Organization(name=org.name, billing_address=org.billing_address)
         g.session.add(org)
         g.session.commit()
-        event("create_org", {"name": org.name})
+        event("create_org", {"name": org.name, "id": org.id})
         tell("has_role", g.current_user, "admin", org)
         return Organization.from_model(org)
 
@@ -410,8 +410,10 @@ class Mutation:
         if not authorize("read", {"type": "Organization", "id": id}):
             return None
         if not authorize("delete", {"type": "Organization", "id": id}):
+            event("delete_org_failed", {"id": id})
             raise Exception("Not authorized to delete organizations")
         org = g.session.get_or_404(Organization, id=id)
+        event("delete_org", {"id": id, "name": org.name})
         g.session.delete(org)
         g.session.commit()
         return "deleted"

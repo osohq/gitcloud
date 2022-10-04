@@ -79,8 +79,14 @@ export default function Events() {
         if (type === 'create_org') {
             acc.createSuccess++;
         }
+        if (type === 'delete_org_failed') {
+            acc.deleteFailed++;
+        }
+        if (type === 'delete_org') {
+            acc.deleteSuccess++;
+        }
         return acc;
-    }, { logins: 0, createFailed: 0, createSuccess: 0 });
+    }, { logins: 0, createFailed: 0, createSuccess: 0, deleteFailed: 0, deleteSuccess: 0 });
 
     const chartData = [
         {
@@ -96,6 +102,16 @@ export default function Events() {
         {
             name: 'Create Success',
             value: eventCounts.createSuccess,
+            fill: '#ffa600'
+        },
+        {
+            name: 'Delete Failed',
+            value: eventCounts.deleteFailed,
+            fill: '#003f5c'
+        },
+        {
+            name: 'Delete Success',
+            value: eventCounts.deleteSuccess,
             fill: '#ffa600'
         },
     ];
