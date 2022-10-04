@@ -1,11 +1,10 @@
 extend schema
-  @link(url: "https://specs.apollo.dev/federation/v2.0",
-        import: ["@key"])
-
+  @link(url: "https://specs.apollo.dev/federation/v2.0", import: ["@key"])
 
 directive @authorize(
   permission: String!
   resource: String!
+  idParam: String! = "id"
 ) on OBJECT | FIELD_DEFINITION
 
 type Repository @key(fields: "id") {
@@ -26,9 +25,18 @@ type Job {
 
 type Query {
   listJobs(repoId: ID!): [Job]!
+    @authorize(
+      permission: "read_jobs"
+      resource: "Repository"
+      idParam: "repoId"
+    )
 }
 type Mutation {
   createJob(name: String!, repoId: ID!): Job!
-    @authorize(permission: "create_job", resource: "Repository")
+    @authorize(
+      permission: "manage_jobs"
+      resource: "Repository"
+      idParam: "repoId"
+    )
   cancelJob(id: ID!): Job! @authorize(permission: "cancel", resource: "Job")
 }
