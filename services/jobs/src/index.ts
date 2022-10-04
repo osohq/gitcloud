@@ -128,6 +128,8 @@ export const db = PRODUCTION_DB ? pgDataSource : localDataSource;
 
       return jobs.map((a) => ({
         ...a,
+        createdAt: a.createdAt.toISOString(),
+        updatedAt: a.updatedAt.toISOString(),
         cancelable:
           (a.status === "scheduled" || a.status === "running") &&
           (cancelableIds.includes(a.id.toString()) ||

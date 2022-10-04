@@ -13,14 +13,16 @@ type Repository @key(fields: "id") {
   jobs: [Job]! @authorize(permission: "read_jobs", resource: "Repository")
 }
 
+scalar DateTime
+
 type Job {
   id: ID!
   name: String!
   status: String!
   repoId: ID!
   creatorId: String!
-  createdAt: String!
-  updatedAt: String!
+  createdAt: DateTime
+  updatedAt: DateTime
 }
 
 type Query {
