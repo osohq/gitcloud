@@ -126,7 +126,7 @@ from strawberry.dataloader import DataLoader
 
 
 def make_loader(fn):
-    username = g.current_user.username
+    username = g.current_user.username if g.current_user else None
 
     async def bulk_load(keys: List[str]) -> List[List[str]]:
         event_loop = asyncio.get_running_loop()
