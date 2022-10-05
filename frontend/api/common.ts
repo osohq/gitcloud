@@ -6,7 +6,7 @@ type Class<T extends {} = {}> = new (...args: any[]) => T;
 
 export const ROUTER_ROOT =
   process.env.NEXT_PUBLIC_PRODUCTION == "1"
-    ? "https://main--osohq-gitcloud.apollographos.net/graphql"
+    ? "https://gitcloud-router.fly.dev/graphql"
     : "http://localhost:4000";
 const GITCLUB_ROOT =
   process.env.NEXT_PUBLIC_PRODUCTION == "1"
