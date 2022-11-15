@@ -93,7 +93,6 @@ has_permission(_: User, "create", "Organization");
 has_permission(_: User, "read", _: User);
 ## Users can only read their own profiles
 has_permission(user: User, "read_profile", user: User);
-has_permission(_: User, "read_profile", _: User);
 
 
 # Complex rules
