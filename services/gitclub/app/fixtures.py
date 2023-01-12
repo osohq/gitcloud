@@ -13,7 +13,38 @@ FAKE_ORGANIZATIONS = 10
 FAKE_REPOSITORIES = 20
 FAKE_ISSUES = 100
 
+def limit_bulk_tell(facts, bulk_limit=20):
+    start_index = 0
+    end_index = min(len(facts), bulk_limit)
+    total_facts_added = 0
+    total_number_facts = len(facts)
+    while start_index < total_number_facts:
+        oso_response =oso.bulk_tell(facts=facts[start_index:end_index])
+        if oso_response != None:
+            print("An issue occurred adding facts {} - {})".format(
+                start_index,
+                end_index)
+            )
+        else:
+            total_facts_added += end_index - start_index
 
+        start_index = end_index
+        end_index = start_index + min(
+            total_number_facts-start_index,
+            bulk_limit
+        )
+
+    if total_facts_added == total_number_facts:
+        print("All {} facts were successfully added to Oso Cloud!".format(
+                total_facts_added
+            )
+        )
+    else:
+        print("An error occurred. Not all facts were properly uploaded ({} of {}).".format(
+                total_facts_added,
+                total_number_facts
+            )
+        )
 def load_fixture_data(session):
     #########
     # Users #
@@ -365,6 +396,6 @@ def load_fixture_data(session):
             }
         )
 
-    print(oso.bulk_tell(facts=facts))
+    limit_bulk_tell(facts=facts)
     session.flush()
     session.commit()
