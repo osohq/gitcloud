@@ -9,6 +9,19 @@ This application is built as an example for [Oso Cloud](https://osohq.com/docs/)
 If you are looking for an example of using the Oso library, check out
 [osohq/gitclub](https://github.com/osohq/gitclub).
 
+## Dependencies
+Use a package manager such as `apt-get` (Linux distributions) or `Homebrew` (MacOS) to install the required and
+recommended software tools and packages below.
+| Software Tool/Package | Dependency | Usage |
+|-----------------------|------------|-------|
+| **npm** | *Required* | Frontend and Backend services |
+| **Oso Cloud CLI** | *Required* | Backend services |
+| **Pip** | *Required* | Backend services |
+| **PostgreSQL** | *Required* | Backend services |
+| **Python +3.10** | *Required* | Backend services |
+| **Yarn** | *Required* | Frontend |
+| **make** | *Recommended* | Automates backend services tasks and testing |
+
 ## Backend services
 
 ### GitClub (Python - SQLAlchemy - Flask)
@@ -56,23 +69,26 @@ $ make test
 
 ### Running the services
 
-The first time you run these services, you'll need to upload your policy:
-```console
-make update-policy
-```
-You only need to do this once. (If you make changes to the policy, you'll need to run it again.)
+1. The first time you run these services, you'll need to upload your policy:
+    ```console
+    make update-policy
+    ```
+    You only need to do this once. (If you make changes to the policy, you'll need to run it again.)
 
-Run GitClub in one terminal:
+1. Make sure all of the node module dependencies are install locally. Run this command before starting up the services for the first time.
+    ```console
+    npm install
+    ```
 
-```console
-make -C services/gitclub
-```
-
-Run the Jobs Service in another terminal:
-
-```console
-make -C services/jobs
-```
+1. Open two terminal windows.
+    - In the first terminal, run GitClub:
+        ```console
+        make -C services/gitclub
+        ```
+    - In the second terminal, run the Jobs Service:
+        ```console
+        make -C services/jobs
+        ```
 
 ## Frontend
 
