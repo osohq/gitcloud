@@ -54,7 +54,8 @@ from the root directory of the repository. This will do the following:
 ### Running local policy tests
 
 If you configured your environment for local testing above,
-then you can run the policy tests locally by running the following command:
+then you can run the policy tests locally by running the following command
+from the root directory of the repository:
 
 ```
 OSO_AUTH=e_0123456789_12345_osotesttoken01xiIn make test-policy
