@@ -1,4 +1,5 @@
 actor User { }
+actor Group { }
 
 resource Organization { 
     permissions = [
