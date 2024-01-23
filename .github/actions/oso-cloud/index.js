@@ -43,7 +43,7 @@ async function installOsoCloudCLI() {
     console.log(`version stderr:`)
     console.log(versionError)
 
-    core.setOutput("version", '1.0');
+    core.setOutput("version", versionOutput);
 
     // Get the JSON webhook payload for the event that triggered the workflow
     const payload = JSON.stringify(github.context.payload, undefined, 2)
