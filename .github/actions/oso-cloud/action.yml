@@ -1,0 +1,8 @@
+name: 'Install Oso Cloud ClI'
+description: 'Install the latest version of the Oso Cloud CLI'
+outputs:
+  version:
+    description: 'The version of the CLI that was installed'
+runs:
+  using: 'node20'
+  main: 'index.js'
