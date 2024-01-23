@@ -5,20 +5,20 @@ const github = require('@actions/github');
 async function installOsoCloudCLI() {
     console.log(`Installing Oso Cloud CLI`);
 
-    let curlOutput = '';
-    let curlError = '';
+    let wgetOutput = '';
+    let wgetError = '';
     let catOutput = '';
     let catError = '';
 
-    const curlOptions = {};
+    const wgetOptions = {};
     const catOptions = {};
 
-    curlOptions.listeners = {
+    wgetOptions.listeners = {
       stdout: (data) => {
-        curlOutput += data.toString();
+        wgetOutput += data.toString();
       },
       stderr: (data) => {
-        curlError += data.toString();
+        wgetError += data.toString();
       }
     };
 
@@ -31,13 +31,13 @@ async function installOsoCloudCLI() {
       }
     };
 
-    await exec.exec('curl', ['-L', 'https://cloud.osohq.com/install.sh'], curlOptions)
+    await exec.exec('wget', ['https://cloud.osohq.com/install.sh'], wgetOptions)
     await exec.exec('cat', ['./install.sh'], catOptions)
 
-    console.log(`curl stdout:`)
-    console.log(curlOutput)
-    console.log(`curl stderr:`)
-    console.log(curlError)
+    console.log(`wget stdout:`)
+    console.log(wgetOutput)
+    console.log(`wget stderr:`)
+    console.log(wgetError)
 
     console.log(`cat stdout:`)
     console.log(catOutput)
