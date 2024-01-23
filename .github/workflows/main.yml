@@ -7,7 +7,7 @@ jobs:
     steps:
       - name: Install CLI
         id: install
-        uses: ../actions/oso-cloud
+        uses: ./.github/actions/oso-cloud
       # Use the output from the `hello` step
       - name: Get the output time
         run: echo "The version was ${{ steps.install.outputs.version }}"
