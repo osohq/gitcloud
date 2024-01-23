@@ -5,9 +5,11 @@ jobs:
     runs-on: ubuntu-latest
     name: Install the latest version of the OSO Cloud CLI
     steps:
-      - name: Install CLI
+      - name: Check out code
+        id: checkout
+        uses: actions/checkout@v2
+      - name: Install the CLI
         id: install
         uses: ./.github/actions/oso-cloud
-      # Use the output from the `hello` step
-      - name: Get the output time
+      - name: Get the installed version
         run: echo "The version was ${{ steps.install.outputs.version }}"
