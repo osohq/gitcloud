@@ -5,44 +5,43 @@ const github = require('@actions/github');
 async function installOsoCloudCLI() {
     console.log(`Installing Oso Cloud CLI`);
 
-    let wgetOutput = '';
-    let wgetError = '';
-    let catOutput = '';
-    let catError = '';
+    let installOutput = '';
+    let installError = '';
+    let versionOutput = '';
+    let versionError = '';
 
-    const wgetOptions = {};
-    const catOptions = {};
+    const installOptions = {};
+    const versionOptions = {};
 
-    wgetOptions.listeners = {
+    versionOptions.listeners = {
       stdout: (data) => {
-        wgetOutput += data.toString();
+        versionOutput += data.toString();
       },
       stderr: (data) => {
-        wgetError += data.toString();
+        versionError += data.toString();
       }
     };
 
-    catOptions.listeners = {
+    installOptions.listeners = {
       stdout: (data) => {
-        catOutput += data.toString();
+        installOutput += data.toString();
       },
       stderr: (data) => {
-        catError += data.toString();
+        installError += data.toString();
       }
     };
 
-    await exec.exec('wget', ['https://cloud.osohq.com/install.sh'], wgetOptions)
-    await exec.exec('cat', ['./install.sh'], catOptions)
+    await exec.exec('/bin/bash', ['-c', 'curl -L https://cloud.osohq.com/install.sh | /bin/bash'], installOptions)
+    console.log(`install stdout:`)
+    console.log(installOutput)
+    console.log(`install stderr:`)
+    console.log(installError)
 
-    console.log(`wget stdout:`)
-    console.log(wgetOutput)
-    console.log(`wget stderr:`)
-    console.log(wgetError)
-
-    console.log(`cat stdout:`)
-    console.log(catOutput)
-    console.log(`cat stderr:`)
-    console.log(catError)
+    await exec.exec('oso-cloud', ['version'], versionOptions)
+    console.log(`version stdout:`)
+    console.log(versionOutput)
+    console.log(`version stderr:`)
+    console.log(versionError)
 
     core.setOutput("version", '1.0');
 
