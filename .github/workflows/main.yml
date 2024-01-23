@@ -11,6 +11,6 @@ jobs:
         uses: actions/checkout@v2
       - name: Install the CLI
         id: install
-        uses: ./.github/actions/oso-cloud
+        uses: ./.github/actions/oso/install-cloud-cli
       - name: Get the installed version
         run: echo "The version was ${{ steps.install.outputs.version }}"
