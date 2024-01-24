@@ -18,4 +18,4 @@ jobs:
         id: install-local-binary
         uses: ./.github/actions/oso/install-oso-cloud-local-binary
       - name: Get the installed local binary version
-        run: echo "Installed local binary version ${{ steps.install-install-local-binary.outputs.version }}"
+        run: echo "Installed local binary version ${{ steps.install-local-binary.outputs.version }}"
