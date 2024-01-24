@@ -10,7 +10,10 @@ jobs:
         id: checkout
         uses: actions/checkout@v2
       - name: Install the CLI
-        id: install
+        id: install-cli
         uses: ./.github/actions/oso/install-oso-cloud-cli
+      - name: Install the local binary
+        id: install-local-binary
+        uses: ./.github/actions/oso/install-oso-cloud-local-binary
       - name: Get the installed version
         run: echo "The version was ${{ steps.install.outputs.version }}"
