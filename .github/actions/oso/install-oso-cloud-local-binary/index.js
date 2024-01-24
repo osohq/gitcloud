@@ -28,12 +28,13 @@ async function installOsoCloudLocalBinary() {
       stdout = '';
       stderr = '';
 
+      console.log(`cmd: ${cmd}, args: ${args}}`)
       await exec.exec(cmd, args, options)
 
-      console.log(`stdout:`)
-      console.log(stdout)
-      console.log(`stderr:`)
-      console.log(stderr)
+//      console.log(`stdout:`)
+//      console.log(stdout)
+//      console.log(`stderr:`)
+//      console.log(stderr)
     }
 
 
