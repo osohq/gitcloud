@@ -24,9 +24,10 @@ async function installOsoCloudLocalBinary() {
     cmds.push(['tar', ['-xvzf', './oso-local-development-binary-linux-x86_64.tar.gz']]);
     cmds.push(['chmod', ['0700', './standalone']] );
 
-    for(item in cmds){
+    cmds.forEach(item => {
       stdout = '';
       stderr = '';
+
       cmd = item[0];
       args = item[1];
 
@@ -37,7 +38,7 @@ async function installOsoCloudLocalBinary() {
 //      console.log(stdout)
 //      console.log(`stderr:`)
 //      console.log(stderr)
-    }
+    })
 
 
 
