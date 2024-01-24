@@ -3,7 +3,7 @@ const exec = require('@actions/exec');
 const github = require('@actions/github');
 
 async function installOsoCloudLocalBinary() {
-    console.log(`Installing Oso Cloud CLI`);
+    console.log(`Installing Oso Cloud local binary`);
 
 
     let stdout = '';
@@ -24,12 +24,14 @@ async function installOsoCloudLocalBinary() {
     cmds.push(['tar', ['-xvzf', './oso-local-development-binary-linux-x86_64.tar.gz']]);
     cmds.push(['chmod', ['0700', './standalone']] );
 
-    for([cmd, args] in cmds){
+    for(item in cmds){
       stdout = '';
       stderr = '';
+      cmd = item[0];
+      args = item[1];
 
       console.log(`cmd: ${cmd}, args: ${args}}`)
-      await exec.exec(cmd, args, options)
+//      await exec.exec(cmd, args, options)
 
 //      console.log(`stdout:`)
 //      console.log(stdout)
