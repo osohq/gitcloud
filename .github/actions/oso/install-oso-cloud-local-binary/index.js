@@ -40,8 +40,6 @@ async function installOsoCloudLocalBinary() {
       console.log(stdout)
       console.log(`stderr:`)
       console.log(stderr)
-
-      yield stdout
     }
 
 
