@@ -13,6 +13,7 @@ async function installOsoCloudLocalBinary() {
     cmds.push(['wget', ['https://oso-local-development-binary.s3.amazonaws.com/latest/oso-local-development-binary-linux-x86_64.tar.gz']]);
     cmds.push(['tar', ['-xvzf', './oso-local-development-binary-linux-x86_64.tar.gz']]);
     cmds.push(['chmod', ['0700', './standalone']] );
+    cmds.push(['standalone', ['--version']] );
 
     for(const item of cmds) {
       let stdout = '';
@@ -34,15 +35,15 @@ async function installOsoCloudLocalBinary() {
       console.log(`cmd: ${cmd}, args: ${args}`);
       await exec.exec(cmd, args, options);
 
-//      console.log(`stdout:`)
-//      console.log(stdout)
-//      console.log(`stderr:`)
-//      console.log(stderr)
+      console.log(`stdout:`)
+      console.log(stdout)
+      console.log(`stderr:`)
+      console.log(stderr)
     }
 
 
 
-    core.setOutput("version", "1.0");
+    core.setOutput("version", stdout);
 }
 
 installOsoCloudLocalBinary();

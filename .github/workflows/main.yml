@@ -4,7 +4,7 @@ on: [push]
 jobs:
   install_oso_cloud_cli:
     runs-on: ubuntu-latest
-    name: Install the latest version of the OSO Cloud CLI
+    name: Validate policy syntax and logic
     steps:
       - name: Check out code
         id: checkout
