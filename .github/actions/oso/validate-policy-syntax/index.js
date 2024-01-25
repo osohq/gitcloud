@@ -28,7 +28,7 @@ async function validatePolicySyntax() {
     console.log(polarFilesNoSymlinks)
     
     cmds = [];
-    cmds.push(['oso-cloud', ['validate', polarFiles.join(" ")]]);
+    cmds.push(['oso-cloud', ['validate', polarFilesNoSymlinks.join(" ")]]);
     cmds.push(['ls']);
 
     for(const item of cmds) {
