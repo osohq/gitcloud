@@ -22,17 +22,9 @@ async function validatePolicySyntax() {
       }
     };
 
-    glob('**/*.polar', (err, files) => {
-      if (err) {
-        return console.error(err)
-      }
+    const polarFiles = await glob('**/*.polar', { ignore: 'node_modules/**' })
     
-      console.log(files)
-    
-      files.forEach(file => {
-        console.log(file)
-      })
-    })
+    console.log(polarFiles)
     
     cmds = [];
     cmds.push(['pwd']);
