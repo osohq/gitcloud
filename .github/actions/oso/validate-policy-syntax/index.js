@@ -2,7 +2,7 @@ const core = require('@actions/core');
 const exec = require('@actions/exec');
 const path = require('path');
 const fs = require('fs');
-const glob = require('glob')
+import { glob } from 'glob';
 
 async function validatePolicySyntax() {
     console.log(`Installing Oso Cloud local binary`);
