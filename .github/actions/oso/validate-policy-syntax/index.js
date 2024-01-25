@@ -22,7 +22,12 @@ async function validatePolicySyntax() {
       }
     };
 
-    const polarFiles = await glob('**/*.polar', { ignore: 'node_modules/**' })
+    const polarFiles = await glob('**/*.polar', { ignore: 'node_modules/**' });
+    polarFiles = polarFiles.filter((file) => {
+      fs.lstat(file, (err, stats) => {
+        return !stats.isSymbolicLink();
+      });
+    });
     
     console.log(polarFiles)
     
