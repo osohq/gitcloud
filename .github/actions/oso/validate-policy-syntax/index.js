@@ -23,8 +23,8 @@ async function validatePolicySyntax() {
     };
 
     const polarFiles = await glob('**/*.polar', { ignore: 'node_modules/**' });
-    for (file in polarFiles){
-      console.log(fs.lstatSync(file));
+    for (i in polarFiles){
+      console.log(fs.lstatSync(polarFiles[i]));
     }
     const polarFilesNoSymlinks = polarFiles.filter((file) => fs.lstatSync(file).isSymbolicLink());
     
