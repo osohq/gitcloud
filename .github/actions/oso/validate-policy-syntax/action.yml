@@ -1,0 +1,8 @@
+name: 'Validate policy syntax'
+description: 'Ensure that all polar files are syntactically valid.'
+outputs:
+  version:
+    description: 'The version of the local binary that was installed'
+runs:
+  using: 'node20'
+  main: 'index.js'

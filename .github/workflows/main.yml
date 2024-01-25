@@ -8,12 +8,15 @@ jobs:
     steps:
       - name: Check out code
         id: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Install the CLI
         id: install-cli
         uses: ./.github/actions/oso/install-oso-cloud-cli
       - name: Get the installed CLI version
         run: echo "Installed CLI version ${{ steps.install-cli.outputs.version }}"
+      - name: Validate Policy syntax
+        id: validate-syntax
+        uses: ./.github/actions/oso/validate-policy-syntax
       - name: Install the local binary
         id: install-local-binary
         uses: ./.github/actions/oso/install-oso-cloud-local-binary
