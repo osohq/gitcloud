@@ -1,5 +1,8 @@
 const core = require('@actions/core');
 const exec = require('@actions/exec');
+const path = require('path');
+const fs = require('fs');
+const glob = require('glob')
 
 async function validatePolicySyntax() {
     console.log(`Installing Oso Cloud local binary`);
@@ -19,7 +22,18 @@ async function validatePolicySyntax() {
       }
     };
 
-
+    glob('**/*.polar', (err, files) => {
+      if (err) {
+        return console.error(err)
+      }
+    
+      console.log(files)
+    
+      files.forEach(file => {
+        console.log(file)
+      })
+    })
+    
     cmds = [];
     cmds.push(['pwd']);
     cmds.push(['ls']);
