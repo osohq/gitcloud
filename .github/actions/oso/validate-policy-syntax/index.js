@@ -2,7 +2,7 @@ const core = require('@actions/core');
 const exec = require('@actions/exec');
 const path = require('path');
 const fs = require('fs');
-const{glob} = require('glob');
+const { globSync } = require('glob');
 
 async function validatePolicySyntax() {
     console.log(`Installing Oso Cloud local binary`);
@@ -22,13 +22,12 @@ async function validatePolicySyntax() {
       }
     };
 
-    const polarFiles = await glob('**/*.polar', { ignore: 'node_modules/**' });
-    const polarFilesNoSymlinks = polarFiles.filter((file) => !fs.lstatSync(file).isSymbolicLink());
+    const polarFiles = globSync('**/*.polar', { ignore: 'node_modules/**' }).filter((file) => !fs.lstatSync(file).isSymbolicLink());
     
-    console.log(polarFilesNoSymlinks)
+    console.log(polarFiles)
     
     cmds = [];
-    cmds.push(['oso-cloud', ['validate', polarFilesNoSymlinks.join(" ")]]);
+    cmds.push(['oso-cloud', ['validate', polarFiles.join(" ")]]);
     cmds.push(['ls']);
 
     for(const item of cmds) {
