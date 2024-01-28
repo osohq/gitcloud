@@ -1,4 +1,5 @@
 actor User { }
+actor Group { }
 
 resource Organization { 
     permissions = [
@@ -121,3 +122,26 @@ has_role(actor: Actor, role: String, repo: Repository) if
     has_relation(repo, "organization", org) and
     has_default_role(org, role) and
     has_role(actor, "member", org);
+
+# Policy tests
+# Organization members inherit the read permission
+# on repositories that belong to the org
+# and issues that belong to those repositories
+test "organization members can read repos and issues" {
+    # Define test data (facts)
+    setup {
+        # alice is a member of the "acme" organization
+        has_role(User{"alice"}, "member", Organization{"acme"});
+        # The "test-repo" Repository belongs to the "acme" organization
+        has_relation(Repository{"test-repo"}, "organization", Organization{"acme"});
+        # The issue "Issue 1" belongs to the "test-repo" repository
+        has_relation(Issue{"Issue 1"}, "repository", Repository{"test-repo"});
+    }
+
+    # alice can read the "test-repo" Repository
+    assert allow(User{"alice"}, "read", Repository{"test-repo"});
+    # alice can read the issue "Issue 1"
+    assert allow(User{"alice"}, "read", Issue{"Issue 1"});
+    # alice can not write to the "test-repo" Repository
+    assert_not allow(User{"alice"}, "write", Repository{"test-repo"});
+}

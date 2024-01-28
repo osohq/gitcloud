@@ -1,0 +1,24 @@
+#!/bin/sh
+#
+# An example hook script to verify that polar code that 
+# is about to be committed is syntactically valid.
+
+# Change this to the paths to your polar files
+declare -a POLAR_FILES=(
+  "policy/authorization.polar"
+)
+
+POLAR_FILES_CHANGED=false
+
+# See whether any of the polar files changed in this commit
+for POLAR_FILE in "${POLAR_FILES[@]}" ; do
+  if git --no-pager diff --cached --name-status | grep -v "^D" | grep "${POLAR_FILE}" >> /dev/null ; then
+    POLAR_FILES_CHANGED=true
+    break
+  fi
+done
+
+# If at least one polar file has changed, then validate the syntax of all polar files.
+#
+# NOTE: This is necessary because polar files may reference objects in other polar files.
+! $POLAR_FILES_CHANGED || oso-cloud validate "${POLAR_FILES[@]}"

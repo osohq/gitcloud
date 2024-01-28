@@ -39,6 +39,35 @@ Oso's [Node.js][docs-node] library.
 
 [docs-node]: https://osohq.com/docs/reference/client-apis/node
 
+### Configuring your local environment
+
+Install the `oso-cloud` CLI by following the instructions in the 
+[Oso Cloud Quickstart](https://www.osohq.com/docs/tutorials/quickstart#adding-oso-cloud-to-your-application)
+
+You can optionally set up your environment for local testing by running `make setup`
+from the root directory of the repository. This will do the following:
+
+* Install the appropriate version of the Oso Cloud [local development binary](https://www.osohq.com/docs/guides/develop/local-development) for your system.
+* Copy the pre-commit hook from the `scripts` directory to `.git/pre-commit` if one doesn't already exist there.
+    * This will automatically validate the syntax of `policy/authorization.polar` before committing it.
+
+### Running local policy tests
+
+If you configured your environment for local testing above,
+then you can run the policy tests locally by running the following command
+from the root directory of the repository:
+
+```
+OSO_AUTH=e_0123456789_12345_osotesttoken01xiIn make test-policy
+```
+
+The `OSO_AUTH` variable is set to the local development API key as documented in the 
+[Setup section](https://www.osohq.com/docs/guides/develop/local-development#setup) of the Local Development Guide.
+It will only work against the local development binary.
+
+This will:
+* start the local development binary
+* Run the policy tests in `policy/authorization.polar` against the local development binary
 ### Running tests
 
 NOTE: ***running the test suite against an Oso Cloud instance will reset all
