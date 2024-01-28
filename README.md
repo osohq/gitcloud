@@ -145,3 +145,10 @@ curl -c gitclub.cookies -H "Content-Type: application/json" -X POST -d '{"userna
 ```bash
 curl -b gitclub.cookies localhost:5000/orgs/1
 ```
+
+## FAQ
+
+### I'm getting "Failed to fetch" CORS errors on Mac
+
+Try [disabling Airplay](https://developer.apple.com/forums/thread/693768), Airplay can intercept requests to `localhost:5000`.
+In the Chrome console, check the "server" response header on a failed request: if the "server" response header includes "Airplay", then Airplay is the culprit.

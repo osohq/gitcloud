@@ -82,17 +82,22 @@ export class JobController {
       ))
     )
       return res.status(403).send("Forbidden");
-    let job = this.jobRepository().create({
-      ...body,
-      creatorId: user.username,
-      repoId: repo.id,
-    } as DeepPartial<Job>);
-    job = await this.jobRepository().save(job);
-    // await oso.bulkTell([
-    //   ["has_relation", { type: "User", id: user.username }, "creator", { type: "Job", id: job.id.toString() }],
-    //   ["has_relation", { type: "Job", id: job.id.toString() }, "repository", { type: "Repository", id: repo.id }],
-    // ]);
-    return res.status(201).json(job);
+
+    try {
+      let job = this.jobRepository().create({
+        ...body,
+        creatorId: user.username,
+        repoId: repo.id,
+      } as DeepPartial<Job>);
+      job = await this.jobRepository().save(job);
+      // await oso.bulkTell([
+      //   ["has_relation", { type: "User", id: user.username }, "creator", { type: "Job", id: job.id.toString() }],
+      //   ["has_relation", { type: "Job", id: job.id.toString() }, "repository", { type: "Repository", id: repo.id }],
+      // ]);
+      return res.status(201).json(job);
+    } catch (err) {
+      return res.status(500).json({ message: err.message });
+    }
   }
 
   async cancel({ oso, params, repo, user }: Request, res: Response) {
@@ -104,12 +109,17 @@ export class JobController {
       ))
     )
       return res.status(403).send("Forbidden");
-    const job = await this.jobRepository().findOneOrFail({
-      where: { id: parseInt(params.id) },
-    });
-    // if (!(await oso.authorize({ type: "User", id: user.username }, "cancel", { type: "Job", id: job.id.toString() })))
-    //   return res.status(403).send("Forbidden");
-    await this.jobRepository().update(job.id, { status: "canceled" });
-    return res.json(job);
+
+    try {
+      const job = await this.jobRepository().findOneOrFail({
+        where: { id: parseInt(params.id) },
+      });
+      // if (!(await oso.authorize({ type: "User", id: user.username }, "cancel", { type: "Job", id: job.id.toString() })))
+      //   return res.status(403).send("Forbidden");
+      await this.jobRepository().update(job.id, { status: "canceled" });
+      return res.json(job);
+    } catch (err) {
+      return res.status(500).json({ message: err.message });
+    }
   }
 }
