@@ -7,7 +7,7 @@ type Params = { name: string };
 export function repo(orgId?: string) {
   const { userId } = useUser();
 
-  const path = `/orgs/${orgId}/repos`;
+  const path = `/accounts/orgs/${orgId}/repos`;
 
   return {
     create: (body: Params) => create(path, body, Repo, userId),

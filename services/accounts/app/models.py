@@ -1,18 +1,21 @@
-from sqlalchemy.types import Integer, String, Boolean
+from typing import Type, cast
+from sqlalchemy.types import Integer, String, Boolean, DateTime, JSON
 from sqlalchemy.schema import Column, ForeignKey, UniqueConstraint
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship, backref, DeclarativeMeta, column_property
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy import select, func
+from sqlalchemy.sql.functions import concat
 from sqlalchemy.orm.relationships import RelationshipProperty
 
-Base = declarative_base()
+Base: Type = declarative_base()
 
 
 class User(Base):
     __tablename__ = "users"
 
-    username = Column(String, primary_key=True)
+    id = Column(Integer, primary_key=True)
+    username = Column(String)
     email = Column(String)
     name = Column(String)
 
@@ -39,19 +42,7 @@ class Organization(Base):
     description = Column(String)
     billing_address = Column(String)
 
-    repos: list
-
-    @hybrid_property
-    def repository_count(self):
-        return len(self.repos)
-
-    @repository_count.expression
-    def repository_count_(cls):
-        return (
-            select(func.count(Repository.id))
-            .where(Repository.org_id == cls.id)
-            .label("total_repo_count")
-        )
+    repos = relationship("Repository")
 
 
 class Repository(Base):
@@ -62,43 +53,27 @@ class Repository(Base):
     description = Column(String(256))
 
     org_id = Column(Integer, ForeignKey("organizations.id"), index=True)
-    org: Organization = relationship(
-        Organization, backref=backref("repos", lazy="joined"), lazy="joined"
-    )
+    org = relationship(Organization, back_populates="repos")
 
     public = Column(Boolean, default=False)
     protected = Column(Boolean, default=False)
 
     unique_name_in_org = UniqueConstraint(name, org_id)
 
-    issues: list
 
-    @hybrid_property
-    def issue_count(self):
-        return len(self.issues)
-
-    @issue_count.expression
-    def issue_count_(cls):
-        return (
-            select(func.count(Issue.id))
-            .where(Issue.repo_id == cls.id)
-            .label("total_issue_count")
-        )
+Repository.name_with_owner = column_property(
+    select(Organization.name + "/" + Repository.name)
+    .filter(Organization.id == Repository.org_id)
+    .scalar_subquery()
+)
 
 
-class Issue(Base):
-    __tablename__ = "issues"
-
-    id = Column(Integer, primary_key=True)
-    issue_number = Column(Integer)
-    title = Column(String(256))
-    closed = Column(Boolean, default=False)
-
-    repo_id = Column(Integer, ForeignKey("repositories.id"), index=True)
-    repo: Repository = relationship(Repository, backref=backref("issues"))
-
-    creator_id = Column(String, ForeignKey("users.username"), index=True)
-    creator: User = relationship(User, backref=backref("issues"))
+Organization.repository_count = column_property(
+    select(func.count(Repository.id))
+    .where(Repository.org_id == Organization.id)
+    .correlate_except(Repository)
+    .scalar_subquery(),
+)
 
 
 ### Authorization Models
@@ -109,7 +84,7 @@ class RepoRole(Base):
 
     id = Column(Integer, primary_key=True)
     repo_id = Column(Integer, ForeignKey("repositories.id"), index=True)
-    user_id = Column(String, ForeignKey("users.username"), index=True)
+    user_id = Column(String, ForeignKey("users.id"), index=True)
     role = Column(String(256))
 
 
@@ -118,7 +93,7 @@ class OrgRole(Base):
 
     id = Column(Integer, primary_key=True)
     org_id = Column(Integer, ForeignKey("organizations.id"), index=True)
-    user_id = Column(String, ForeignKey("users.username"), index=True)
+    user_id = Column(String, ForeignKey("users.id"), index=True)
     role = Column(String(256))
 
 

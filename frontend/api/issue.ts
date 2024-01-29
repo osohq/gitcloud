@@ -2,10 +2,10 @@ import useUser from "../lib/useUser";
 import { Issue } from "../models";
 import { create, index, noData, show, update } from "./common";
 
-type Params = { title?: string, closed?: boolean };
+type Params = { title?: string; closed?: boolean };
 
 export function issue(orgId?: string, repoId?: string) {
-  const path = `/orgs/${orgId}/repos/${repoId}/issues`;
+  const path = `/issues/orgs/${orgId}/repos/${repoId}/issues`;
   const defined = orgId && repoId;
   const { userId } = useUser();
 
@@ -17,6 +17,7 @@ export function issue(orgId?: string, repoId?: string) {
     show: (id?: string) =>
       defined && id ? show(`${path}/${id}`, Issue, userId) : noData(),
 
-    update: (id: string, params: Params) => update(`${path}/${id}`, params, Issue, userId),
+    update: (id: string, params: Params) =>
+      update(`${path}/${id}`, params, Issue, userId),
   };
 }

@@ -1,5 +1,4 @@
 import { user as userApi } from "../../api";
-import useUser from "../../lib/useUser";
 import { useRouter } from "next/router";
 import { OrganizationList } from "../../components/OrganizationList";
 import { RepositoryList } from "../../components/RepositoryList";

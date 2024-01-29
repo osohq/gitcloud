@@ -11,7 +11,7 @@ If you are looking for an example of using the Oso library, check out
 
 ## Backend services
 
-### GitClub (Python - SQLAlchemy - Flask)
+### Accounts / Issues (Python - SQLAlchemy - Flask)
 
 This is an example application based on GitHub that's meant to model GitHub's
 permissions system. The app uses the [`oso-cloud`][pypi-oso-cloud] Python
@@ -41,15 +41,15 @@ Oso's [Node.js][docs-node] library.
 
 ### Configuring your local environment
 
-Install the `oso-cloud` CLI by following the instructions in the 
+Install the `oso-cloud` CLI by following the instructions in the
 [Oso Cloud Quickstart](https://www.osohq.com/docs/tutorials/quickstart#adding-oso-cloud-to-your-application)
 
 You can optionally set up your environment for local testing by running `make setup`
 from the root directory of the repository. This will do the following:
 
-* Install the appropriate version of the Oso Cloud [local development binary](https://www.osohq.com/docs/guides/develop/local-development) for your system.
-* Copy the pre-commit hook from the `scripts` directory to `.git/pre-commit` if one doesn't already exist there.
-    * This will automatically validate the syntax of `policy/authorization.polar` before committing it.
+- Install the appropriate version of the Oso Cloud [local development binary](https://www.osohq.com/docs/guides/develop/local-development) for your system.
+- Copy the pre-commit hook from the `scripts` directory to `.git/pre-commit` if one doesn't already exist there.
+  - This will automatically validate the syntax of `policy/authorization.polar` before committing it.
 
 ### Running local policy tests
 
@@ -61,20 +61,22 @@ from the root directory of the repository:
 OSO_AUTH=e_0123456789_12345_osotesttoken01xiIn make test-policy
 ```
 
-The `OSO_AUTH` variable is set to the local development API key as documented in the 
+The `OSO_AUTH` variable is set to the local development API key as documented in the
 [Setup section](https://www.osohq.com/docs/guides/develop/local-development#setup) of the Local Development Guide.
 It will only work against the local development binary.
 
 This will:
-* start the local development binary
-* Run the policy tests in `policy/authorization.polar` against the local development binary
+
+- start the local development binary
+- Run the policy tests in `policy/authorization.polar` against the local development binary
+
 ### Running tests
 
-NOTE: ***running the test suite against an Oso Cloud instance will reset all
-data in that instance.*** This ensures each test starts from a clean slate.
+NOTE: **_running the test suite against an Oso Cloud instance will reset all
+data in that instance._** This ensures each test starts from a clean slate.
 
-To run the test suite, which, again, *will reset data and perform many
-authorization requests against the target Oso Cloud instance*, grab your API
+To run the test suite, which, again, _will reset data and perform many
+authorization requests against the target Oso Cloud instance_, grab your API
 key from https://ui.osohq.com/dashboard and export it as the `OSO_AUTH`
 environment variable.
 
@@ -86,9 +88,11 @@ $ make test
 ### Running the services
 
 The first time you run these services, you'll need to upload your policy:
+
 ```console
 make update-policy
 ```
+
 You only need to do this once. (If you make changes to the policy, you'll need to run it again.)
 
 Run GitClub in one terminal:

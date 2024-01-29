@@ -13,6 +13,7 @@ import LoadingPage from "../../components/LoadingPage";
 import ErrorMessage from "../../components/ErrorMessage";
 import Link from "next/link";
 import Breadcrumbs from "../../components/Breadcrumbs";
+import { org as useOrg } from "../../api/org";
 
 export default function Show() {
   const router = useRouter();
@@ -62,9 +63,10 @@ export default function Show() {
           </div>
         </div>
         <div className="ml-4 mt-4 flex-shrink-0">
-          {
-            org.permissions?.includes("view_members") &&
-            <Link href={{ pathname: "/orgs/[orgId]/settings", query: { orgId } }}>
+          {org.permissions?.includes("view_members") && (
+            <Link
+              href={{ pathname: "/orgs/[orgId]/settings", query: { orgId } }}
+            >
               <button
                 type="button"
                 className="relative inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -72,7 +74,7 @@ export default function Show() {
                 Settings
               </button>
             </Link>
-          }
+          )}
         </div>
       </div>
       <div className="mt-8 bg-white px-4 py-5 border-b border-gray-200 sm:px-6">
@@ -83,9 +85,10 @@ export default function Show() {
             </h3>
           </div>
           <div className="ml-4 mt-2 flex-shrink-0">
-            {
-              org.permissions?.includes("create_repositories") &&
-              <Link href={{ pathname: "/orgs/[orgId]/repos/new", query: { orgId } }}>
+            {org.permissions?.includes("create_repositories") && (
+              <Link
+                href={{ pathname: "/orgs/[orgId]/repos/new", query: { orgId } }}
+              >
                 <button
                   type="button"
                   className="relative inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -93,7 +96,7 @@ export default function Show() {
                   Create new repository
                 </button>
               </Link>
-            }
+            )}
           </div>
         </div>
       </div>

@@ -5,7 +5,7 @@ from werkzeug.exceptions import Forbidden, NotFound
 import oso_cloud
 from .orgs import user_count
 from ..models import Organization, Repository, User
-from .authorization import (
+from ..authorization import (
     actions,
     authorize,
     get,
@@ -28,7 +28,7 @@ def org_unassigned_users_index(org_id):
         "has_role", {"type": "User"}, {}, {"type": "Organization", "id": org_id}
     )
     existing_ids = {cast(oso_cloud.Value, e["args"][0])["id"] for e in existing}
-    unassigned = g.session.query(User).filter(User.username.notin_(existing_ids))
+    unassigned = g.session.query(User).filter(User.id.notin_(existing_ids))
     return jsonify([u.as_json() for u in unassigned])
 
 
@@ -52,7 +52,7 @@ def org_index(org_id):
     ]
     assignments_ids = sorted(assignment_ids, key=lambda assignment: assignment[0])
     assignments = [
-        (g.session.query(User).filter_by(username=user_id).first(), role)
+        (g.session.query(User).filter_by(id=user_id).first(), role)
         for (user_id, role) in assignment_ids
     ]
     # TODO(gj): fetch users in bulk
@@ -78,12 +78,12 @@ def org_create(org_id):
     cache.delete_memoized(user_count, org_id)
 
     org = g.session.get_or_404(Organization, id=org_id)
-    user = {"type": "User", "id": payload["username"]}
+    user = {"type": "User", "id": payload["id"]}
     if not authorize("read", user):
         raise NotFound
     tell("has_role", user, payload["role"], org)
 
-    user_obj: User = g.session.get_or_404(User, username=user["id"])
+    user_obj: User = g.session.get_or_404(User, id=user["id"])
     return {"user": user_obj.as_json(), "role": payload["role"]}, 201  # type: ignore
 
 
@@ -97,7 +97,7 @@ def org_update(org_id):
         raise Forbidden
     cache.delete_memoized(user_count, org_id)
     org = g.session.get_or_404(Organization, id=org_id)
-    user = {"type": "User", "id": payload["username"]}
+    user = {"type": "User", "id": payload["id"]}
     if not authorize("read", user):
         raise NotFound
 
@@ -106,7 +106,7 @@ def org_update(org_id):
         insert=[{"name": "has_role", "args": [user, payload["role"], org]}],
     )
 
-    user_obj: User = g.session.get_or_404(User, username=user["id"])
+    user_obj: User = g.session.get_or_404(User, id=user["id"])
     return {"user": user_obj.as_json(), "role": payload["role"]}  # type: ignore
 
 
@@ -120,7 +120,7 @@ def org_delete(org_id):
         raise Forbidden
     cache.delete_memoized(user_count, org_id)
     org = g.session.get_or_404(Organization, id=org_id)
-    user = {"type": "User", "id": payload["username"]}
+    user = {"type": "User", "id": payload["id"]}
     if not authorize("read", user):
         raise NotFound
 
@@ -140,7 +140,7 @@ def repo_unassigned_users_index(org_id, repo_id):
         "has_role", {"type": User}, None, {"type": "Repository", "id": repo.id}
     )
     existing_ids = {cast(oso_cloud.Value, fact["args"][0])["id"] for fact in existing}
-    unassigned = g.session.query(User).filter(User.username.notin_(existing_ids))
+    unassigned = g.session.query(User).filter(User.id.notin_(existing_ids))
     return jsonify([u.as_json() for u in unassigned])
 
 
@@ -161,7 +161,7 @@ def repo_index(org_id, repo_id):
     ]
     assignment_ids = sorted(assignment_ids, key=lambda assignment: assignment[0])
     assignments = [
-        (g.session.query(User).filter_by(username=user_id).first(), role)
+        (g.session.query(User).filter_by(id=user_id).first(), role)
         for (user_id, role) in assignment_ids
     ]
     # TODO(gj): fetch users in bulk
@@ -184,11 +184,11 @@ def repo_create(org_id, repo_id):
         raise NotFound
     if not authorize("manage_members", repo):
         raise Forbidden
-    user = {"type": "User", "id": payload["username"]}
+    user = {"type": "User", "id": payload["id"]}
     if not authorize("read", user):
         raise NotFound
     tell("has_role", user, payload["role"], repo)
-    user_obj: User = g.session.get_or_404(User, username=user["id"])
+    user_obj: User = g.session.get_or_404(User, id=user["id"])
     return {"user": user_obj.as_json(), "role": payload["role"]}, 201  # type: ignore
 
 
@@ -200,14 +200,14 @@ def repo_update(org_id, repo_id):
         raise NotFound
     if not authorize("manage_members", repo):
         raise Forbidden
-    user: oso_cloud.Value = {"type": "User", "id": str(payload["username"])}
+    user: oso_cloud.Value = {"type": "User", "id": str(payload["id"])}
 
     bulk_update(
         delete=[{"name": "has_role", "args": [user, None, repo]}],
         insert=[{"name": "has_role", "args": [user, payload["role"], repo]}],
     )
 
-    user_obj = g.session.get_or_404(User, username=user["id"])
+    user_obj = g.session.get_or_404(User, id=user["id"])
 
     return {"user": user_obj.as_json(), "role": payload["role"]}  # type: ignore
 
@@ -220,7 +220,7 @@ def repo_delete(org_id, repo_id):
         raise NotFound
     if not authorize("manage_members", repo):
         raise Forbidden
-    user: oso_cloud.Value = {"type": "User", "id": str(payload["username"])}
+    user: oso_cloud.Value = {"type": "User", "id": str(payload["id"])}
 
     bulk_update(delete=[{"name": "has_role", "args": [user, None, repo]}])
     return {}, 204

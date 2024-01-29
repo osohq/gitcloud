@@ -5,7 +5,7 @@ import { create, index, noData, update } from "./common";
 type Params = { name: string };
 
 export function job(orgId?: string, repoId?: string) {
-  const path = `/orgs/${orgId}/repos/${repoId}/jobs`;
+  const path = `/jobs/orgs/${orgId}/repos/${repoId}/jobs`;
   const defined = orgId && repoId;
   const { userId } = useUser();
 

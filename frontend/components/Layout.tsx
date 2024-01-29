@@ -26,11 +26,12 @@ export default function Layout({
   children: JSX.Element;
 }) {
   const router = useRouter();
-  const { currentUser } = useUser();
+  const { currentUser, userId } = useUser();
+  const { data: user } = userApi().show(userId);
 
   const userNavigation = currentUser.isLoggedIn
     ? [
-      { name: "Your Profile", href: `/users/${currentUser.user.username}` },
+      { name: "Your Profile", href: `/users/${userId}` },
       { name: "Sign out", href: "/logout" },
     ]
     : [
@@ -165,13 +166,13 @@ export default function Layout({
                 </div>
                 <div className="pt-4 pb-3 border-t border-gray-700">
                   <div className="flex items-center px-5">
-                    {currentUser.isLoggedIn && (
+                    {user && (
                       <div className="ml-3">
                         <div className="text-base font-medium text-white">
-                          {currentUser.user.name}
+                          {user.name}
                         </div>
                         <div className="text-sm font-medium text-gray-400">
-                          {currentUser.user.email}
+                          {user.email}
                         </div>
                       </div>
                     )}

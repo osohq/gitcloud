@@ -1,17 +1,19 @@
 from os import getenv
-from typing import Any, List, Optional, Type, TypedDict
+from typing import Any, Dict, List, Optional, Type, TypedDict
 
 from flask import g
 from flask_caching import Cache
 import oso_cloud
-from oso_cloud import Oso
+from oso_cloud import Oso, Value
 from sqlalchemy.orm.session import Session
 from sqlalchemy.future import select
+from strawberry.types.info import Info
+
 from werkzeug.exceptions import Forbidden, NotFound, Unauthorized
 
-from app.models import Repository, Organization, Issue, OrgRole, RepoRole, User
+from app.models import Issue
 
-oso = Oso(url=getenv("OSO_URL", "https://cloud.osohq.com"), api_key=getenv("OSO_AUTH"))
+oso = Oso(url=getenv("OSO_URL", "https://api.osohq.com"), api_key=getenv("OSO_AUTH"))
 cache = Cache(config={"CACHE_TYPE": "SimpleCache"})
 
 
@@ -26,18 +28,16 @@ def object_to_oso_value(obj: Any, allow_unbound=False) -> oso_cloud.Value:
         if "id" in obj:
             value["id"] = str(obj["id"])
         return value
-    elif isinstance(obj, User):
-        return {"type": "User", "id": str(obj.username)}
     elif obj is None:
         return {}
     else:
         return {"type": obj.__class__.__name__, "id": str(obj.id)}
 
 
-def current_user():
+def current_user() -> oso_cloud.Value:
     if g.current_user is None:
         raise Unauthorized
-    return object_to_oso_value(g.current_user)
+    return {"type": "User", "id": str(g.current_user)}
 
 
 def tell(predicate: str, *args: Any):
@@ -63,7 +63,7 @@ def bulk_update(delete: list[BulkFact] = [], insert: list[BulkFact] = []):
     return oso.bulk(delete=delete_facts, tell=insert_facts)
 
 
-def authorize(action: str, resource: Any) -> bool:
+def authorize(action: str, resource: Any, parent: Optional[int] = None) -> bool:
     if g.current_user is None:
         raise Unauthorized
     actor = current_user()
@@ -71,7 +71,7 @@ def authorize(action: str, resource: Any) -> bool:
     try:
         context_facts = []
         if resource["type"] == "Issue":
-            context_facts = get_facts_for_issue(None, resource["id"])
+            context_facts = get_facts_for_issue(parent, resource["id"])
         print(f'oso-cloud authorize {actor} {action} {resource} -c "{context_facts}"')
         res = oso.authorize(actor, action, resource, context_facts)
         print("Allowed" if res else "Denied")
@@ -83,8 +83,8 @@ def authorize(action: str, resource: Any) -> bool:
         return False
 
 
-def actions(resource: Any) -> List[str]:
-    if g.current_user is None:
+def actions(resource: Any, user: Optional[oso_cloud.Value] = None) -> List[str]:
+    if not user and g.current_user is None:
         return []
     actor = current_user()
     resource = object_to_oso_value(resource)
@@ -95,7 +95,7 @@ def actions(resource: Any) -> List[str]:
         print(f'oso-cloud actions {actor} {resource} -c "{context_facts}"')
         res = oso.actions(actor, resource, context_facts=context_facts)
         print(res)
-        return res
+        return sorted(res)
     except Exception as e:
         print(
             f"error from Oso Cloud: {e} for request: allow({actor}, _, {resource}) -c {context_facts}"
@@ -114,11 +114,9 @@ def list_resources(
             raise Exception("cannot get issues without a parent repository")
         facts = get_facts_for_issue(parent, None)
 
-    print(
-        f'oso-cloud list User:{g.current_user.username} {action} {resource_type} -c "{facts}"'
-    )
+    print(f'oso-cloud list User:{g.current_user} {action} {resource_type} -c "{facts}"')
     return oso.list(
-        {"type": "User", "id": g.current_user.username},
+        {"type": "User", "id": g.current_user},
         action,
         resource_type,
         context_facts=facts,
@@ -173,25 +171,85 @@ def get_facts_for_issue(
     issues = query.all()
     facts: list[oso_cloud.Fact] = []
 
-    for issue in issues:
-        parent: oso_cloud.Value = {"type": "Repository", "id": str(issue.repo_id)}
-        resource: oso_cloud.Value = {"type": "Issue", "id": str(issue.id)}
-
-        has_parent: oso_cloud.Fact = {
-            "name": "has_relation",
-            "args": [resource, "repository", parent],
-        }
-        creator: oso_cloud.Fact = {
-            "name": "has_role",
-            "args": [
-                {"type": "User", "id": str(issue.creator_id)},
-                "creator",
-                resource,
-            ],
-        }
-        closed: list[oso_cloud.Fact] = (
-            [{"name": "is_closed", "args": [resource]}] if issue.closed else []
+    if repo_id is not None:
+        facts.append(
+            {
+                "name": "in_repo_context",
+                "args": [
+                    {"type": "Repository", "id": str(repo_id)},
+                ],
+            }
         )
-        facts.extend([has_parent, creator, *closed])
+    else:
+        for issue in issues:
+            parent: oso_cloud.Value = {"type": "Repository", "id": str(issue.repo_id)}
+            resource: oso_cloud.Value = {"type": "Issue", "id": str(issue.id)}
+
+            has_parent: oso_cloud.Fact = {
+                "name": "has_relation",
+                "args": [resource, "repository", parent],
+            }
+
+            creator: oso_cloud.Fact = {
+                "name": "has_role",
+                "args": [
+                    {"type": "User", "id": str(issue.creator_id)},
+                    "creator",
+                    resource,
+                ],
+            }
+
+            closed: list[oso_cloud.Fact] = (
+                [{"name": "is_closed", "args": [resource]}] if issue.closed else []
+            )
+            facts.extend([has_parent, creator, *closed])
 
     return facts
+
+
+def check_path_authorization(source: Any, info: Info[Any, Any]) -> bool | List[str]:
+    import requests
+
+    path = [segment for segment in info.path.as_list() if isinstance(segment, str)]
+
+    from strawberry import relay
+
+    if isinstance(info.return_type, type) and issubclass(
+        info.return_type, relay.ListConnection
+    ):
+        path.append("nodes")
+    # for segment in reversed(path):
+    #     if isinstance(segment, int):
+    #         breakpoint()
+
+    response = requests.get(
+        "http://localhost:3001/decisions",
+        params={
+            "request_id": g.oso_request_id,
+            "path": "/" + "/".join(path),
+            "parent_id": source.id if hasattr(source, "id") else None,
+        },
+    )
+    if response.status_code != 200:
+        print("error from authorization service: ", response.text)
+        return True
+    result = response.json()
+    print(f"check path authorization: {path} -> {result}")
+    if "Allowed" in result:
+        return result["Allowed"]
+    elif "Results" in result:
+        return result["Results"]
+    else:
+        print("unexpected result: ", result)
+        return True
+
+
+import strawberry
+from strawberry.schema_directive import Location
+
+
+@strawberry.federation.schema_directive(
+    locations=[Location.FIELD_DEFINITION], compose=True
+)
+class AuthorizeField:
+    action: str

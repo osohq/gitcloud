@@ -1,14 +1,13 @@
-import {
-  ChangeEvent,
-  FormEvent,
-  useState,
-} from "react";
+import { ChangeEvent, FormEvent, useState } from "react";
 
-import { org as orgApi } from "../../api";
+import { org as orgApi } from "../../api/org";
 import { OrgParams } from "../../models";
 import useUser from "../../lib/useUser";
 import Router from "next/router";
 import { XCircleIcon } from "@heroicons/react/20/solid";
+
+import LoadingPage from "../../components/LoadingPage";
+import ErrorMessage from "../../components/ErrorMessage";
 
 export default function New() {
   const [error, setError] = useState<string[]>([]);
@@ -19,6 +18,12 @@ export default function New() {
     billingAddress: "San Diego",
   });
 
+  // if (createError) return <ErrorMessage error={createError} />;
+  // if (data) {
+  //   Router.push(`/orgs/${data.createOrganization.id}`);
+  // }
+  // if (loading) return <LoadingPage />;
+
   function validInputs() {
     const { name, billingAddress } = details;
     // Don't allow empty strings.
@@ -27,7 +32,7 @@ export default function New() {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    setError([])
+    setError([]);
     if (!validInputs()) return;
     try {
       const org = await api.create(details);
@@ -44,11 +49,16 @@ export default function New() {
   }
 
   return (
-    <form className="space-y-8 divide-y divide-gray-200" onSubmit={handleSubmit}>
+    <form
+      className="space-y-8 divide-y divide-gray-200"
+      onSubmit={handleSubmit}
+    >
       <div className="space-y-8 divide-y divide-gray-200">
         <div>
           <div>
-            <h3 className="text-lg font-medium leading-6 text-gray-900">New Organization</h3>
+            <h3 className="text-lg font-medium leading-6 text-gray-900">
+              New Organization
+            </h3>
             <p className="mt-1 text-sm text-gray-500">
               Create a new organization
             </p>
@@ -56,7 +66,10 @@ export default function New() {
 
           <div className="mt-6 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
             <div className="sm:col-span-4">
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Name
               </label>
               <div className="mt-1 flex rounded-md shadow-sm">
@@ -74,7 +87,10 @@ export default function New() {
 
           <div className="mt-6 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
             <div className="sm:col-span-4">
-              <label htmlFor="billingAddress" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="billingAddress"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Location
               </label>
               <div className="mt-1 flex rounded-md shadow-sm">
@@ -92,27 +108,30 @@ export default function New() {
         </div>
       </div>
 
-      {error.length > 0 &&
+      {error.length > 0 && (
         <div className="rounded-md bg-red-50 p-4">
           <div className="flex">
             <div className="flex-shrink-0">
-              <XCircleIcon className="h-5 w-5 text-red-400" aria-hidden="true" />
+              <XCircleIcon
+                className="h-5 w-5 text-red-400"
+                aria-hidden="true"
+              />
             </div>
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">There were errors with your submission</h3>
+              <h3 className="text-sm font-medium text-red-800">
+                There were errors with your submission
+              </h3>
               <div className="mt-2 text-sm text-red-700">
                 <ul role="list" className="list-disc space-y-1 pl-5">
-                  {
-                    error.map((e, index) =>
-                      <li key={`error#{index}`}>{e}</li>
-                    )
-                  }
+                  {error.map((e, index) => (
+                    <li key={`error#{index}`}>{e}</li>
+                  ))}
                 </ul>
               </div>
             </div>
           </div>
         </div>
-      }
+      )}
       <div className="pt-5">
         <div className="flex justify-end">
           <button
@@ -122,9 +141,7 @@ export default function New() {
             Create
           </button>
         </div>
-
       </div>
     </form>
-  )
-
+  );
 }

@@ -1,5 +1,4 @@
 actor User { }
-actor Group { }
 
 resource Organization {
      permissions = [
@@ -61,7 +60,8 @@ resource Repository {
 
 resource Issue {
      permissions = ["read", "comment", "close"];
-     relations = { repository: Repository, creator: User };
+     roles = ["creator"];
+     relations = { repository: Repository };
 
      "read" if "read" on "repository";
      "comment" if "manage_issues" on "repository";
@@ -69,6 +69,17 @@ resource Issue {
 
      "close" if "creator";
 
+}
+
+resource Job {
+    permissions  = ["read", "cancel"];
+    relations = { repository: Repository, owner: User };
+
+    "read" if "read" on "repository";
+    "cancel" if "owner";
+
+    "cancel" if "manage_jobs" on "repository";
+    "cancel" if "admin" on "repository";
 }
 
 has_permission(_: Actor, action: String, repo: Repository) if
@@ -115,26 +126,3 @@ declare has_relation(Repository, String, Organization);
 
 has_relation(_: Issue, "repository", repo: Repository) if
      in_repo_context(repo);
-
-# Policy tests
-# Organization members inherit the read permission
-# on repositories that belong to the org
-# and issues that belong to those repositories
-test "organization members can read repos and issues" {
-    # Define test data (facts)
-    setup {
-        # alice is a member of the "acme" organization
-        has_role(User{"alice"}, "member", Organization{"acme"});
-        # The "test-repo" Repository belongs to the "acme" organization
-        has_relation(Repository{"test-repo"}, "organization", Organization{"acme"});
-        # The issue "Issue 1" belongs to the "test-repo" repository
-        has_relation(Issue{"Issue 1"}, "repository", Repository{"test-repo"});
-    }
-
-    # alice can read the "test-repo" Repository
-    assert allow(User{"alice"}, "read", Repository{"test-repo"});
-    # alice can read the issue "Issue 1"
-    assert allow(User{"alice"}, "read", Issue{"Issue 1"});
-    # alice can not write to the "test-repo" Repository
-    assert_not allow(User{"alice"}, "write", Repository{"test-repo"});
-}

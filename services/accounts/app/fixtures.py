@@ -1,7 +1,7 @@
 from collections import OrderedDict
 from random import choice, randint
-from .models import Issue, OrgRole, RepoRole, Organization, Repository, User
-from .routes.authorization import oso
+from .models import OrgRole, RepoRole, Organization, Repository, User
+from .authorization import oso
 
 from faker import Faker
 import faker_microservice
@@ -13,38 +13,38 @@ FAKE_ORGANIZATIONS = 10
 FAKE_REPOSITORIES = 20
 FAKE_ISSUES = 100
 
+
 def limit_bulk_tell(facts, bulk_limit=20):
     start_index = 0
     end_index = min(len(facts), bulk_limit)
     total_facts_added = 0
     total_number_facts = len(facts)
     while start_index < total_number_facts:
-        oso_response =oso.bulk_tell(facts=facts[start_index:end_index])
+        oso_response = oso.bulk_tell(facts=facts[start_index:end_index])
         if oso_response != None:
-            print("An issue occurred adding facts {} - {})".format(
-                start_index,
-                end_index)
+            print(
+                "An issue occurred adding facts {} - {})".format(start_index, end_index)
             )
         else:
             total_facts_added += end_index - start_index
 
         start_index = end_index
-        end_index = start_index + min(
-            total_number_facts-start_index,
-            bulk_limit
-        )
+        end_index = start_index + min(total_number_facts - start_index, bulk_limit)
 
     if total_facts_added == total_number_facts:
-        print("All {} facts were successfully added to Oso Cloud!".format(
+        print(
+            "All {} facts were successfully added to Oso Cloud!".format(
                 total_facts_added
             )
         )
     else:
-        print("An error occurred. Not all facts were properly uploaded ({} of {}).".format(
-                total_facts_added,
-                total_number_facts
+        print(
+            "An error occurred. Not all facts were properly uploaded ({} of {}).".format(
+                total_facts_added, total_number_facts
             )
         )
+
+
 def load_fixture_data(session):
     #########
     # Users #
@@ -58,14 +58,13 @@ def load_fixture_data(session):
     session.query(User).delete()
     session.query(Organization).delete()
     session.query(Repository).delete()
-    session.query(Issue).delete()
 
+    deletions: list[Fact] = []
     facts: list[Fact] = []
 
     john = User(username="john", name="John Lennon", email="john@beatles.com")
     paul = User(username="paul", name="Paul McCartney", email="paul@beatles.com")
     george = User(username="george", name="George Harrison", email="george@beatles.com")
-    admin = User(username="admin", name="admin", email="admin@admin.com")
     mike = User(username="mike", name="Mike Wazowski", email="mike@monsters.com")
     sully = User(username="sully", name="James P Sullivan", email="sully@monsters.com")
     ringo = User(username="ringo", name="Ringo Starr", email="ringo@beatles.com")
@@ -76,7 +75,6 @@ def load_fixture_data(session):
         john,
         paul,
         george,
-        admin,
         mike,
         sully,
         ringo,
@@ -136,94 +134,6 @@ def load_fixture_data(session):
         session.add(repo)
 
     ##########
-    # Issues #
-    ##########
-
-    beatles_members = [john, ringo, paul, george]
-    issues = [
-        Issue(
-            issue_number=1,
-            title="Here Comes the Sun",
-            repo=abbey_road,
-            creator=faker.random_element(beatles_members),
-            closed=randint(0, 2) == 0,
-        ),
-        Issue(
-            issue_number=2,
-            title="Because",
-            repo=abbey_road,
-            creator=faker.random_element(beatles_members),
-            closed=randint(0, 2) == 0,
-        ),
-        Issue(
-            issue_number=3,
-            title="You Never Give Me Your Money",
-            repo=abbey_road,
-            creator=faker.random_element(beatles_members),
-            closed=randint(0, 2) == 0,
-        ),
-        Issue(
-            issue_number=4,
-            title="Sun King",
-            repo=abbey_road,
-            creator=faker.random_element(beatles_members),
-            closed=randint(0, 2) == 0,
-        ),
-        Issue(
-            issue_number=5,
-            title="Mean Mr. Mustard",
-            repo=abbey_road,
-            creator=faker.random_element(beatles_members),
-            closed=randint(0, 2) == 0,
-        ),
-        Issue(
-            issue_number=6,
-            title="Polythene Pam",
-            repo=abbey_road,
-            creator=faker.random_element(beatles_members),
-            closed=randint(0, 2) == 0,
-        ),
-        Issue(
-            issue_number=7,
-            title="She Came In Through the Bathroom Window",
-            repo=abbey_road,
-            creator=faker.random_element(beatles_members),
-            closed=randint(0, 2) == 0,
-        ),
-        Issue(
-            issue_number=8,
-            title="Golden Slumbers",
-            repo=abbey_road,
-            creator=faker.random_element(beatles_members),
-            closed=randint(0, 2) == 0,
-        ),
-        Issue(
-            issue_number=9,
-            title="Carry That Weight",
-            repo=abbey_road,
-            creator=faker.random_element(beatles_members),
-            closed=randint(0, 2) == 0,
-        ),
-        Issue(
-            issue_number=10,
-            title="The End",
-            repo=abbey_road,
-            creator=faker.random_element(beatles_members),
-            closed=randint(0, 2) == 0,
-        ),
-        Issue(
-            issue_number=11,
-            title="Her Majesty",
-            repo=abbey_road,
-            creator=faker.random_element(beatles_members),
-            closed=randint(0, 2) == 0,
-        ),
-    ]
-
-    for issue in issues:
-        session.add(issue)
-
-    ##########
     # Faker  #
     ##########
 
@@ -247,17 +157,6 @@ def load_fixture_data(session):
             repos.append(repo)
             session.add(repo)
 
-            for idx, _ in enumerate(range(randint(0, FAKE_ISSUES))):
-                issue = Issue(
-                    issue_number=idx,
-                    title=faker_uniq.sentence(),
-                    closed=(randint(0, FAKE_ISSUES) < idx),
-                    creator=choice(users),
-                    repo=repo,
-                )
-                issues.append(issue)
-                session.add(issue)
-
     # https://github.com/osohq/oso/blob/70965f2277d7167c38d3641140e6e97dec78e3bf/languages/python/sqlalchemy-oso/tests/test_roles.py#L132-L133
     session.flush()
     session.commit()
@@ -266,6 +165,18 @@ def load_fixture_data(session):
     #################
     # Relationships #
     #################
+
+    deletions.append(
+        {
+            "name": "has_relation",
+            "args": [{"type": "Repository"}, "organization", {"type": "Organization"}],
+        }
+    )
+
+    deletions.append(
+        {"name": "is_protected", "args": [{"type": "Repository"}, {"type": "Boolean"}]}
+    )
+    deletions.append({"name": "is_public", "args": [{"type": "Repository"}]})
 
     for repo in repos:
         facts.append(
@@ -295,9 +206,6 @@ def load_fixture_data(session):
                 }
             )
 
-    # for issue in issues:
-    #     facts.append(["has_relation", { "type": "Issue", "id": str(issue.id)}, "repository", { "type": "Repository", "id": issue.str(repo.id)}])
-
     ##############
     # Repo roles #
     ##############
@@ -317,13 +225,13 @@ def load_fixture_data(session):
     #############
 
     org_roles = [
-        OrgRole(user_id=john.username, org_id=beatles.id, role="admin"),
-        OrgRole(user_id=paul.username, org_id=beatles.id, role="member"),
-        OrgRole(user_id=ringo.username, org_id=beatles.id, role="member"),
-        OrgRole(user_id=george.username, org_id=beatles.id, role="member"),
-        OrgRole(user_id=mike.username, org_id=monsters.id, role="admin"),
-        OrgRole(user_id=sully.username, org_id=monsters.id, role="member"),
-        OrgRole(user_id=randall.username, org_id=monsters.id, role="member"),
+        OrgRole(user_id=john.id, org_id=beatles.id, role="admin"),
+        OrgRole(user_id=paul.id, org_id=beatles.id, role="member"),
+        OrgRole(user_id=ringo.id, org_id=beatles.id, role="member"),
+        OrgRole(user_id=george.id, org_id=beatles.id, role="member"),
+        OrgRole(user_id=mike.id, org_id=monsters.id, role="admin"),
+        OrgRole(user_id=sully.id, org_id=monsters.id, role="member"),
+        OrgRole(user_id=randall.id, org_id=monsters.id, role="member"),
     ]
 
     org_role_choices = OrderedDict(
@@ -335,20 +243,33 @@ def load_fixture_data(session):
 
     ### Faker Org Roles
     for org in orgs[2:]:
+        # make sure every org has an admin
         admin = faker.random_element(elements=users)
-        org_roles.append(OrgRole(user_id=admin.username, org_id=org.id, role="admin"))
+        org_roles.append(OrgRole(user_id=admin.id, org_id=org.id, role="admin"))
         org_users = faker.random_elements(
             elements=users, length=randint(1, 10), unique=True
         )
         for user in org_users:
             org_roles.append(
                 OrgRole(
-                    user_id=user.username,
+                    user_id=user.id,
                     org_id=org.id,
                     role=faker.random_element(org_role_choices),
                 )
             )
 
+    # make sure every user has at least one org
+    for user in users:
+        org = faker.random_element(orgs)
+        role = faker.random_element(org_role_choices)
+        org_roles.append(OrgRole(user_id=user.id, org_id=org.id, role=role))
+
+    deletions.append(
+        {
+            "name": "has_role",
+            "args": [{"type": "User"}, {"type": "String"}, {"type": "Organization"}],
+        }
+    )
     for org_role in org_roles:
         session.add(org_role)
         facts.append(
@@ -356,7 +277,7 @@ def load_fixture_data(session):
                 "name": "has_role",
                 "args": [
                     {"type": "User", "id": str(org_role.user_id)},
-                    org_role.role,
+                    str(org_role.role),
                     {"type": "Organization", "id": str(org_role.org_id)},
                 ],
             }
@@ -377,12 +298,18 @@ def load_fixture_data(session):
         for user in repo_users:
             repo_roles.append(
                 RepoRole(
-                    user_id=user.username,
+                    user_id=user.id,
                     repo_id=repo.id,
                     role=faker.random_element(repo_role_choices),
                 )
             )
 
+    deletions.append(
+        {
+            "name": "has_role",
+            "args": [{"type": "User"}, {"type": "String"}, {"type": "Repository"}],
+        }
+    )
     for repo_role in repo_roles:
         session.add(repo_role)
         facts.append(
@@ -396,6 +323,11 @@ def load_fixture_data(session):
             }
         )
 
-    limit_bulk_tell(facts=facts)
+    # delete old facts
+    oso.bulk(deletions, [])
+
+    for idx in range(0, len(facts), 20):
+        print(oso.bulk_tell(facts=facts[idx : idx + 20]))
+
     session.flush()
     session.commit()

@@ -1,3 +1,7 @@
 {
-    "oso.polarLanguageServer.validations": "cloud"
+  "oso.polarLanguageServer.validations": "cloud",
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter"
+  },
+  "python.formatting.provider": "none"
 }

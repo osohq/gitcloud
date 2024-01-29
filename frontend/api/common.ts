@@ -8,10 +8,10 @@ const GITCLUB_ROOT =
   process.env.NEXT_PUBLIC_PRODUCTION == "1"
     ? "https://gitcloud-gitclub.fly.dev"
     : "http://localhost:5000";
-const JOBS_ROOT =
-  process.env.NEXT_PUBLIC_PRODUCTION == "1"
-    ? "https://gitcloud-actions.fly.dev"
-    : "http://localhost:5001";
+// const JOBS_ROOT =
+//   process.env.NEXT_PUBLIC_PRODUCTION == "1"
+//     ? "https://gitcloud-actions.fly.dev"
+//     : "http://localhost:5001";
 
 const defaultOpts: RequestInit = {
   headers: {
@@ -23,13 +23,10 @@ const defaultOpts: RequestInit = {
 const jsonify = (x: obj) => JSON.stringify(snakeifyKeys(x));
 
 async function req(path: string, expected: number, opts?: RequestInit) {
-  const root = /^\/orgs\/\d+\/repos\/\d+\/jobs/.test(path)
-    ? JOBS_ROOT
-    : GITCLUB_ROOT;
-  const res = await fetch(root + path, merge({}, defaultOpts, opts));
+  const res = await fetch(GITCLUB_ROOT + path, merge({}, defaultOpts, opts));
   if (res.status === expected) {
     if (expected !== 204) return res.json();
-  } else throw new Error(await res.text() || res.statusText);
+  } else throw new Error((await res.text()) || res.statusText);
 }
 
 export const noData = () => {
@@ -43,16 +40,16 @@ export const noData = () => {
 };
 
 export const get = (path: string, userId?: string) =>
-  req(path, 200, userId ? { headers: { 'x-user-id': userId } } : {});
+  req(path, 200, userId ? { headers: { "x-user-id": userId } } : {});
 
 const patch = (path: string, body: obj, userId?: string) =>
   req(path, 200, {
     method: "PATCH",
     body: jsonify(body),
     headers: {
-      'Content-Type': 'application/json',
-      ...(userId ? { 'x-user-id': userId } : {}),
-    }
+      "Content-Type": "application/json",
+      ...(userId ? { "x-user-id": userId } : {}),
+    },
   });
 
 const post = (path: string, body: obj, userId?: string) =>
@@ -60,9 +57,9 @@ const post = (path: string, body: obj, userId?: string) =>
     method: "POST",
     body: jsonify(body),
     headers: {
-      'Content-Type': 'application/json',
-      ...(userId ? { 'x-user-id': userId } : {}),
-    }
+      "Content-Type": "application/json",
+      ...(userId ? { "x-user-id": userId } : {}),
+    },
   });
 
 export const del = (path: string, body: obj, userId?: string) =>
@@ -70,9 +67,9 @@ export const del = (path: string, body: obj, userId?: string) =>
     method: "DELETE",
     body: jsonify(body),
     headers: {
-      'Content-Type': 'application/json',
-      ...(userId ? { 'x-user-id': userId } : {}),
-    }
+      "Content-Type": "application/json",
+      ...(userId ? { "x-user-id": userId } : {}),
+    },
   });
 
 export function index<T extends {}>(

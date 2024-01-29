@@ -1,4 +1,5 @@
 import express, { ErrorRequestHandler, Request } from "express";
+import http, { Server } from "http";
 import * as bodyParser from "body-parser";
 import cors from "cors";
 import { Oso } from "oso-cloud";
@@ -8,8 +9,10 @@ import { resetData } from "./test";
 import { pgDataSource } from "./prodDb";
 import { localDataSource } from "./localDb";
 
+const path = require("path");
+
 class User {
-  constructor(readonly username: string) { }
+  constructor(readonly username: string) {}
 }
 
 // Type screwery to get TS to stop complaining.
@@ -21,11 +24,12 @@ declare module "express" {
   }
 }
 
-
 const PRODUCTION = process.env.PRODUCTION == "1";
 const PRODUCTION_DB = process.env.PRODUCTION_DB == "1";
 // const TRACING = process.env.TRACING == "1";
-const WEB_URL = PRODUCTION ? "https://gitcloud.vercel.app" : process.env.WEB_URL || "http://localhost:8000";
+const WEB_URL = PRODUCTION
+  ? "https://gitcloud.vercel.app"
+  : process.env.WEB_URL || "http://localhost:8000";
 
 export const db = PRODUCTION_DB ? pgDataSource : localDataSource;
 
@@ -33,17 +37,18 @@ export const db = PRODUCTION_DB ? pgDataSource : localDataSource;
   try {
     await db.initialize();
 
-    const cloudUrl = process.env["OSO_URL"] || "https://cloud.osohq.com";
+    const cloudUrl = process.env["OSO_URL"] || "https://api.osohq.com";
     const apiToken = process.env["OSO_AUTH"];
     if (!apiToken)
       throw new Error(
-        'Missing Oso Cloud API token. Please retrieve an API token from https://cloud.osohq.com/dashboard/ and set it as the "OSO_AUTH" variable in your local environment.'
+        'Missing Oso Cloud API token. Please retrieve an API token from https://api.osohq.com/dashboard/ and set it as the "OSO_AUTH" variable in your local environment.'
       );
 
     const oso = new Oso(cloudUrl, apiToken);
 
     // create express app
     const app = express();
+
     app.use(
       cors({
         origin: WEB_URL,
@@ -56,9 +61,10 @@ export const db = PRODUCTION_DB ? pgDataSource : localDataSource;
 
     // Make current user available on request object.
     app.use((req: Request, res, next) => {
-      if (!req.headers["x-user-id"]) return res.status(404).send("Not Found");
+      if (req.headers["x-user-id"]) {
+        req.user = new User(req.header("x-user-id"));
+      }
 
-      req.user = new User(req.header("x-user-id"));
       next();
     });
 
@@ -95,9 +101,9 @@ export const db = PRODUCTION_DB ? pgDataSource : localDataSource;
 
     app.use("/orgs/:orgId/repos/:repoId/jobs", jobsRouter);
 
-    // start express server
-    app.listen(5001, "0.0.0.0");
-    console.log("Express server has started on port 5001.");
+    await app.listen(5001, "0.0.0.0");
+
+    console.log(`🚀 Server ready at http://localhost:5001`);
   } catch (e) {
     console.error(e);
   }

@@ -1,5 +1,6 @@
 from datetime import timedelta
 import os
+from typing import Any
 from flask import g, Flask, request, session as flask_session
 from werkzeug.exceptions import (
     BadRequest,
@@ -14,7 +15,7 @@ from sqlalchemy.pool import StaticPool
 
 from .models import Base, User, setup_schema
 from .fixtures import load_fixture_data
-from .routes.authorization import oso, cache
+from .authorization import oso, cache
 from .tracing import instrument_app
 
 PRODUCTION = os.environ.get("PRODUCTION", "0") == "1"
@@ -31,7 +32,7 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
     from . import routes
 
     if PRODUCTION_DB:
-        engine = create_engine(os.environ["DATABASE_URL"])
+        engine = create_engine(os.environ["DATABASE_URL"], pool_pre_ping=True)
     else:
         # Init DB engine.
         engine = create_engine(
@@ -39,10 +40,12 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
             # ignores errors from reusing connections across threads
             connect_args={"check_same_thread": False},
             poolclass=StaticPool,
+            echo=True,
         )
 
     # Init Flask app.
     app = Flask(__name__)
+
     app.config["SESSION_COOKIE_SECURE"] = PRODUCTION
     app.config["SESSION_COOKIE_SAMESITE"] = "None"
     app.config["SESSION_COOKIE_HTTPONLY"] = True
@@ -51,7 +54,6 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
     cache.init_app(app)
     instrument_app(app) if TRACING else None
     app.secret_key = b"ball outside of the school"
-    app.register_blueprint(routes.issues.bp)
     app.register_blueprint(routes.orgs.bp)
     app.register_blueprint(routes.repos.bp)
     app.register_blueprint(routes.role_assignments.bp)
@@ -83,16 +85,12 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
     @app.route("/_reset", methods=["POST"])
     def reset_data():
         # Called during tests to reset the database
-        Base.metadata.drop_all(bind=engine)
-        Base.metadata.create_all(bind=engine)
-        oso.api.clear_data()
-        with open("../../policy/authorization.polar") as f:
-            policy = f.read()
-            oso.policy(policy)
+        Base.metadata.drop_all(bind=engine)  # type: ignore
+        Base.metadata.create_all(bind=engine)  # type: ignore
         load_fixture_data(Session())
         return {}
 
-    Base.metadata.create_all(bind=engine)
+    Base.metadata.create_all(bind=engine)  # type: ignore
     setup_schema(Base)
 
     # Init session factory
@@ -100,26 +98,25 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
 
     if load_fixtures:
         # Called during tests to reset the database
-        Base.metadata.drop_all(bind=engine)
-        Base.metadata.create_all(bind=engine)
+        Base.metadata.drop_all(bind=engine)  # type: ignore
+        Base.metadata.create_all(bind=engine)  # type: ignore
         load_fixture_data(Session())
+        return
 
     @app.before_request
     def set_current_user_and_session():
         flask_session.permanent = True
         g.session = Session()
+        request_id = request.headers.get("oso-request-id")
+        g.oso_request_id = request_id
 
         if "current_user" not in g:
-            if "current_username" in flask_session:
-                username = flask_session.get("current_username")
-                user = g.session.query(User).filter_by(username=username).one_or_none()
-                if user is None:
-                    flask_session.pop("current_username")
-                g.current_user = user
+            if "user_id" in flask_session:
+                user_id = flask_session.get("user_id")
+                g.current_user = user_id
             elif "x-user-id" in request.headers:
-                username = request.headers["x-user-id"]
-                user = g.session.query(User).filter_by(username=username).one_or_none()
-                g.current_user = user
+                user_id = request.headers["x-user-id"]
+                g.current_user = user_id
             else:
                 g.current_user = None
 
@@ -144,4 +141,6 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
 
 
 if __name__ == "__main__":
-    create_app().run()
+    app = create_app()
+    if app:
+        app.run()

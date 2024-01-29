@@ -2,8 +2,9 @@ from flask import Blueprint, g, request, jsonify
 from typing import cast
 from werkzeug.exceptions import Forbidden, NotFound
 
+
 from ..models import Organization
-from .authorization import actions, authorize, list_resources, oso, get, cache, tell
+from ..authorization import actions, authorize, list_resources, oso, get, cache, tell
 
 bp = Blueprint("orgs", __name__, url_prefix="/orgs")
 
@@ -60,6 +61,18 @@ def delete(org_id):
         raise Forbidden
     org = g.session.get_or_404(Organization, id=org_id)
     g.session.delete(org)
+    oso.bulk(
+        delete=[
+            {
+                "name": "has_role",
+                "args": [None, None, {"type": "Organization", "id": str(org_id)}],
+            },
+            {
+                "name": "has_relation",
+                "args": [None, None, {"type": "Organization", "id": str(org_id)}],
+            },
+        ],
+    )
     g.session.commit()
     return "deleted", 204
 

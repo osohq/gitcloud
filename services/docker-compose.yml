@@ -1,0 +1,45 @@
+version: "3"
+
+services:
+  caddy:
+    image: caddy:latest
+    ports:
+      - "5000:80"
+      - "8081:8081"
+    volumes:
+      - ./gateway/Caddyfile.local:/etc/caddy/Caddyfile
+      # You might need to mount SSL certificates if you're using HTTPS
+      # - ./certs:/etc/caddy/certs
+
+  accounts:
+    build:
+      context: accounts
+      dockerfile: Dockerfile
+    environment:
+      - OSO_AUTH=e_0123456789_12345_osotesttoken01xiIn
+      - OSO_URL=http://oso:8081
+
+  jobs:
+    build:
+      context: jobs
+      dockerfile: Dockerfile
+    ports:
+      - "5001:5001"
+    environment:
+      - OSO_AUTH=e_0123456789_12345_osotesttoken01xiIn
+      - OSO_URL=http://oso:8081
+
+  issues:
+    build:
+      context: issues
+      dockerfile: Dockerfile
+    environment:
+      - OSO_AUTH=e_0123456789_12345_osotesttoken01xiIn
+      - OSO_URL=http://oso:8081
+
+  oso:
+    build:
+      context: oso
+      dockerfile: Dockerfile
+    volumes:
+      - ./oso/data:/data

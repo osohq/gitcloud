@@ -13,13 +13,14 @@ import ErrorMessage from "../../../../../../components/ErrorMessage";
 import LoadingPage from "../../../../../../components/LoadingPage";
 import { index, noData } from "../../../../../../api/common";
 import Breadcrumbs from "../../../../../../components/Breadcrumbs";
+import { gql, useQuery } from '@apollo/client';
 
 function runningTime(a: Job): number {
   const now = new Date();
   const updatedAt =
     a.status === "complete" || a.status === "canceled"
       ? new Date(a.updatedAt).getTime()
-      : now.getTime() + now.getTimezoneOffset() * 60000;
+      : now.getTime(); // + now.getTimezoneOffset() * 60000;
   const createdAt = new Date(a.createdAt).getTime();
   return Math.round((updatedAt - createdAt) / 1000);
 }
@@ -36,36 +37,41 @@ function RunningTime({ a }: { a: Job }) {
   return <span>{time}s</span>;
 }
 
+const LIST_JOBS = gql`
+  query ListJobs($orgId: ID!, $repoId: ID!) {
+    org(id: $orgId) {
+      repo(repoId: $repoId) {
+        jobs {
+          id
+          name
+          status
+          creatorId
+          createdAt
+          updatedAt
+        }
+      }
+    }
+  }
+`;
+
 export default function Index() {
   const { } = useUser();
   const router = useRouter();
   const { orgId, repoId } = router.query as { orgId?: string; repoId?: string };
-  const {
-    data: org,
-    isLoading: orgLoading,
-    error: orgError,
-  } = orgApi().show(orgId);
-  const {
-    data: repo,
-    isLoading: repoLoading,
-    error: repoError,
-  } = repoApi(orgId).show(repoId);
-  const {
-    data: jobs,
-    error: jobError,
-    mutate,
-  } = jobApi(orgId, repoId).index();
-  const [name, setName] = useState("");
+  const { data, error: dataError, loading, startPolling } = useQuery(LIST_JOBS, { variables: { orgId: orgId, repoId: repoId } });
   const [error, setError] = useState<Error | undefined>(undefined);
   const api = jobApi(orgId, repoId);
+  const [name, setName] = useState("");
 
-  if (orgLoading || repoLoading || (!jobs && !jobError))
+  if (loading)
     return <LoadingPage />;
-  if (orgError) return <ErrorMessage error={orgError} />;
-  if (repoError) return <ErrorMessage error={repoError} />;
-  if (jobError) return <ErrorMessage error={jobError} />;
+  if (dataError) return <ErrorMessage error={dataError} />;
   if (error) return <ErrorMessage error={error} setError={setError} />;
-  if (!jobs || !org || !repo) return null;
+  if (!data) return null;
+
+  const org = data.org;
+  const repo = data.org.repo;
+  const jobs: any[] = data.org.repo.jobs;
 
   const inputEmpty = !name.replaceAll(" ", "");
 
@@ -75,7 +81,7 @@ export default function Index() {
     try {
       await api.create({ name });
       setName("");
-      mutate();
+      startPolling(500);
     } catch (e: any) {
       setError(e)
     }

@@ -10,6 +10,7 @@ export class Org {
   repositoryCount: number;
   userCount?: number;
   permissions?: string[];
+  role?: string;
 
 
   constructor(org: Org) {

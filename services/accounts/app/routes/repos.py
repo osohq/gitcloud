@@ -2,8 +2,9 @@ from flask import Blueprint, g, request, jsonify
 from typing import cast
 from werkzeug.exceptions import NotFound, Forbidden
 
+
 from ..models import Repository
-from .authorization import actions, authorize, list_resources, tell
+from ..authorization import actions, authorize, list_resources, tell, oso
 
 bp = Blueprint("repos", __name__, url_prefix="/orgs/<int:org_id>/repos")
 
@@ -42,7 +43,6 @@ def create(org_id):
 
     repo = Repository(name=payload["name"], org_id=org_id)
     g.session.add(repo)
-    g.session.commit()
     repoValue = {"type": "Repository", "id": repo.id}
     tell(
         "has_relation",
@@ -51,6 +51,7 @@ def create(org_id):
         {"type": "Organization", "id": org_id},
     )
     tell("has_role", g.current_user, "admin", repoValue)
+    g.session.commit()
     return repo.as_json(), 201  # type: ignore
 
 
@@ -72,5 +73,22 @@ def delete(org_id, repo_id):
         raise Forbidden
     repo = g.session.get_or_404(Repository, id=repo_id, org_id=org_id)
     g.session.delete(repo)
+    oso.bulk(
+        delete=[
+            {
+                "name": "has_role",
+                "args": [{}, {}, {"type": "Repository", "id": str(repo_id)}],
+            },
+            {
+                "name": "has_relation",
+                "args": [{}, {}, {"type": "Repository", "id": str(repo_id)}],
+            },
+            {
+                "name": "has_relation",
+                "args": [{"type": "Repository", "id": str(repo_id)}, {}, {}],
+            },
+        ],
+    )
+
     g.session.commit()
     return "deleted", 204

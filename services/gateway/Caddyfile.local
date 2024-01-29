@@ -1,0 +1,22 @@
+{
+	debug
+	auto_https off
+}
+
+:80 {
+	handle_path /accounts/* {
+		reverse_proxy accounts:5000
+	}
+
+	handle_path /issues/* {
+		reverse_proxy issues:5000
+	}
+
+	handle_path /jobs/* {
+		reverse_proxy jobs:5001
+	}
+}
+
+:8081 {
+	reverse_proxy oso:8081
+}

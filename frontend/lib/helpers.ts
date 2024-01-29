@@ -1,4 +1,3 @@
-
 export type obj = { [key: string]: unknown };
 
 export function camelizeKeys(o: obj): unknown {

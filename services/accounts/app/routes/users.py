@@ -3,7 +3,7 @@ from typing import cast
 from werkzeug.exceptions import Forbidden, Unauthorized, NotFound
 
 from ..models import Organization, User, Repository
-from .authorization import authorize, query
+from ..authorization import authorize, query
 
 bp = Blueprint("users", __name__, url_prefix="/users")
 
@@ -52,8 +52,8 @@ def org_index(username):
         map(lambda fact: cast(oso_cloud.Value, fact["args"][2]).get("id", "_"), orgs)
     )
     if "_" in orgIds:
-        repos = g.session.query(Organization)
-        return jsonify([r.as_json() for r in repos])
+        orgs = g.session.query(Organization)
+        return jsonify([o.as_json() for o in orgs])
     else:
-        repos = g.session.query(Organization).filter(Organization.id.in_(orgIds))
-        return jsonify([r.as_json() for r in repos])
+        orgs = g.session.query(Organization).filter(Organization.id.in_(orgIds))
+        return jsonify([o.as_json() for o in orgs])

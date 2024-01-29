@@ -26,37 +26,43 @@ function org(id?: string): RoleAssignmentsApi {
   const unassignedUsers = `/orgs/${id}/unassigned_users`;
   const { userId } = useUser();
 
-
   return {
-    create: (body: Params) => create(roleAssignments, body, RoleAssignment, userId),
+    create: (body: Params) =>
+      create(roleAssignments, body, RoleAssignment, userId),
 
     delete: (body: Params) => del(roleAssignments, body, userId),
 
-    index: () => (id ? index(roleAssignments, RoleAssignment, userId) : noData()),
+    index: () =>
+      id ? index(roleAssignments, RoleAssignment, userId) : noData(),
 
-    update: (body: Params) => update(roleAssignments, body, RoleAssignment, userId),
+    update: (body: Params) =>
+      update(roleAssignments, body, RoleAssignment, userId),
 
-    unassignedUsers: () => (id ? index(unassignedUsers, User, userId) : noData()),
+    unassignedUsers: () =>
+      id ? index(unassignedUsers, User, userId) : noData(),
   };
 }
 
 function repo(orgId?: string, repoId?: string): RoleAssignmentsApi {
-  const roleAssignments = `/orgs/${orgId}/repos/${repoId}/role_assignments`;
-  const unassignedUsers = `/orgs/${orgId}/repos/${repoId}/unassigned_users`;
+  const roleAssignments = `/accounts/orgs/${orgId}/repos/${repoId}/role_assignments`;
+  const unassignedUsers = `/accounts/orgs/${orgId}/repos/${repoId}/unassigned_users`;
   const defined = orgId && repoId;
   const { userId } = useUser();
 
-
   return {
-    create: (body: Params) => create(roleAssignments, body, RoleAssignment, userId),
+    create: (body: Params) =>
+      create(roleAssignments, body, RoleAssignment, userId),
 
     delete: (body: Params) => del(roleAssignments, body, userId),
 
-    index: () => (defined ? index(roleAssignments, RoleAssignment, userId) : noData()),
+    index: () =>
+      defined ? index(roleAssignments, RoleAssignment, userId) : noData(),
 
-    update: (body: Params) => update(roleAssignments, body, RoleAssignment, userId),
+    update: (body: Params) =>
+      update(roleAssignments, body, RoleAssignment, userId),
 
-    unassignedUsers: () => (defined ? index(unassignedUsers, User, userId) : noData()),
+    unassignedUsers: () =>
+      defined ? index(unassignedUsers, User, userId) : noData(),
   };
 }
 

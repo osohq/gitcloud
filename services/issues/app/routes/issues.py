@@ -2,8 +2,8 @@ from flask import Blueprint, g, request, jsonify
 from typing import cast
 from werkzeug.exceptions import Forbidden, NotFound
 
-from ..models import Repository, Issue, User
-from .authorization import actions, authorize, list_resources, object_to_oso_value, oso
+from ..models import Issue
+from ..authorization import actions, authorize, list_resources, object_to_oso_value, oso
 
 bp = Blueprint(
     "issues",
@@ -27,23 +27,24 @@ def index(org_id, repo_id):
         filters.append(Issue.closed == True)
 
     issue_ids = list_resources("read", "Issue", repo_id)
-    issues = (
-        g.session.query(Issue)
-        .filter(Issue.repo_id == repo_id, *filters, Issue.id.in_(issue_ids))
-        .order_by(Issue.issue_number)
-    )
+    query = g.session.query(Issue).filter_by(repo_id=repo_id)
+
+    if not "*" in issue_ids:
+        query = query.filter(Issue.id.in_(issue_ids))
+
+    issues = query.order_by(Issue.issue_number).all()
     return jsonify([issue.as_json() for issue in issues])
 
 
 @bp.route("", methods=["POST"])
 def create(org_id, repo_id):
-    if not authorize("read", {"type": "Repository", "id": repo_id}):
+    repo = {"type": "Repository", "id": repo_id}
+    if not authorize("read", repo):
         raise NotFound
     payload = cast(dict, request.get_json(force=True))
-    repo = g.session.get_or_404(Repository, id=repo_id)
     if not authorize("create_issues", repo):
         raise NotFound
-    issue = Issue(title=payload["title"], repo=repo, creator_id=g.current_user.username)
+    issue = Issue(title=payload["title"], repo=repo, creator_id=g.current_user)
     g.session.add(issue)
     g.session.commit()
     oso.bulk_tell(

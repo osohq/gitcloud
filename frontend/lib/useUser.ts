@@ -7,24 +7,28 @@ import createPersistedState from "use-persisted-state";
 
 export type CurrentUser =
   | {
-    isLoggedIn: false;
-  }
+      isLoggedIn: false;
+    }
   | { isLoggedIn: true; user: User };
 
-const createSessionState = createPersistedState<string>(
-  "session"
-);
+const createSessionState = createPersistedState<string>("session");
 
-
-export default function useUser({ redirectTo, redirectIfFound }: {
-  // Set this to enable the redirect behaviour
-  redirectTo?: string,
-  // Set to true to redirect if the user is found
-  // Defaults to false.
-  redirectIfFound?: boolean,
-} = { redirectIfFound: false }) {
-
+export default function useUser(
+  {
+    redirectTo,
+    redirectIfFound,
+  }: {
+    // Set this to enable the redirect behaviour
+    redirectTo?: string;
+    // Set to true to redirect if the user is found
+    // Defaults to false.
+    redirectIfFound?: boolean;
+  } = { redirectIfFound: false }
+) {
   const [username, setUsername] = createSessionState("");
+  if (typeof window !== "undefined") {
+    localStorage.setItem("username", username);
+  }
 
   const usernameSet = username !== "";
 
@@ -32,8 +36,7 @@ export default function useUser({ redirectTo, redirectIfFound }: {
     data: user,
     mutate: mutateUser,
     error,
-  } = useSWR<User>(usernameSet ? ["/session", username] : null, get);
-
+  } = useSWR<User>(usernameSet ? ["/accounts/session", username] : null, get);
 
   useEffect(() => {
     // if no redirect needed, just return (example: already on /dashboard)
@@ -50,7 +53,9 @@ export default function useUser({ redirectTo, redirectIfFound }: {
     }
   }, [redirectIfFound, redirectTo, username, usernameSet]);
 
-  let currentUser: { isLoggedIn: true, user: User } | { isLoggedIn: false } = { isLoggedIn: false };
+  let currentUser: { isLoggedIn: true; user: User } | { isLoggedIn: false } = {
+    isLoggedIn: false,
+  };
   if (usernameSet && user) {
     currentUser = { isLoggedIn: true, user };
   }
