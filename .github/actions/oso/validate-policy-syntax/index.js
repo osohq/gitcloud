@@ -22,7 +22,7 @@ async function validatePolicySyntax() {
   //const polarFiles = globSync('**/*.polar', { ignore: 'node_modules/**' }).filter((file) => !fs.lstatSync(file).isSymbolicLink());
   const polarFiles = await glob('**/*.polar', { ignore: 'node_modules/**' })
   const polarFilesNoSymlinks = polarFiles.filter((file) => !fs.lstatSync(file).isSymbolicLink());
-  await exec.exec('oso-cloud', ['validate', polarFilesNoSymlinks.join(" ")], options);
+  await exec.exec('oso-cloud', ['validate'].concat(polarFilesNoSymlinks), options);
 }
 
 validatePolicySyntax();
