@@ -1,6 +1,6 @@
 const exec = require('@actions/exec');
 const fs = require('fs');
-const { globSync } = require('glob');
+const { glob, globSync } = require('glob');
 
 async function validatePolicySyntax() {
   console.log('Validating .polar file syntax');
