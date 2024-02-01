@@ -11,14 +11,4 @@ jobs:
         uses: actions/checkout@v4
       - name: Install the CLI
         id: install-cli
-        uses: ./.github/actions/oso/install-oso-cloud-cli
-      - name: Get the installed CLI version
-        run: echo "Installed CLI version ${{ steps.install-cli.outputs.version }}"
-      - name: Validate Policy syntax
-        id: validate-syntax
-        uses: ./.github/actions/oso/validate-policy-syntax
-      - name: Install the local binary
-        id: install-local-binary
-        uses: ./.github/actions/oso/install-oso-cloud-local-binary
-      - name: Get the installed local binary version
-        run: echo "Installed local binary version ${{ steps.install-local-binary.outputs.version }}"
+        uses: gsarjeant/install-oso-cloud-tools@releases/v1
