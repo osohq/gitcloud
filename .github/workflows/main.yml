@@ -2,13 +2,16 @@ name: Test Oso Cloud Policies
 on: [push]
 
 jobs:
-  install_oso_cloud_cli:
+  validate-polar-syntax:
     runs-on: ubuntu-latest
     name: Validate policy syntax and logic
     steps:
       - name: Check out code
         id: checkout
         uses: actions/checkout@v4
-      - name: Install the CLI
-        id: install-cli
+      - name: Install the Oso Cloud CLI
+        id: install-oso-cloud-cli
         uses: gsarjeant/install-oso-cloud-tools@releases/v1
+      - name: Validate Polar Syntax
+        id: validate-polar-syntax
+        run: oso-cloud validate policy/authorization.polar
