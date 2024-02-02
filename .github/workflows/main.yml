@@ -14,4 +14,4 @@ jobs:
         uses: gsarjeant/install-oso-cloud-tools@releases/v1
       - name: Validate Polar Syntax
         id: validate-polar-syntax
-        run: oso-cloud validate policy/authorization.polar
+        run: oso-cloud validate policy/authorization.polar policy/authorization2.polar

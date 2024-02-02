@@ -127,7 +127,7 @@ has_role(actor: Actor, role: String, repo: Repository) if
 # Organization members inherit the read permission
 # on repositories that belong to the org
 # and issues that belong to those repositories
-test "organization members can still read repos and issues" {
+test "organization members can read repos and issues" {
     # Define test data (facts)
     setup {
         # alice is a member of the "acme" organization
