@@ -11,7 +11,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Install the Oso Cloud Tools
         id: install-oso-cloud-tools
-        uses: gsarjeant/install-oso-cloud-tools@install-local-binary
+        uses: gsarjeant/install-oso-cloud-tools@dad16f9
       - name: Report installed CLI Version
         id: report-cli-version
         run: echo "Installed CLI version ${{ steps.install-oso-cloud-tools.outputs.cli-version }}, sha ${{ steps.install-oso-cloud-tools.outputs.cli-sha }}"
