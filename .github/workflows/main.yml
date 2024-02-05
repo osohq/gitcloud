@@ -15,7 +15,7 @@ jobs:
       - name: Report installed CLI Version
         id: report-cli-version
         run: echo "Installed CLI version ${{ steps.install-oso-cloud-tools.outputs.cli-version }}, sha ${{ steps.install-oso-cloud-tools.outputs.cli-sha }}"
-      - name: Report installed Local Binary Version
+      - name: Report installed Local Binary version
         id: report-local-binary-version
         run: echo "Installed local binary version ${{ steps.install-oso-cloud-tools.outputs.local-binary-version }}"
       - name: Validate Polar Syntax
