@@ -11,10 +11,10 @@ jobs:
         uses: actions/checkout@v4
       - name: Install the Oso Cloud CLI
         id: install-oso-cloud-cli
-        uses: gsarjeant/install-oso-cloud-tools@releases/v1
+        uses: gsarjeant/install-oso-cloud-tools@main
       - name: Report installed CLI Version
         id: report-cli-version
         run: echo "Installed CLI version ${{ steps.install-oso-cloud-cli.outputs.cli-version }}, sha ${{ steps.install-oso-cloud-cli.outputs.cli-sha }}"
       - name: Validate Polar Syntax
         id: validate-polar-syntax
-        run: oso-cloud validate policy/authorization.polar
+        uses: gsarjeant/validate-polar-syntax@releases/v1
