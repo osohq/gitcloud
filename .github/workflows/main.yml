@@ -39,6 +39,6 @@ jobs:
       - name: Report installed CLI Version
         id: report-cli-version
         run: echo "Installed CLI version ${{ steps.install-oso-cloud-tools.outputs.cli-version }}, sha ${{ steps.install-oso-cloud-tools.outputs.cli-sha }}"
-      - name: Deploy Polar
+      - name: Deploy Polar for real
         id: deploy-polar
         uses: gsarjeant/deploy-polar@releases/v1
