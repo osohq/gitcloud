@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Validate policy syntax and logic
     env:
-      OSO_AUTH: ${{ secrets.OSO_CLOUD_STAGING_READ_ONLY_API_KEY }}
+      OSO_AUTH: ${{ secrets.OSO_CLOUD_API_KEY }}
     steps:
       - name: Check out code
         id: checkout
