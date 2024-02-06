@@ -25,7 +25,7 @@ jobs:
         uses: gsarjeant/run-polar-tests@releases/v1
   deploy-polar:
     runs-on: ubuntu-latest
-    name: Deploy polar code to Oso Cloud
+    name: Deploy polar code to Oso Clou
     needs: validate-polar
     env:
       OSO_AUTH: ${{ secrets.OSO_CLOUD_STAGING_READ_WRITE_API_KEY }}
