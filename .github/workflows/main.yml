@@ -11,13 +11,10 @@ jobs:
         uses: actions/checkout@v4
       - name: Install the Oso Cloud Tools
         id: install-oso-cloud-tools
-        uses: gsarjeant/install-oso-cloud-tools@dad16f97e4d29dcc142a3144e3aaabdf49556683
+        uses: gsarjeant/install-oso-cloud-tools@main
       - name: Report installed CLI Version
         id: report-cli-version
         run: echo "Installed CLI version ${{ steps.install-oso-cloud-tools.outputs.cli-version }}, sha ${{ steps.install-oso-cloud-tools.outputs.cli-sha }}"
-      - name: Report installed Local Binary version
-        id: report-local-binary-version
-        run: echo "Installed local binary version ${{ steps.install-oso-cloud-tools.outputs.local-binary-version }}"
       - name: Validate Polar Syntax
         id: validate-polar-syntax
         uses: gsarjeant/validate-polar-syntax@releases/v1
