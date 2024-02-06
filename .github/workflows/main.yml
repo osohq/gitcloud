@@ -20,6 +20,6 @@ jobs:
       - name: Validate Polar Syntax
         id: validate-polar-syntax
         uses: gsarjeant/validate-polar-syntax@releases/v1
-      - name: Validate Polar Syntax
+      - name: Run Polar Tests
         id: run-polar-tests
         uses: gsarjeant/run-polar-tests@releases/v1
