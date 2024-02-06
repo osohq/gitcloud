@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Validate policy syntax and logic
     env:
-      OSO_AUTH: ${{ secrets.OSO_CLOUD_API_KEY }}
+      OSO_AUTH: ${{ secrets.OSO_CLOUD_STAGING_READ_ONLY_API_KEY }}
     steps:
       - name: Check out code
         id: checkout
@@ -18,7 +18,7 @@ jobs:
         id: report-cli-version
         run: echo "Installed CLI version ${{ steps.install-oso-cloud-tools.outputs.cli-version }}, sha ${{ steps.install-oso-cloud-tools.outputs.cli-sha }}"
       - name: Validate Polar Syntax
-        id: validate-polar-syntaxs
+        id: validate-polar-syntax
         uses: gsarjeant/validate-polar-syntax@releases/v1
       - name: Run Polar Tests
         id: run-polar-tests
