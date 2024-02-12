@@ -1,8 +1,0 @@
-name: 'Install Oso Cloud local binary'
-description: 'Install the latest version of the Oso Cloud local binary'
-outputs:
-  version:
-    description: 'The version of the local binary that was installed'
-runs:
-  using: 'node20'
-  main: 'index.js'
