@@ -24,10 +24,10 @@ def org_unassigned_users_index(org_id):
         raise NotFound
     elif not "view_members" in permissions:
         raise Forbidden
-    existing: list[oso_cloud.Fact] = get(
+    existing = get(
         "has_role", {"type": "User"}, {}, {"type": "Organization", "id": org_id}
     )
-    existing_ids = {cast(oso_cloud.Value, e["args"][0])["id"] for e in existing}
+    existing_ids = {e["args"][0]["id"] for e in existing}
     unassigned = g.session.query(User).filter(User.id.notin_(existing_ids))
     return jsonify([u.as_json() for u in unassigned])
 
@@ -40,13 +40,13 @@ def org_index(org_id):
     elif not "view_members" in permissions:
         raise Forbidden
 
-    assignment_facts: list[oso_cloud.Fact] = get(
+    assignment_facts = get(
         "has_role", {"type": "User"}, None, {"type": "Organization", "id": org_id}
     )
     assignment_ids = [
         (
-            cast(oso_cloud.Value, a["args"][0])["id"],
-            cast(oso_cloud.Value, a["args"][1])["id"],
+            a["args"][0]["id"],
+            a["args"][1]["id"],
         )
         for a in assignment_facts
     ]
@@ -139,7 +139,7 @@ def repo_unassigned_users_index(org_id, repo_id):
     existing = get(
         "has_role", {"type": User}, None, {"type": "Repository", "id": repo.id}
     )
-    existing_ids = {cast(oso_cloud.Value, fact["args"][0])["id"] for fact in existing}
+    existing_ids = {fact["args"][0]["id"] for fact in existing}
     unassigned = g.session.query(User).filter(User.id.notin_(existing_ids))
     return jsonify([u.as_json() for u in unassigned])
 
@@ -154,8 +154,8 @@ def repo_index(org_id, repo_id):
     )
     assignment_ids = [
         (
-            cast(oso_cloud.Value, a["args"][0])["id"],
-            cast(oso_cloud.Value, a["args"][1])["id"],
+            a["args"][0]["id"],
+            a["args"][1]["id"],
         )
         for a in assignment_facts
     ]

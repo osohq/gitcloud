@@ -49,7 +49,7 @@ BulkFact = TypedDict("BulkFact", {"name": str, "args": list[Any]})
 
 
 def bulk_update(delete: list[BulkFact] = [], insert: list[BulkFact] = []):
-    delete_facts: list[oso_cloud.Fact] = [
+    delete_facts: list[oso_cloud.VariableFact] = [
         {
             "name": fact["name"],
             "args": [object_to_oso_value(a, allow_unbound=True) for a in fact["args"]],
@@ -123,14 +123,14 @@ def list_resources(
     )
 
 
-def query(predicate: str, *args: Any) -> list[oso_cloud.Fact]:
+def query(predicate: str, *args: Any):
     print(f'oso-cloud query {predicate} {",".join([str(a) for a in args])}')
     return oso.query(
         {"name": predicate, "args": [object_to_oso_value(a, True) for a in args]}
     )
 
 
-def get(predicate: str, *args: Any) -> list[oso_cloud.Fact]:
+def get(predicate: str, *args: Any):
     print(f'oso-cloud get {predicate} {",".join([str(a) for a in args])}')
     return oso.get(
         {"name": predicate, "args": [object_to_oso_value(a, True) for a in args]}
