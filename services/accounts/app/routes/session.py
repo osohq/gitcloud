@@ -12,7 +12,7 @@ bp = Blueprint("session", __name__, url_prefix="/session")
 @bp.route("", methods=["GET"])
 def show():
     return jsonify(
-        g.session.query(User).get(id=g.current_user).as_json()
+        g.session.query(User).get(g.current_user).as_json()
         if g.current_user
         else None
     )

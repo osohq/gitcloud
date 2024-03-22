@@ -99,6 +99,8 @@ has_permission(user: User, "read_profile", user: User);
 
 # Complex rules
 
+
+resource Role {}
 # A custom role is defined by the permissions it grants
 has_permission(actor: Actor, action: String, org: Organization) if
      role matches Role and
@@ -129,6 +131,8 @@ test "organization members can read repos and issues" {
         has_relation(Repository{"test-repo"}, "organization", Organization{"acme"});
         # The issue "Issue 1" belongs to the "test-repo" repository
         has_relation(Issue{"Issue 1"}, "repository", Repository{"test-repo"});
+
+        is_closed(Issue{"Issue 1"}, true);
     }
 
     # alice can read the "test-repo" Repository

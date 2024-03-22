@@ -17,7 +17,7 @@ USER app
 WORKDIR /app
 
 # copy the release build
-COPY standalone /app/standalone
+COPY oso-standalone-linux /app/standalone
 
 ENV OSO_DIRECTORY=/data
 ENV OSO_PORT=8081

@@ -3,7 +3,14 @@ from typing import cast
 from werkzeug.exceptions import Forbidden, NotFound
 
 from ..models import Issue
-from ..authorization import actions, authorize, list_resources, object_to_oso_value, oso
+from ..authorization import (
+    actions,
+    authorize,
+    list_query,
+    list_resources,
+    object_to_oso_value,
+    oso,
+)
 
 bp = Blueprint(
     "issues",
@@ -26,13 +33,14 @@ def index(org_id, repo_id):
     if "is:closed" in args:
         filters.append(Issue.closed == True)
 
-    issue_ids = list_resources("read", "Issue", repo_id)
-    query = g.session.query(Issue).filter_by(repo_id=repo_id)
-
-    if not "*" in issue_ids:
-        query = query.filter(Issue.id.in_(issue_ids))
-
-    issues = query.order_by(Issue.issue_number).all()
+    query_filter = list_query("read", "Issue")
+    issues = (
+        g.session.query(Issue)
+        .filter(query_filter)
+        .filter_by(repo_id=repo_id)
+        .order_by(Issue.id)
+        .limit(10)
+    )
     return jsonify([issue.as_json() for issue in issues])
 
 

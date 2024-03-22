@@ -8,6 +8,10 @@ RUN \
  python3 -m pip install -r /app/requirements.txt --no-cache-dir && \
  apk --purge del .build-deps
 
+
+COPY oso_cloud-1.3.3-py3-none-any.whl .
+RUN pip install oso_cloud-1.3.3-py3-none-any.whl
+
 COPY . /app
 WORKDIR app
 ENTRYPOINT [ "gunicorn" ]

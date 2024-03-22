@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Optional, Type, TypedDict
 
 from flask import g
 from flask_caching import Cache
+from sqlalchemy import text
 import oso_cloud
 from oso_cloud import Oso, Value
 from sqlalchemy.orm.session import Session
@@ -13,7 +14,11 @@ from werkzeug.exceptions import Forbidden, NotFound, Unauthorized
 
 from app.models import Issue
 
-oso = Oso(url=getenv("OSO_URL", "https://api.osohq.com"), api_key=getenv("OSO_AUTH"))
+oso = Oso(
+    url=getenv("OSO_URL", "https://api.osohq.com"),
+    api_key=getenv("OSO_AUTH"),
+    data_bindings="facts.yaml",
+)
 cache = Cache(config={"CACHE_TYPE": "SimpleCache"})
 
 
@@ -121,6 +126,23 @@ def list_resources(
         resource_type,
         context_facts=facts,
     )
+
+
+def list_query(action: str, resource_type: str) -> str:
+    facts = []
+    if g.current_user is None:
+        return []
+    print(
+        f'oso-cloud list_local User:{g.current_user} {action} {resource_type} -c "{facts}"'
+    )
+    sql = oso.list_local(
+        {"type": "User", "id": g.current_user},
+        action,
+        resource_type,
+        column="id::TEXT",
+    )
+    print(sql)
+    return text(sql)
 
 
 def query(predicate: str, *args: Any):

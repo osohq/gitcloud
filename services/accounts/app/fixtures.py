@@ -62,7 +62,7 @@ def load_fixture_data(session):
     deletions: list[Fact] = []
     facts: list[Fact] = []
 
-    john = User(username="john", name="John Lennon", email="john@beatles.com")
+    john = User(id=1, username="john", name="John Lennon", email="john@beatles.com")
     paul = User(username="paul", name="Paul McCartney", email="paul@beatles.com")
     george = User(username="george", name="George Harrison", email="george@beatles.com")
     mike = User(username="mike", name="Mike Wazowski", email="mike@monsters.com")
@@ -310,6 +310,8 @@ def load_fixture_data(session):
             "args": [{"type": "User"}, {"type": "String"}, {"type": "Repository"}],
         }
     )
+
+    print("repo roles")
     for repo_role in repo_roles:
         session.add(repo_role)
         facts.append(
@@ -323,11 +325,17 @@ def load_fixture_data(session):
             }
         )
 
+    session.flush()
+    session.commit()
+
     # delete old facts
     oso.bulk(deletions, [])
 
+    print(f"inserting all {len(facts)} facts")
+
     for idx in range(0, len(facts), 20):
+        from pprint import pprint
+        print("oso tell")
+        pprint(facts)
         print(oso.bulk_tell(facts=facts[idx : idx + 20]))
 
-    session.flush()
-    session.commit()

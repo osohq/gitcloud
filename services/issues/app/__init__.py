@@ -28,7 +28,7 @@ WEB_URL = (
 )
 
 
-def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
+def create_app(db_path="postgresql://oso:password@postgres:5432/issues_db", load_fixtures=False):
     from . import routes
 
     if PRODUCTION_DB:
@@ -37,9 +37,6 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
         # Init DB engine.
         engine = create_engine(
             db_path,
-            # ignores errors from reusing connections across threads
-            connect_args={"check_same_thread": False},
-            poolclass=StaticPool,
             echo=True,
         )
 
@@ -79,7 +76,7 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
 
     @app.route("/_reset", methods=["POST"])
     def reset_data():
-        # Called during tests to reset the database
+        # # Called during tests to reset the database
         Base.metadata.drop_all(bind=engine)  # type: ignore
         Base.metadata.create_all(bind=engine)  # type: ignore
         load_fixture_data(Session())
