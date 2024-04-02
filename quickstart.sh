@@ -122,5 +122,5 @@ function download_standalone_docker() {
 }
 
 # download_cli
-# download_standalone
-download_standalone_docker
+download_standalone
+# download_standalone_docker

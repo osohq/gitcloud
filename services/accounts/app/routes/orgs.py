@@ -4,15 +4,20 @@ from werkzeug.exceptions import Forbidden, NotFound
 
 
 from ..models import Organization
-from ..authorization import actions, authorize, list_resources, oso, get, cache, tell
+from ..authorization import oso
+from oso_cloud import Value
 
 bp = Blueprint("orgs", __name__, url_prefix="/orgs")
 
 
 @bp.route("", methods=["GET"])
 def index():
-    authorized_ids = list_resources("read", "Organization")
-    if authorized_ids and authorized_ids[0] == "*":
+    user: Value = {
+        "type": "User",
+        "id": str(g.current_user),
+    }
+    authorized_ids = oso.list(user, "read", "Organization")
+    if authorized_ids == ["*"]:
         orgs = g.session.query(Organization).order_by(Organization.id)
         return jsonify([o.as_json() for o in orgs])
     else:
@@ -35,29 +40,46 @@ def create():
     ):
         return "Organization with that name already exists", 400
     org = Organization(**payload)
-    if not authorize("create", "Organization"):
+    user: Value = {
+        "type": "User",
+        "id": str(g.current_user),
+    }
+    if not oso.authorize(user, "create", "Organization"):
         raise Forbidden
     g.session.add(org)
     g.session.commit()
-    tell("has_role", g.current_user, "admin", org)
+    oso.tell(
+        {
+            "name": "has_role",
+            "args": [user, "admin", {"type": "Organization", "id": str(org.id)}],
+        }
+    )
     return org.as_json(), 201  # type: ignore
 
 
 @bp.route("/<int:org_id>", methods=["GET"])
 def show(org_id):
-    if not authorize("read", {"type": "Organization", "id": org_id}):
+    user: Value = {
+        "type": "User",
+        "id": str(g.current_user),
+    }
+    if not oso.authorize(user, "read", {"type": "Organization", "id": org_id}):
         raise NotFound
     org = g.session.get_or_404(Organization, id=org_id)
     json = org.as_json()
-    json["permissions"] = actions(org)
+    json["permissions"] = oso.actions(user, {"type": "Organization", "id": org_id})
     return json
 
 
 @bp.route("/<int:org_id>", methods=["DELETE"])
 def delete(org_id):
-    if not authorize("read", {"type": "Organization", "id": org_id}):
+    user: Value = {
+        "type": "User",
+        "id": str(g.current_user),
+    }
+    if not oso.authorize(user, "read", {"type": "Organization", "id": org_id}):
         raise NotFound
-    if not authorize("delete", {"type": "Organization", "id": org_id}):
+    if not oso.authorize(user, "delete", {"type": "Organization", "id": org_id}):
         raise Forbidden
     org = g.session.get_or_404(Organization, id=org_id)
     g.session.delete(org)
@@ -71,23 +93,37 @@ def delete(org_id):
                 "name": "has_relation",
                 "args": [None, None, {"type": "Organization", "id": str(org_id)}],
             },
+            {
+                "name": "has_relation",
+                "args": [{"type": "Organization", "id": str(org_id)}, None, None],
+            }
         ],
+        tell=[
+            {"name": "has_role", "args": [None, None, {"type": "Organization", "id": str(org_id)}]},
+        ]
     )
     g.session.commit()
     return "deleted", 204
 
 
 @bp.route("/<int:org_id>/user_count", methods=["GET"])
-@cache.memoize()
 def user_count(org_id):
-    if not authorize("read", {"type": "Organization", "id": str(org_id)}):
+    user: Value = {
+        "type": "User",
+        "id": str(g.current_user),
+    }
+    if not oso.authorize(user, "read", {"type": "Organization", "id": str(org_id)}):
         raise NotFound
-    org_users = get(
-        "has_role",
+    org_users = oso.get(
         {
-            "type": "User",
-        },
-        {},
-        {"type": "Organization", "id": str(org_id)},
+            "name": "has_role",
+            "args": [
+                {
+                    "type": "User",
+                },
+                {},
+                {"type": "Organization", "id": str(org_id)},
+            ],
+        }
     )
     return str(len(list(org_users)))

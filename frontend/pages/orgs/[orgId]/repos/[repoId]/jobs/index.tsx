@@ -13,7 +13,7 @@ import ErrorMessage from "../../../../../../components/ErrorMessage";
 import LoadingPage from "../../../../../../components/LoadingPage";
 import { index, noData } from "../../../../../../api/common";
 import Breadcrumbs from "../../../../../../components/Breadcrumbs";
-import { gql, useQuery } from '@apollo/client';
+// import { gql, useQuery } from '@apollo/client';
 
 function runningTime(a: Job): number {
   const now = new Date();
@@ -37,41 +37,43 @@ function RunningTime({ a }: { a: Job }) {
   return <span>{time}s</span>;
 }
 
-const LIST_JOBS = gql`
-  query ListJobs($orgId: ID!, $repoId: ID!) {
-    org(id: $orgId) {
-      repo(repoId: $repoId) {
-        jobs {
-          id
-          name
-          status
-          creatorId
-          createdAt
-          updatedAt
-        }
-      }
-    }
-  }
-`;
+// const LIST_JOBS = gql`
+//   query ListJobs($orgId: ID!, $repoId: ID!) {
+//     org(id: $orgId) {
+//       repo(repoId: $repoId) {
+//         jobs {
+//           id
+//           name
+//           status
+//           creatorId
+//           createdAt
+//           updatedAt
+//         }
+//       }
+//     }
+//   }
+// `;
 
 export default function Index() {
   const { } = useUser();
   const router = useRouter();
   const { orgId, repoId } = router.query as { orgId?: string; repoId?: string };
-  const { data, error: dataError, loading, startPolling } = useQuery(LIST_JOBS, { variables: { orgId: orgId, repoId: repoId } });
+  // const { data, error: dataError, loading, startPolling } = useQuery(LIST_JOBS, { variables: { orgId: orgId, repoId: repoId } });
   const [error, setError] = useState<Error | undefined>(undefined);
+
   const api = jobApi(orgId, repoId);
+  const { data, error: dataError, isLoading} = api.index();
   const [name, setName] = useState("");
 
-  if (loading)
+  if (isLoading)
     return <LoadingPage />;
   if (dataError) return <ErrorMessage error={dataError} />;
   if (error) return <ErrorMessage error={error} setError={setError} />;
   if (!data) return null;
 
-  const org = data.org;
-  const repo = data.org.repo;
-  const jobs: any[] = data.org.repo.jobs;
+  // const org = data.org;
+  // const repo = data.org.repo;
+  const jobs: any[] = data;
 
   const inputEmpty = !name.replaceAll(" ", "");
 
@@ -81,7 +83,6 @@ export default function Index() {
     try {
       await api.create({ name });
       setName("");
-      startPolling(500);
     } catch (e: any) {
       setError(e)
     }
@@ -93,14 +94,14 @@ export default function Index() {
 
   return (
     <>
-      <Breadcrumbs
+      {/* <Breadcrumbs
         pages={
           [
             { name: org.name, href: { pathname: "/orgs/[orgId]", query: { orgId } } },
             { name: repo.name, href: { pathname: "/orgs/[orgId]/repos/[repoId]", query: { orgId, repoId }, current: true } },
           ]
         }
-      />
+      /> */}
 
       <form className="mt-8" onSubmit={handleSubmit}>
         <label>

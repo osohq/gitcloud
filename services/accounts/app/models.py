@@ -20,20 +20,6 @@ class User(Base):
     name = Column(String)
 
 
-class Group(Base):
-    __tablename__ = "groups"
-
-    id = Column(Integer, primary_key=True)
-    name = Column(String)
-
-
-class CustomRole(Base):
-    __tablename__ = "custom_roles"
-
-    id = Column(Integer, primary_key=True)
-    name = Column(String)
-
-
 class Organization(Base):
     __tablename__ = "organizations"
 

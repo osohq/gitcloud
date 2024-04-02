@@ -31,14 +31,24 @@ resource Repository {
         "read_jobs", "manage_jobs",
         "view_members", "manage_members"
      ];
-     roles = ["reader", "admin", "maintainer", "editor"];
+     roles = [
+          "public_viewer",
+          "reader", "admin", "maintainer", "editor"
+     ];
      relations = { organization: Organization };
 
-     "reader" if "member" on "organization";
+
+     # role assignments
+     "public_viewer" if is_public(resource);
      "admin" if "admin" on "organization";
      "reader" if "editor";
      "editor" if "maintainer";
      "maintainer" if "admin";
+
+     # public viewer
+     "read" if "public_viewer";
+     "read_issues" if "public_viewer";
+     "create_issues" if "public_viewer";
 
      # reader permissions
      "read" if "reader";
@@ -69,16 +79,26 @@ resource Issue {
 
      "close" if "creator";
 
+     "comment" if "read" and is_closed(resource, false);
 }
 
-has_permission(_: Actor, action: String, repo: Repository) if
-     action in ["read", "read_issues", "create_issues"] and
-     is_public(repo);
 
+### Repository default role assignments
 
-has_permission(actor: Actor, "delete", repo: Repository) if
-     has_role(actor, "member", repo) and
-     is_protected(repo, false);
+# org members get the default org role on a repository
+# unless the repository defines its own role
+has_role(user: User, role: String, repository: Repository) if
+     org matches Organization and
+     has_relation(repository, "organization", org) and
+     has_role(user, "member", org) and
+     has_default_role(org, role) and
+     not member_role(repository, _repo_role);
+
+has_role(user: User, role: String, repository: Repository) if
+     org matches Organization and
+     has_relation(repository, "organization", org) and
+     has_role(user, "member", org) and
+     member_role(repository, role);
 
 
 # readers can only comment on open issues
@@ -97,26 +117,6 @@ has_permission(_: User, "read", _: User);
 has_permission(user: User, "read_profile", user: User);
 
 
-# Complex rules
-
-
-resource Role {}
-# A custom role is defined by the permissions it grants
-has_permission(actor: Actor, action: String, org: Organization) if
-     role matches Role and
-     has_role(actor, role, org) and
-     grants_permission(role, action);
-
-has_role(actor: Actor, role: String, repo: Repository) if
-     org matches Organization and
-     has_relation(repo, "organization", org) and
-     has_default_role(org, role) and
-     has_role(actor, "member", org);
-
-declare has_relation(Repository, String, Organization);
-
-has_relation(_: Issue, "repository", repo: Repository) if
-     in_repo_context(repo);
 
 # Policy tests
 # Organization members inherit the read permission
@@ -127,6 +127,8 @@ test "organization members can read repos and issues" {
     setup {
         # alice is a member of the "acme" organization
         has_role(User{"alice"}, "member", Organization{"acme"});
+        has_default_role(Organization{"acme"}, "editor");
+     
         # The "test-repo" Repository belongs to the "acme" organization
         has_relation(Repository{"test-repo"}, "organization", Organization{"acme"});
         # The issue "Issue 1" belongs to the "test-repo" repository
@@ -139,6 +141,6 @@ test "organization members can read repos and issues" {
     assert allow(User{"alice"}, "read", Repository{"test-repo"});
     # alice can read the issue "Issue 1"
     assert allow(User{"alice"}, "read", Issue{"Issue 1"});
-    # alice can not write to the "test-repo" Repository
-    assert_not allow(User{"alice"}, "write", Repository{"test-repo"});
+    # alice can not delete the "test-repo" Repository
+    assert_not allow(User{"alice"}, "delete", Repository{"test-repo"});
 }
