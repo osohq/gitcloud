@@ -21,3 +21,6 @@ venv/touchfile: requirements.txt
 
 publish-subgraph: venv
 	. venv/bin/activate; OSO_AUTH="123" strawberry export-schema app.schema > gitclub.graphql
+
+docker-generate-data:
+	docker-compose exec -e FLASK_APP="app:create_app(load_fixtures=True)" -w "/app" issues flask run

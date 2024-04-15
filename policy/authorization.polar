@@ -62,6 +62,8 @@ resource Repository {
      "manage_issues" if "editor";
      "view_members" if "maintainer";
 
+     "delete" if "maintainer" and is_protected(resource, false);
+
      # admin permissions
      "manage_members" if "admin";
      "update" if "admin";
@@ -85,21 +87,15 @@ resource Issue {
 
 ### Repository default role assignments
 
+has_default_role(_: Organization, "editor");
+
 # org members get the default org role on a repository
 # unless the repository defines its own role
 has_role(user: User, role: String, repository: Repository) if
      org matches Organization and
      has_relation(repository, "organization", org) and
      has_role(user, "member", org) and
-     has_default_role(org, role) and
-     not member_role(repository, _repo_role);
-
-has_role(user: User, role: String, repository: Repository) if
-     org matches Organization and
-     has_relation(repository, "organization", org) and
-     has_role(user, "member", org) and
-     member_role(repository, role);
-
+     has_default_role(org, role);
 
 # readers can only comment on open issues
 has_permission(actor: Actor, "comment", issue: Issue) if

@@ -28,7 +28,7 @@ WEB_URL = (
 )
 
 
-def create_app(db_path="postgresql://oso:password@postgres:5432/issues_db", load_fixtures=False):
+def create_app(db_path="postgresql://oso:password@issues_postgres:5432/issues_db", load_fixtures=False):
     from . import routes
 
     if PRODUCTION_DB:

@@ -70,7 +70,7 @@ class RepoRole(Base):
 
     id = Column(Integer, primary_key=True)
     repo_id = Column(Integer, ForeignKey("repositories.id"), index=True)
-    user_id = Column(String, ForeignKey("users.id"), index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), index=True)
     role = Column(String(256))
 
 
@@ -79,7 +79,7 @@ class OrgRole(Base):
 
     id = Column(Integer, primary_key=True)
     org_id = Column(Integer, ForeignKey("organizations.id"), index=True)
-    user_id = Column(String, ForeignKey("users.id"), index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), index=True)
     role = Column(String(256))
 
 

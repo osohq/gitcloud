@@ -13,9 +13,14 @@ services:
     build:
       context: accounts
       dockerfile: Dockerfile
+    depends_on:
+      - accounts_postgres
+      - oso
     environment:
       - OSO_AUTH=e_0123456789_12345_osotesttoken01xiIn
       - OSO_URL=http://oso:8081
+      - PRODUCTION_DB=1
+      - DATABASE_URL=postgresql://oso:password@accounts_postgres:5432/accounts_db
 
   jobs:
     build:
@@ -31,9 +36,15 @@ services:
     build:
       context: issues
       dockerfile: Dockerfile
+    depends_on:
+      - issues_postgres
+      - oso
     environment:
       - OSO_AUTH=e_0123456789_12345_osotesttoken01xiIn
       - OSO_URL=http://oso:8081
+      - PRODUCTION_DB=1
+      - DATABASE_URL=postgresql://oso:password@issues_postgres:5432/issues_db
+
 
   oso:
     build:
@@ -41,13 +52,27 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./oso/data:/data
+    environment:
+      - OSO_AUTH=e_0123456789_12345_osotesttoken01xiIn
+      - OSO_URL=http://localhost:8081
 
-  postgres:
+  accounts_postgres:
     image: postgres:14-alpine
     ports:
-      - 5432:5432
+      - 5433:5432
     volumes:
-      - ~/apps/postgres:/var/lib/postgresql/data
+      - ./accounts-postgres-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_USER=oso
+      - POSTGRES_DB=accounts_db
+
+  issues_postgres:
+    image: postgres:14-alpine
+    ports:
+      - 5434:5432
+    volumes:
+      - ./issues-postgres-data:/var/lib/postgresql/data
     environment:
       - POSTGRES_PASSWORD=password
       - POSTGRES_USER=oso

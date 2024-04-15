@@ -13,6 +13,6 @@ COPY oso_cloud-1.3.3-py3-none-any.whl .
 RUN pip install oso_cloud-1.3.3-py3-none-any.whl
 
 COPY . /app
-WORKDIR app
+WORKDIR /app
 ENTRYPOINT [ "gunicorn" ]
 CMD [ "-b", ":5000", "-w", "2", "app:create_app()"]

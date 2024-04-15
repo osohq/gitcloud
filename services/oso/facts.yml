@@ -1,0 +1,37 @@
+facts:
+  has_role(User:_, String:_, Organization:_):
+    db: accounts
+    query: |-
+      SELECT user_id, role, org_id
+      FROM org_roles
+  has_role(User:_, String:_, Repository:_):
+    db: accounts
+    query: |-
+      SELECT user_id, role, repo_id
+      FROM repo_roles
+  has_relation(Repository:_, String:organization, Organization:_):
+    db: accounts
+    query: |-
+      SELECT id, org_id
+      FROM repositories
+  is_protected(Repository:_, Boolean:_):
+    db: accounts
+    query: |-
+      SELECT id, protected
+      FROM repositories
+  is_public(Repository:_):
+    db: accounts
+    query: |-
+      SELECT id
+      FROM repositories
+      where public = true
+
+sql_types:
+   Issue: integer
+   Repository: integer
+   Organization: integer
+   User: integer
+
+dbs:
+  accounts:
+    connection_string: "postgresql://oso:password@accounts_postgres:5432/accounts_db"

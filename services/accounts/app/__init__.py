@@ -27,18 +27,17 @@ WEB_URL = (
     else os.environ.get("WEB_URL", "http://localhost:8000")
 )
 
-
 def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
     from . import routes
 
     if PRODUCTION_DB:
-        engine = create_engine(os.environ["DATABASE_URL"], pool_pre_ping=True)
+        engine = create_engine(os.environ["DATABASE_URL"], pool_pre_ping=True, echo=True)
     else:
         # Init DB engine.
         engine = create_engine(
             db_path,
             # ignores errors from reusing connections across threads
-            connect_args={"check_same_thread": False},
+            # connect_args={"check_same_thread": False},
             poolclass=StaticPool,
             echo=True,
         )
