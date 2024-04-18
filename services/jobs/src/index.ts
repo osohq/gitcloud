@@ -20,7 +20,7 @@ declare module "express" {
   interface Request {
     oso: Oso;
     repo: Repo;
-    user: User;
+    user?: User;
   }
 }
 

@@ -33,10 +33,10 @@ def index(org_id, repo_id):
     if "is:closed" in args:
         filters.append(Issue.closed == True)
 
-    query_filter = list_query("read", "Issue")
+    #query_filter = list_query("read", "Issue")
     issues = (
         g.session.query(Issue)
-        .filter(query_filter)
+        #.filter(query_filter)
         .filter_by(repo_id=repo_id)
         .order_by(Issue.id)
         .limit(10)

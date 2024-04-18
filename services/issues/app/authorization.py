@@ -98,7 +98,7 @@ def actions(resource: Any, user: Optional[oso_cloud.Value] = None) -> List[str]:
         if resource["type"] == "Issue":
             context_facts = get_facts_for_issue(None, resource["id"])
         print(f'oso-cloud actions {actor} {resource} -c "{context_facts}"')
-        res = oso.actions(actor, resource, context_facts=context_facts)
+        res = oso.actions(actor, resource)
         print(res)
         return sorted(res)
     except Exception as e:

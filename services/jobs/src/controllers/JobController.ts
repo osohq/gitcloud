@@ -13,6 +13,7 @@ export class JobController {
 
   async all({ oso, repo, user }: Request, res: Response) {
     if (
+      !user ||
       !(await oso.authorize({ type: "User", id: user.username }, "read", {
         type: "Repository",
         id: repo.id,
@@ -75,6 +76,7 @@ export class JobController {
 
   async save({ body, oso, repo, user }: Request, res: Response) {
     if (
+      !user ||
       !(await oso.authorize(
         { type: "User", id: user.username },
         "manage_jobs",
@@ -102,6 +104,7 @@ export class JobController {
 
   async cancel({ oso, params, repo, user }: Request, res: Response) {
     if (
+      !user ||
       !(await oso.authorize(
         { type: "User", id: user.username },
         "manage_jobs",
