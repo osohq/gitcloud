@@ -27,5 +27,6 @@ COPY facts.yml /app/facts.yml
 
 ENV OSO_DIRECTORY=/data
 ENV OSO_PORT=8081
+ENV OSO_FEATURES="reconcile-facts-update"
 
 CMD ["/app/standalone"]
