@@ -141,7 +141,7 @@ def list_query(action: str, resource_type: str) -> str:
         resource_type,
         column="id::TEXT",
     )
-    print(sql)
+    print(sql, flush=True)
     return text(sql)
 
 
