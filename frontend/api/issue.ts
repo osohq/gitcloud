@@ -4,7 +4,7 @@ import { create, index, noData, show, update } from "./common";
 
 type Params = { title?: string; closed?: boolean };
 
-export function issue(orgId?: string, repoId?: string) {
+export function orgsReposIssue(orgId?: string, repoId?: string) {
   const path = `/issues/orgs/${orgId}/repos/${repoId}/issues`;
   const defined = orgId && repoId;
   const { userId } = useUser();
@@ -20,4 +20,13 @@ export function issue(orgId?: string, repoId?: string) {
     update: (id: string, params: Params) =>
       update(`${path}/${id}`, params, Issue, userId),
   };
+}
+
+export function issues(close: boolean) {
+  const { userId } = useUser();
+  let path = `/issues/`;
+  if (close) {
+    path += "?close";
+  }
+  return index(path, Issue, userId);
 }

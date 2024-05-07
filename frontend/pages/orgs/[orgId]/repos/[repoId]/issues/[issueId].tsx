@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import {
-  issue as issueApi,
+  orgsReposIssue as issueApi,
   org as orgApi,
   repo as repoApi,
 } from "../../../../../../api";
@@ -49,7 +49,10 @@ export default function Show() {
   if (!issue || !issueId || !org || !repo) return null;
 
   function updateIssue(params: any) {
-    api.update(issueId!, params).then(issue => setIssue(issue)).catch(setError)
+    api
+      .update(issueId!, params)
+      .then((issue) => setIssue(issue))
+      .catch(setError);
   }
 
   return (
@@ -59,23 +62,33 @@ export default function Show() {
           <div className="lg:flex lg:items-center lg:justify-between">
             <div className="flex-1 w-128">
               <Breadcrumbs
-                pages={
-                  [
-                    { name: org.name, href: { pathname: "/orgs/[orgId]", query: { orgId } } },
-                    { name: repo.name, href: { pathname: "/orgs/[orgId]/repos/[repoId]", query: { orgId, repoId }, current: true } },
-                  ]
-                }
+                pages={[
+                  {
+                    name: org.name,
+                    href: { pathname: "/orgs/[orgId]", query: { orgId } },
+                  },
+                  {
+                    name: repo.name,
+                    href: {
+                      pathname: "/orgs/[orgId]/repos/[repoId]",
+                      query: { orgId, repoId },
+                      current: true,
+                    },
+                  },
+                ]}
               />
               <h3 className="flex row mt-2 text-xl font-bold leading-7 text-gray-900 sm:text-3xl sm:tracking-tight sm:truncate">
                 Issue #{issue.issueNumber}
                 <div className="ml-2 flex-shrink-0 flex px-2 inline-flex font-semibold px-2 inline-flex font-semibold ">
-                  {issue.closed ?
+                  {issue.closed ? (
                     <p className="rounded-full bg-purple-100 text-purple-800">
                       Closed
-                    </p> : <p className="rounded-full bg-green-100 text-green-800">
+                    </p>
+                  ) : (
+                    <p className="rounded-full bg-green-100 text-green-800">
                       Open
                     </p>
-                  }
+                  )}
                 </div>
               </h3>
             </div>
@@ -105,7 +118,7 @@ export default function Show() {
               id="description"
               className="block w-full resize-none border-0 py-0 placeholder-gray-500 focus:ring-0 sm:text-sm"
               placeholder="Write a description..."
-              defaultValue={'A description of the issue'}
+              defaultValue={"A description of the issue"}
               disabled
             />
 
@@ -126,19 +139,16 @@ export default function Show() {
         <div className="mt-4">
           <button
             type="button"
-            className={
-              classNames(
-                repo.permissions?.includes("manage_issues") ?
-                  "bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" :
-                  "bg-gray-400"
-                ,
-                "relative inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white "
-              )
-            }
+            className={classNames(
+              repo.permissions?.includes("manage_issues")
+                ? "bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                : "bg-gray-400",
+              "relative inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white "
+            )}
             disabled={!repo.permissions?.includes("manage_issues")}
             onClick={(e) => {
               e.preventDefault();
-              updateIssue({ closed: !issue.closed })
+              updateIssue({ closed: !issue.closed });
             }}
           >
             {issue.closed ? "Re-open issue" : "Close issue"}

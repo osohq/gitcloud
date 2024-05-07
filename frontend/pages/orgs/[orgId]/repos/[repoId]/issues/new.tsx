@@ -1,22 +1,22 @@
 import { ChangeEvent, FormEvent, useContext, useState } from "react";
 
-import { issue as issueApi } from "../../../../../../api";
+import { orgsReposIssue as issueApi } from "../../../../../../api";
 import useUser from "../../../../../../lib/useUser";
 import { useRouter } from "next/router";
 import ErrorPage from "../../../../../../components/ErrorMessage";
 
 export default function New() {
-  const { } = useUser({ redirectTo: "/login" });
+  const {} = useUser({ redirectTo: "/login" });
   const router = useRouter();
   const { orgId, repoId } = router.query as { orgId?: string; repoId?: string };
 
   const [error, setError] = useState<Error | undefined>(undefined);
   const [title, setTitle] = useState<string>("");
   const index = `/orgs/${orgId}/repos/${repoId}/issues`;
-  const api = issueApi(orgId, repoId)
+  const api = issueApi(orgId, repoId);
 
   const inputEmpty = !title.replaceAll(" ", "");
-  if (error) return <ErrorPage error={error} setError={setError} />
+  if (error) return <ErrorPage error={error} setError={setError} />;
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -25,7 +25,7 @@ export default function New() {
       const issue = await api.create({ title });
       await router.push(`${index}/${issue.id}`);
     } catch (e: any) {
-      setError(e)
+      setError(e);
     }
   }
 

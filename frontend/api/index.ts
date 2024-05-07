@@ -1,5 +1,5 @@
 import { job } from "./job";
-import { issue } from "./issue";
+import { orgsReposIssue, issues } from "./issue";
 import { org } from "./org";
 import { repo } from "./repo";
 import { RoleAssignmentsApi, roleAssignments } from "./roleAssignments";
@@ -9,7 +9,8 @@ import { user } from "./user";
 
 export {
   job,
-  issue,
+  orgsReposIssue,
+  issues,
   org,
   repo,
   roleAssignments,

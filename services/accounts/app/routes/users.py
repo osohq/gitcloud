@@ -12,7 +12,7 @@ import oso_cloud
 
 @bp.route("/<user_id>", methods=["GET"])
 def show(user_id):
-    if not authorize("read_profile", {"type": "User", "id": user_id}):
+    if not authorize("read", {"type": "User", "id": user_id}):
         raise NotFound
     user = g.session.get_or_404(User, id=user_id)
     return user.as_json()

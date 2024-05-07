@@ -51,6 +51,7 @@ def create_app(db_path="postgresql://oso:password@issues_postgres:5432/issues_db
     cache.init_app(app)
     instrument_app(app) if TRACING else None
     app.secret_key = b"ball outside of the school"
+    app.register_blueprint(routes.orgs_repos_issues.bp)
     app.register_blueprint(routes.issues.bp)
 
     # Set up error handlers.

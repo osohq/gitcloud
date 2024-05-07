@@ -1,23 +1,20 @@
 facts:
   has_relation(Issue:_, String:repository, Repository:_):
-    db: local-db
     query: |-
       SELECT id, repo_id
       FROM issues
 
   has_relation(Issue:_, String:creator, User:_):
-    db: local-db
     query: |-
       select id, creator_id
       from issues
 
   is_closed(Issue:_, Boolean:_):
-    db: local-db
     query: |-
       select id, closed
       from issues
 
-
-dbs:
-  local-db:
-    connection_string:
+sql_types:
+  Issue: NUMERIC
+  Repository: NUMERIC
+  User: TEXT

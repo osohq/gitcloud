@@ -2,14 +2,23 @@ export class Issue {
   id: number;
   issueNumber: number;
   title: string;
-  creator_id?: string;
+  creatorId?: string;
   permissions?: string[];
   repoId: number;
   closed: boolean;
 
-  constructor({ id, title, permissions, issueNumber, repoId, closed }: Issue) {
+  constructor({
+    id,
+    title,
+    creatorId,
+    permissions,
+    issueNumber,
+    repoId,
+    closed,
+  }: Issue) {
     this.id = id;
     this.title = title;
+    this.creatorId = creatorId;
     this.permissions = permissions;
     this.issueNumber = issueNumber;
     this.repoId = repoId;
