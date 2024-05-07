@@ -114,8 +114,14 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
                 user_id = flask_session.get("user_id")
                 g.current_user = user_id
             elif "x-user-id" in request.headers:
-                user_id = request.headers["x-user-id"]
-                g.current_user = user_id
+                username = request.headers["x-user-id"]
+                user = (
+                    g.session.query(User).filter_by(username=username).one_or_none()
+                )
+                if user is not None:
+                    g.current_user = user.id
+                else:
+                    g.current_user = None
             else:
                 g.current_user = None
 

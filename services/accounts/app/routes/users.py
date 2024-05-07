@@ -12,7 +12,12 @@ import oso_cloud
 
 @bp.route("/<username>", methods=["GET"])
 def show(username):
-    if not authorize("read_profile", {"type": "User", "id": username}):
+    user = (
+        g.session.query(User).filter_by(username=username).one_or_none()
+    )
+    if not user:
+        raise NotFound
+    if not authorize("read_profile", {"type": "User", "id": str(user.id)}):
         raise NotFound
     user = g.session.get_or_404(User, username=username)
     return user.as_json()
@@ -20,7 +25,12 @@ def show(username):
 
 @bp.route("/<username>/repos", methods=["GET"])
 def repo_index(username):
-    if not authorize("read_profile", {"type": "User", "id": username}):
+    user = (
+        g.session.query(User).filter_by(username=username).one_or_none()
+    )
+    if not user:
+        raise NotFound
+    if not authorize("read_profile", {"type": "User", "id": str(user.id)}):
         raise NotFound
 
     # get all the repositories that the user has a role for
@@ -41,8 +51,14 @@ def repo_index(username):
 
 @bp.route("/<username>/orgs", methods=["GET"])
 def org_index(username):
-    if not authorize("read_profile", {"type": "User", "id": username}):
+    user = (
+        g.session.query(User).filter_by(username=username).one_or_none()
+    )
+    if not user:
         raise NotFound
+    if not authorize("read_profile", {"type": "User", "id": str(user.id)}):
+        raise NotFound
+
 
     # get all the repositories that the user has a role for
     orgs = query(
