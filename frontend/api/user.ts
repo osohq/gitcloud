@@ -7,11 +7,11 @@ const path = "/accounts/users";
 export function user() {
   const { userId } = useUser();
   return {
-    show: (id?: string) =>
+    show: (id?: number) =>
       id ? show(`${path}/${id}`, User, userId) : noData(),
-    repos: (id?: string) =>
+    repos: (id?: number) =>
       id ? index(`${path}/${id}/repos`, Repo, userId) : noData(),
-    orgs: (id?: string) =>
+    orgs: (id?: number) =>
       id ? index(`${path}/${id}/orgs`, Org, userId) : noData(),
   };
 }

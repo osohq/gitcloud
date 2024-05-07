@@ -39,43 +39,43 @@ export const noData = () => {
   };
 };
 
-export const get = (path: string, userId?: string) =>
-  req(path, 200, userId ? { headers: { "x-user-id": userId } } : {});
+export const get = (path: string, userId?: number) =>
+  req(path, 200, userId ? { headers: { "x-user-id": userId.toString() } } : {});
 
-const patch = (path: string, body: obj, userId?: string) =>
+const patch = (path: string, body: obj, userId?: number) =>
   req(path, 200, {
     method: "PATCH",
     body: jsonify(body),
     headers: {
       "Content-Type": "application/json",
-      ...(userId ? { "x-user-id": userId } : {}),
+      ...(userId ? { "x-user-id": userId.toString() } : {}),
     },
   });
 
-const post = (path: string, body: obj, userId?: string) =>
+const post = (path: string, body: obj, userId?: number) =>
   req(path, 201, {
     method: "POST",
     body: jsonify(body),
     headers: {
       "Content-Type": "application/json",
-      ...(userId ? { "x-user-id": userId } : {}),
+      ...(userId ? { "x-user-id": userId.toString() } : {}),
     },
   });
 
-export const del = (path: string, body: obj, userId?: string) =>
+export const del = (path: string, body: obj, userId?: number) =>
   req(path, 204, {
     method: "DELETE",
     body: jsonify(body),
     headers: {
       "Content-Type": "application/json",
-      ...(userId ? { "x-user-id": userId } : {}),
+      ...(userId ? { "x-user-id": userId.toString() } : {}),
     },
   });
 
 export function index<T extends {}>(
   path: string,
   cls: Class<T>,
-  userId?: string,
+  userId?: number,
   params?: any
 ) {
   const { data, error, mutate } = useSWR<T[]>(
@@ -95,7 +95,7 @@ export function index<T extends {}>(
 export function show<T extends {}>(
   path: string,
   cls: Class<T>,
-  userId?: string,
+  userId?: number,
   params?: any
 ) {
   const { data, error, mutate } = useSWR<T>(
@@ -116,7 +116,7 @@ export async function create<T extends {}>(
   path: string,
   body: obj,
   cls: Class<T>,
-  userId?: string
+  userId?: number
 ) {
   const data = (await post(path, body, userId)) as obj;
   return new cls(camelizeKeys(data));
@@ -126,7 +126,7 @@ export async function update<T extends {}>(
   path: string,
   body: obj,
   cls: Class<T>,
-  userId?: string
+  userId?: number
 ) {
   const data = (await patch(path, body, userId)) as obj;
   return new cls(camelizeKeys(data));

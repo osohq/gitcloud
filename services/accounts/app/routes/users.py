@@ -10,22 +10,22 @@ bp = Blueprint("users", __name__, url_prefix="/users")
 import oso_cloud
 
 
-@bp.route("/<username>", methods=["GET"])
-def show(username):
-    if not authorize("read_profile", {"type": "User", "id": username}):
+@bp.route("/<user_id>", methods=["GET"])
+def show(user_id):
+    if not authorize("read_profile", {"type": "User", "id": user_id}):
         raise NotFound
-    user = g.session.get_or_404(User, username=username)
+    user = g.session.get_or_404(User, id=user_id)
     return user.as_json()
 
 
-@bp.route("/<username>/repos", methods=["GET"])
-def repo_index(username):
-    if not authorize("read_profile", {"type": "User", "id": username}):
+@bp.route("/<user_id>/repos", methods=["GET"])
+def repo_index(user_id):
+    if not authorize("read_profile", {"type": "User", "id": user_id}):
         raise NotFound
 
     # get all the repositories that the user has a role for
     repos = query(
-        "has_role", {"type": "User", "id": username}, {}, {"type": "Repository"}
+        "has_role", {"type": "User", "id": user_id}, {}, {"type": "Repository"}
     )
     repoIds = list(
         map(lambda fact: cast(oso_cloud.Value, fact["args"][2]).get("id", "_"), repos)
@@ -39,14 +39,14 @@ def repo_index(username):
         return jsonify([r.as_json() for r in repo_objs])
 
 
-@bp.route("/<username>/orgs", methods=["GET"])
-def org_index(username):
-    if not authorize("read_profile", {"type": "User", "id": username}):
+@bp.route("/<user_id>/orgs", methods=["GET"])
+def org_index(user_id):
+    if not authorize("read_profile", {"type": "User", "id": user_id}):
         raise NotFound
 
     # get all the repositories that the user has a role for
     orgs = query(
-        "has_role", {"type": "User", "id": username}, {}, {"type": "Organization"}
+        "has_role", {"type": "User", "id": user_id}, {}, {"type": "Organization"}
     )
     orgIds = list(
         map(lambda fact: cast(oso_cloud.Value, fact["args"][2]).get("id", "_"), orgs)

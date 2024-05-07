@@ -6,24 +6,26 @@ import useUser from "../lib/useUser";
 import ErrorPage from "../components/ErrorMessage";
 
 export default function Login() {
-  const { currentUser, setUsername } = useUser({ redirectIfFound: true });
+  const { currentUser, setUser } = useUser({ redirectIfFound: true });
   const router = useRouter();
   const [login, setLogin] = useState<string>("");
 
   const api = sessionApi();
 
   const [error, setError] = useState<Error | undefined>(undefined);
-  if (error) return <ErrorPage error={error} setError={setError} />
+  if (error) return <ErrorPage error={error} setError={setError} />;
 
   // If a logged-in user navigates to this page, redirect to home.
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    api.login(login == "" ? {} : { username: login }).then(u => {
-      setUsername(u.username);
-      router.replace(`/orgs`);
-    }).catch(e => setError(e));
+    api
+      .login(login == "" ? {} : { username: login })
+      .then((u) => {
+        setUser(u);
+        router.replace(`/orgs`);
+      })
+      .catch((e) => setError(e));
   }
-
 
   function handleChange({ target: { value } }: ChangeEvent<HTMLInputElement>) {
     setLogin(value);

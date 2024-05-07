@@ -7,7 +7,7 @@ import LoadingPage from "../../components/LoadingPage";
 
 export default function Show() {
   const router = useRouter();
-  const { userId } = router.query as { userId: string | undefined };
+  const { userId } = router.query as { userId: number | undefined };
   if (!userId) return null;
   const {
     data: userProfile,

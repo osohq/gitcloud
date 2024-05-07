@@ -11,7 +11,7 @@ export type CurrentUser =
     }
   | { isLoggedIn: true; user: User };
 
-const createSessionState = createPersistedState<string>("session");
+const createSessionState = createPersistedState<User | null>("session");
 
 export default function useUser(
   {
@@ -25,40 +25,37 @@ export default function useUser(
     redirectIfFound?: boolean;
   } = { redirectIfFound: false }
 ) {
-  const [username, setUsername] = createSessionState("");
-  if (typeof window !== "undefined") {
-    localStorage.setItem("username", username);
-  }
+  const [user, setUser] = createSessionState(null);
 
-  const usernameSet = username !== "";
+  const userIsSet = user !== null;
 
   const {
-    data: user,
+    data: userData,
     mutate: mutateUser,
     error,
-  } = useSWR<User>(usernameSet ? ["/accounts/session", username] : null, get);
+  } = useSWR<User>(userIsSet ? ["/accounts/session", user.id] : null, get);
 
   useEffect(() => {
     // if no redirect needed, just return (example: already on /dashboard)
     // if user data not yet there (fetch in progress, logged in or not) then don't do anything yet
-    if (!redirectTo || !usernameSet) return;
+    if (!redirectTo || !userIsSet) return;
 
     if (
       // If redirectTo is set, redirect if the user was not found.
-      (redirectTo && !redirectIfFound && !usernameSet) ||
+      (redirectTo && !redirectIfFound && !userIsSet) ||
       // If redirectIfFound is also set, redirect if the user was found
-      (redirectIfFound && usernameSet)
+      (redirectIfFound && userIsSet)
     ) {
-      Router.replace(redirectTo || `/users/${username}`);
+      Router.replace(redirectTo || `/users/${user.id}`);
     }
-  }, [redirectIfFound, redirectTo, username, usernameSet]);
+  }, [redirectIfFound, redirectTo, user?.id, userIsSet]);
 
   let currentUser: { isLoggedIn: true; user: User } | { isLoggedIn: false } = {
     isLoggedIn: false,
   };
-  if (usernameSet && user) {
-    currentUser = { isLoggedIn: true, user };
+  if (userIsSet && userData) {
+    currentUser = { isLoggedIn: true, user: userData };
   }
 
-  return { currentUser, setUsername, userId: username };
+  return { currentUser, setUser, userId: user?.id };
 }
