@@ -6,7 +6,7 @@
     "dev": "next dev -p 8000",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint --dir ."
   },
   "dependencies": {
     "@headlessui/react": "^1.7",
