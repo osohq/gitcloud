@@ -11,12 +11,25 @@ import { User } from "../models";
 import { get } from "../api/common";
 import useUser from "../lib/useUser";
 import useSWR from "swr";
+import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
+
+function ErrorIcon({ error }: { error: Error }) {
+  return (
+    <span title={error?.message}>
+      <ExclamationTriangleIcon className="h-4 w-4 text-red-500" />
+    </span>
+  );
+}
 
 function IssueItem({ issue }: { issue: Issue }) {
   const orgId = 0;
   const { userId } = useUser();
-  const { data: creator, error: creatorError } = useSWR<User>(
+  const { data: creator, error: creatorError } = useSWR(
     `/accounts/users/${issue.creatorId}`,
+    (p: string) => get(p, userId)
+  );
+  const { data: repo, error: repoError } = useSWR(
+    `/accounts/repos/${issue.repoId}`,
     (p: string) => get(p, userId)
   );
 
@@ -24,12 +37,15 @@ function IssueItem({ issue }: { issue: Issue }) {
     <Link href={`/orgs/${orgId}/repos/${issue.repoId}/issues/${issue.id}`}>
       <a className="block hover:bg-gray-50">
         <div className="px-4 py-4 sm:px-6">
-          <div className="flex items-center">
+          <div className="flex items-center space-x-4">
             <p className="text-sm font-medium text-indigo-600 truncate">
               {issue.title}
             </p>
-            <div className="font-light text-xs mx-4">
-              Creator: {creator?.username}
+            <div className="font-light text-xs">
+              Creator: {creator?.username ?? <ErrorIcon error={creatorError} />}
+            </div>
+            <div className="font-light text-xs flex items-center">
+              Repository: {repo?.name ?? <ErrorIcon error={repoError} />}
             </div>
             <div className="grow" />
             <div className="ml-2 flex-shrink-0 flex">

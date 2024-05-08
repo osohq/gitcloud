@@ -44,7 +44,7 @@ services:
       - OSO_URL=http://oso:8081
       - PRODUCTION_DB=1
       - DATABASE_URL=postgresql://oso:password@issues_postgres:5432/issues_db
-
+      - PYTHONUNBUFFERED=1
 
   oso:
     build:

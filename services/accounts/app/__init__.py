@@ -54,6 +54,7 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
     instrument_app(app) if TRACING else None
     app.secret_key = b"ball outside of the school"
     app.register_blueprint(routes.orgs.bp)
+    app.register_blueprint(routes.orgs_repos.bp)
     app.register_blueprint(routes.repos.bp)
     app.register_blueprint(routes.role_assignments.bp)
     app.register_blueprint(routes.role_choices.bp)

@@ -119,22 +119,17 @@ def load_fixture_data(session):
     # Faker  #
     ##########
 
-    for org_id in range(FAKE_ORGANIZATIONS):
-        for repo_id in range(
-            randint(
-                org_id * FAKE_REPOSITORIES,
-                org_id * FAKE_REPOSITORIES + FAKE_REPOSITORIES,
+    for user_id in users:
+        repos = oso.list({ "type": "User", "id": str(user_id) }, "read", "Repository")
+        for issue_number in range(randint(0, FAKE_ISSUES)):
+            issue = Issue(
+                issue_number=issue_number,
+                title=faker_uniq.sentence(),
+                closed=(randint(0, 10) < 2),
+                creator_id=user_id,
+                repo_id=int(choice(repos)),
             )
-        ):
-            for idx, _ in enumerate(range(randint(0, FAKE_ISSUES))):
-                issue = Issue(
-                    issue_number=idx,
-                    title=faker_uniq.sentence(),
-                    closed=(randint(0, FAKE_ISSUES) < idx),
-                    creator_id=choice(users),
-                    repo_id=repo_id,
-                )
-                issues.append(issue)
+            issues.append(issue)
 
     session.add_all(issues)
 

@@ -1,5 +1,5 @@
 from flask import Blueprint, g, request, jsonify
-from sqlalchemy import text
+from sqlalchemy import func, text
 
 from ..models import Issue
 from ..authorization import (
@@ -34,7 +34,7 @@ def index():
     issues = (
         g.session.query(Issue)
         .filter(text(authorization_filter))
-        .order_by(Issue.id)
+        .order_by(func.char_length(Issue.title))
         .limit(20)
     )
     return jsonify([issue.as_json() for issue in issues])
