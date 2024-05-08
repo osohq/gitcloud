@@ -20,23 +20,17 @@ function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(" ");
 }
 
-export default function Layout({
-  children,
-}: {
-  children: JSX.Element;
-}) {
+export default function Layout({ children }: { children: JSX.Element }) {
   const router = useRouter();
   const { currentUser, userId } = useUser();
   const { data: user } = userApi().show(userId);
 
   const userNavigation = currentUser.isLoggedIn
     ? [
-      { name: "Your Profile", href: `/users/${userId}` },
-      { name: "Sign out", href: "/logout" },
-    ]
-    : [
-      { name: "Sign in", href: "/login" },
-    ];
+        { name: "Your Profile", href: `/users/${userId}` },
+        { name: "Sign out", href: "/logout" },
+      ]
+    : [{ name: "Sign in", href: "/login" }];
 
   const path = router.asPath;
   const navigation = [
@@ -92,6 +86,14 @@ export default function Layout({
                         <div>
                           <Menu.Button className="max-w-xs bg-gray-800 rounded-full flex items-center text-sm text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800">
                             <span className="sr-only">Open user menu</span>
+                            {user && (
+                              <span
+                                className="text-white mr-2"
+                                title={user.id.toString()}
+                              >
+                                {user.username}
+                              </span>
+                            )}
                             <UserCircleIcon
                               className="h-8 w-8"
                               aria-hidden="true"
@@ -133,8 +135,12 @@ export default function Layout({
                     {/* Mobile menu button */}
                     <Disclosure.Button className="bg-gray-800 inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white">
                       <span className="sr-only">Open main menu</span>
+                      <span className=" text-gray"></span>
                       {open ? (
-                        <XMarkIcon className="block h-6 w-6" aria-hidden="true" />
+                        <XMarkIcon
+                          className="block h-6 w-6"
+                          aria-hidden="true"
+                        />
                       ) : (
                         <Bars3Icon
                           className="block h-6 w-6"
