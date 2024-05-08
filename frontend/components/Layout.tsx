@@ -35,6 +35,7 @@ export default function Layout({ children }: { children: JSX.Element }) {
   const path = router.asPath;
   const navigation = [
     { name: "Organizations", href: "/orgs", current: path.startsWith("/orgs") },
+    { name: "Issues", href: "/issues", current: path.startsWith("/issues") },
   ];
 
   return (

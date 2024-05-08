@@ -22,7 +22,7 @@ def index():
     permission = "read"
     if "close" in request.args:
         permission = "close"
-    print("\n\n\n\n\n", permission)
+    print("\n\n\n\n\nPERMISSION =", permission)
 
     authorization_filter = oso.list_local(
         {"type": "User", "id": g.current_user},
@@ -30,7 +30,7 @@ def index():
         "Issue",
         "id",
     )
-    print(authorization_filter, flush=True)
+    print(authorization_filter)
     issues = (
         g.session.query(Issue)
         .filter(text(authorization_filter))
