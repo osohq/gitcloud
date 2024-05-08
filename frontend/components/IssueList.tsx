@@ -15,8 +15,11 @@ import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 
 function ErrorIcon({ error }: { error: Error }) {
   return (
-    <span title={error?.message}>
+    <span className="group relative">
       <ExclamationTriangleIcon className="h-4 w-4 text-red-500" />
+      <div className="hidden group-hover:block bg-white absolute bottom-full p-2 shadow rounded text-red-500 w-32">
+        Error: {error && JSON.parse(error.message).message}
+      </div>
     </span>
   );
 }
@@ -44,8 +47,13 @@ function IssueItem({ issue }: { issue: Issue }) {
             <div className="font-light text-xs">
               Creator: {creator?.username ?? <ErrorIcon error={creatorError} />}
             </div>
-            <div className="font-light text-xs flex items-center">
+            <div className="font-light text-xs flex items-center group relative">
               Repository: {repo?.name ?? <ErrorIcon error={repoError} />}
+              {repo && (
+                <div className="hidden group-hover:block absolute bg-white p-2 rounded shadow w-32">
+                  Repository ID: {repo.id}
+                </div>
+              )}
             </div>
             <div className="grow" />
             <div className="ml-2 flex-shrink-0 flex">

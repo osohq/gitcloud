@@ -87,11 +87,11 @@ export default function Layout({ children }: { children: JSX.Element }) {
                           <Menu.Button className="max-w-xs bg-gray-800 rounded-full flex items-center text-sm text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800">
                             <span className="sr-only">Open user menu</span>
                             {user && (
-                              <span
-                                className="text-white mr-2"
-                                title={user.id.toString()}
-                              >
+                              <span className="text-white mr-2 group relative">
                                 {user.username}
+                                <div className="hidden group-hover:block absolute bg-white p-2 shadow rounded text-black w-24">
+                                  User ID: {user.id}
+                                </div>
                               </span>
                             )}
                             <UserCircleIcon
