@@ -19,7 +19,6 @@ function IssueItem({ issue }: { issue: Issue }) {
     `/accounts/users/${issue.creatorId}`,
     (p: string) => get(p, userId)
   );
-  console.log(creator);
 
   return (
     <Link href={`/orgs/${orgId}/repos/${issue.repoId}/issues/${issue.id}`}>
