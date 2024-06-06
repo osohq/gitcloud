@@ -31,7 +31,7 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
     from . import routes
 
     if PRODUCTION_DB:
-        engine = create_engine(os.environ["DATABASE_URL"], pool_pre_ping=True, echo=True)
+        engine = create_engine(os.environ["DATABASE_URL"], pool_pre_ping=True, echo=(not load_fixtures))
     else:
         # Init DB engine.
         engine = create_engine(
@@ -39,7 +39,7 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
             # ignores errors from reusing connections across threads
             # connect_args={"check_same_thread": False},
             poolclass=StaticPool,
-            echo=True,
+            echo=(not load_fixtures),
         )
 
     # Init Flask app.

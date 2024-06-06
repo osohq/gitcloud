@@ -1,4 +1,5 @@
 from flask import Blueprint, g, request, jsonify
+from sqlalchemy import text
 from typing import cast
 from werkzeug.exceptions import Forbidden, NotFound
 
@@ -26,17 +27,21 @@ def index(org_id, repo_id):
         raise NotFound
     args = request.args
     filters = []
-    # TODO: these aren't actually possible to set in
-    # the UI right now
+
     if "is:open" in args:
         filters.append(Issue.closed == False)
     if "is:closed" in args:
         filters.append(Issue.closed == True)
 
-    query_filter = list_query("read", "Issue")
+    query_filter = oso.list_local(
+        {"type": "User", "id": g.current_user},
+        "read",
+        "Issue",
+        column="id",
+    )
     issues = (
         g.session.query(Issue)
-        .filter(query_filter)
+        .filter(text(query_filter))
         .filter_by(repo_id=repo_id)
         .order_by(Issue.id)
         .limit(10)

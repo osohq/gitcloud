@@ -139,7 +139,7 @@ def list_query(action: str, resource_type: str) -> str:
         {"type": "User", "id": g.current_user},
         action,
         resource_type,
-        column="id::TEXT",
+        column="id",
     )
     print(sql)
     return text(sql)

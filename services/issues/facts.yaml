@@ -17,6 +17,10 @@ facts:
       select id, closed
       from issues
 
+sql_types:
+  Issue: int
+  Repository: int
+  User: int
 
 dbs:
   local-db:

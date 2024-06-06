@@ -12,7 +12,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # omit the -p parameter to create a temporal directory in the default location
 WORK_DIR=`mktemp -d -p "$DIR"`
 
-STANDALONE_VERSION="dev"
+STANDALONE_VERSION="1.3.3"
 
 # check if tmp dir was created
 if [[ ! "$WORK_DIR" || ! -d "$WORK_DIR" ]]; then
@@ -123,5 +123,5 @@ function download_standalone_docker() {
 
 # download_cli
 # download_standalone
-download_cli_docker
+# download_cli_docker
 download_standalone_docker
