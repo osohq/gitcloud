@@ -2,6 +2,7 @@ import { DeepPartial, In } from "typeorm";
 import { Request, Response } from "express";
 import { Job } from "../entities/Job";
 import { db } from "..";
+import { typedVar } from "oso-cloud";
 
 const toRun = new Set();
 const toComplete = new Set();
@@ -19,6 +20,20 @@ export class JobController {
       }))
     )
       return res.status(404).send("Not Found?");
+
+    const userVar = typedVar("User");
+    const actionVar = typedVar("String");
+
+    const userPermissions = await oso
+      .buildQuery([
+        "allow",
+        userVar,
+        actionVar,
+        { type: "Repository", id: repo.id },
+      ])
+      .evaluate({ userVar: actionVar });
+
+    console.log(userPermissions);
 
     // const jobIds = await oso.list({ type: "User", id: user.username }, "view", "Job");
     const jobs = await db

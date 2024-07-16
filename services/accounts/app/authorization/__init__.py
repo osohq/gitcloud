@@ -13,7 +13,10 @@ from werkzeug.exceptions import Forbidden, NotFound, Unauthorized
 
 from app.models import User
 
-oso = Oso(url=getenv("OSO_URL", "https://api.osohq.com"), api_key=getenv("OSO_AUTH"))
+from . import oso_client
+from .oso_client import TypedOso
+
+oso = TypedOso(url=getenv("OSO_URL", "https://api.osohq.com"), api_key=getenv("OSO_AUTH"))
 cache = Cache(config={"CACHE_TYPE": "SimpleCache"})
 
 
@@ -35,6 +38,11 @@ def object_to_oso_value(obj: Any, allow_unbound=False) -> oso_cloud.Value:
     else:
         return {"type": obj.__class__.__name__, "id": str(obj.id)}
 
+
+def oso_user() -> oso_client.User:
+    if g.current_user is None:
+        raise Unauthorized
+    return oso_client.User(g.current_user)
 
 def current_user() -> oso_cloud.Value:
     if g.current_user is None:
@@ -84,7 +92,7 @@ def authorize(action: str, resource: Any, parent: Optional[int] = None) -> bool:
 def actions(resource: Any, user: Optional[oso_cloud.Value] = None) -> List[str]:
     if not user and g.current_user is None:
         return []
-    actor = current_user()
+    actor = oso_user()
     resource = object_to_oso_value(resource)
     try:
         print(f"oso-cloud actions {actor} {resource}")

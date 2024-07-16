@@ -22,8 +22,8 @@ export type RoleAssignmentsApi = {
 };
 
 function org(id?: string): RoleAssignmentsApi {
-  const roleAssignments = `/orgs/${id}/role_assignments`;
-  const unassignedUsers = `/orgs/${id}/unassigned_users`;
+  const roleAssignments = `/accounts/orgs/${id}/role_assignments`;
+  const unassignedUsers = `/accounts/orgs/${id}/unassigned_users`;
   const { userId } = useUser();
 
   return {

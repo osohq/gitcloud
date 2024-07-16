@@ -4,7 +4,7 @@ from werkzeug.exceptions import Forbidden, NotFound
 
 
 from ..models import Organization
-from ..authorization import oso
+from ..authorization import oso_user, oso
 from oso_cloud import Value
 
 bp = Blueprint("orgs", __name__, url_prefix="/orgs")
@@ -12,11 +12,7 @@ bp = Blueprint("orgs", __name__, url_prefix="/orgs")
 
 @bp.route("", methods=["GET"])
 def index():
-    user: Value = {
-        "type": "User",
-        "id": str(g.current_user),
-    }
-    authorized_ids = oso.list(user, "read", "Organization")
+    authorized_ids = oso.list_organizations(oso_user(), "read")
     if authorized_ids == ["*"]:
         orgs = g.session.query(Organization).order_by(Organization.id)
         return jsonify([o.as_json() for o in orgs])
@@ -67,7 +63,7 @@ def show(org_id):
         raise NotFound
     org = g.session.get_or_404(Organization, id=org_id)
     json = org.as_json()
-    json["permissions"] = oso.actions(user, {"type": "Organization", "id": org_id})
+    json["permissions"] = oso.actions(oso_user(), {"type": "Organization", "id": org_id})
     return json
 
 
