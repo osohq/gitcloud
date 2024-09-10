@@ -6,8 +6,6 @@ permissions system. The app is implemented as multiple backend services (in the
 system and a React frontend (in the `frontend/` directory).
 
 This application is built as an example for [Oso Cloud](https://osohq.com/docs/).
-If you are looking for an example of using the Oso library, check out
-[osohq/gitclub](https://github.com/osohq/gitclub).
 
 ## Backend services
 
