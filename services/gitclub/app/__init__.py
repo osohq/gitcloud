@@ -26,7 +26,6 @@ WEB_URL = (
     else os.environ.get("WEB_URL", "http://localhost:8000")
 )
 
-
 def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
     from . import routes
 
@@ -89,6 +88,12 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
         with open("../../policy/authorization.polar") as f:
             policy = f.read()
             oso.policy(policy)
+        load_fixture_data(Session())
+        return {}
+    
+    @app.route("/_seed", methods=["POST"])
+    def seed():
+        Base.metadata.create_all(bind=engine)
         load_fixture_data(Session())
         return {}
 
