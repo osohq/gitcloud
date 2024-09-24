@@ -1,0 +1,57 @@
+services:
+  gitclub:
+    build:
+      context: services/gitclub
+      dockerfile: Dockerfile
+    depends_on:
+      - postgres
+      - oso
+    ports:
+      - "5000:5000"
+    environment:
+      - OSO_AUTH=e_0123456789_12345_osotesttoken01xiIn
+      - OSO_URL=http://oso:8081
+      - PRODUCTION_DB=1
+      - DATABASE_URL=postgresql://oso:password@postgres:5432/gitcloud
+
+  jobs:
+    build:
+      context: services/jobs
+      dockerfile: Dockerfile
+    ports:
+      - "5001:5001"
+    depends_on:
+      - oso
+    environment:
+      - OSO_AUTH=e_0123456789_12345_osotesttoken01xiIn
+      - OSO_URL=http://oso:8081
+
+  oso:
+    build:
+      dockerfile: Dockerfile.oso
+    ports:
+      - "8081:8081"
+    environment:
+      - OSO_AUTH=e_0123456789_12345_osotesttoken01xiIn
+      - OSO_URL=http://localhost:8081
+
+  postgres:
+    image: postgres:14-alpine
+    ports:
+      - 5433:5432
+    volumes:
+      - ./gitcloud-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_USER=oso
+      - POSTGRES_DB=gitcloud
+
+  frontend:
+    build:
+      context: frontend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    depends_on:
+      - gitclub
+      - jobs
