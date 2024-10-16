@@ -4,4 +4,6 @@
 venv/
 .vim/
 .envrc
+.DS_Store
+gitcloud-data/
 !.vscode/settings.json
