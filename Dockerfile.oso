@@ -1,0 +1,23 @@
+# start with a minimal image
+FROM debian:bookworm-slim
+
+# get base dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN curl -Ol https://oso-local-development-binary.s3.amazonaws.com/latest/oso-local-development-binary-linux-x86_64.tar.gz
+RUN tar -zxvf ./oso-local-development-binary-linux-x86_64.tar.gz
+RUN chmod +x ./standalone
+RUN echo "export PATH=$HOME/.local/bin:$PATH" >> ~/.bashrc
+
+RUN mkdir -p /data
+
+ENV OSO_DIRECTORY=/data
+ENV OSO_PORT=8081
+ENV OSO_FEATURES="reconcile-facts-update"
+
+COPY ./policy/authorization.polar /authorization.polar
+
+CMD ["./standalone", "authorization.polar"]

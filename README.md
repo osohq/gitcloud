@@ -101,6 +101,47 @@ Run the Jobs Service in another terminal:
 make -C services/jobs
 ```
 
+### Running with Docker
+
+You can run all the services at once, along with a Oso Cloud local development binary and Postgres instance, using Docker Compose:
+
+```
+docker-compose up
+```
+
+This repo's `docker-compose.yml` file starts the following services:
+
+1. GitClub on port 5000
+2. Jobs Service on port 5001
+3. Oso Cloud local development binary on port 8081
+4. Postgres on port 5432
+5. Next.js frontend on port 8000
+
+If `docker-compose up` ran successfully, you should see the following output.
+
+```
+frontend-1  | yarn run v1.22.19
+frontend-1  | $ next start
+frontend-1  | ready - started server on 0.0.0.0:8000, url: http://localhost:8000
+```
+
+If this is your first time running `docker-compose up`, you will also need to seed your local Postgres database by running `make seed`.
+
+#### Docker Troubleshooting
+
+If you run into the following error when running `docker-compose up`, run `ALTER TABLE users DROP CONSTRAINT IF EXISTS pg_type_typname_nsp_index;` to clean up the dangling unique constraint.
+
+```
+psycopg2.errors.UniqueViolation: duplicate key value violates unique constraint "pg_type_typname_nsp_index"
+```
+
+You can run this code from Python using the following:
+
+```python
+with engine.connect() as conn:
+    conn.execute('ALTER TABLE users DROP CONSTRAINT IF EXISTS pg_type_typname_nsp_index')
+```
+
 ## Frontend
 
 ### Running the frontend
