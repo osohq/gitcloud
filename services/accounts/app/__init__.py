@@ -24,7 +24,6 @@ WEB_URL = (
     else os.environ.get("WEB_URL", "http://localhost:8000")
 )
 
-
 def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
     from . import routes
 
@@ -82,6 +81,12 @@ def create_app(db_path="sqlite:///roles.db", load_fixtures=False):
         # Called during tests to reset the database
         Base.metadata.drop_all(bind=engine)  # type: ignore
         Base.metadata.create_all(bind=engine)  # type: ignore
+        load_fixture_data(Session())
+        return {}
+    
+    @app.route("/_seed", methods=["POST"])
+    def seed():
+        Base.metadata.create_all(bind=engine)
         load_fixture_data(Session())
         return {}
 

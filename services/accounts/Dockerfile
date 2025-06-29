@@ -1,4 +1,4 @@
-FROM python:alpine
+FROM python:3.12.7-alpine
 
 COPY requirements.txt /app/requirements.txt
 RUN \

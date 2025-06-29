@@ -7,6 +7,9 @@ test-policy: require-OSO_AUTH
 update-policy: policy/authorization.polar
 	oso-cloud policy policy/authorization.polar
 
+seed:
+	curl -X POST http://localhost:5000/_seed
+
 require-%:
 	$(if ${${*}},,$(error You must pass the $* environment variable))
 
